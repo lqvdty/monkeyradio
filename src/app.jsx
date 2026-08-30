@@ -192,6 +192,10 @@ class Component extends React.Component {
     sort: 'latest', limit: 48, detailKey: null, descs: {}, secs: {}, nowKey: null, tab: 'favs', headH: 0,
     favs: [], queue: [], history: [], shared: false, bp: 'lg', menuOpen: false,
     paused: false, playerExpanded: false, toast: '', heroIdx: 0,
+    // Set when the hidden Mixcloud <iframe> fails to come up (blocked,
+    // offline, widget API never resolves). Swaps the custom scrubber for
+    // an "open on Mixcloud" fallback. Cleared on the next healthy tick.
+    playerErr: false,
     // Sleep timer, ephemeral: null | {type:'show'} | {type:'time', mins, at}.
     sleep: null,
     // Auto-generated station lineup, kept topped up to 3 at all times.
@@ -222,9 +226,9 @@ class Component extends React.Component {
   // still just calls setState; componentDidUpdate pushes the URL after.
   // Internal view ids stay short; the URL slug matches the menu label.
   // Disabled under file:// (History API needs http[s]).
-  ROUTE_VIEWS = ['home', 'browse', 'djs', 'library', 'about'];
-  VIEW_TO_SLUG = {browse: 'archive', djs: 'selectors', library: 'saved', about: 'about'};
-  SLUG_TO_VIEW = {archive: 'browse', selectors: 'djs', saved: 'library', about: 'about'};
+  ROUTE_VIEWS = ['home', 'browse', 'djs', 'library', 'about', 'legal'];
+  VIEW_TO_SLUG = {browse: 'archive', djs: 'selectors', library: 'saved', about: 'about', legal: 'legal'};
+  SLUG_TO_VIEW = {archive: 'browse', selectors: 'djs', saved: 'library', about: 'about', legal: 'legal'};
   _routing = typeof location !== 'undefined' && /^https?:$/.test(location.protocol);
 
   slugOf(key) { return (key || '').replace(/^\/+|\/+$/g, '').split('/').pop(); }
@@ -347,7 +351,13 @@ class Component extends React.Component {
       const r = JSON.parse(localStorage.getItem(this.RESUME_KEY) || 'null');
       if (r && r.key && r.pos > 5) this._pendingResume = r;
     } catch (e) {}
-    this._onKey = (e) => { if (e.key === 'Escape') this.setState({detailKey: null, playerExpanded: false}); };
+    this._onKey = (e) => {
+      if (e.key !== 'Escape') return;
+      // Ambient mode is a plain in-page overlay (no OS Fullscreen API), so
+      // the page always receives this keydown - one press is enough.
+      if (this.state.ambient) { this.exitAmbient(); return; }
+      this.setState({detailKey: null, playerExpanded: false});
+    };
     window.addEventListener('keydown', this._onKey);
     // Persist the playhead when the tab is hidden or closed, not just on
     // the throttled progress tick.
@@ -391,6 +401,8 @@ class Component extends React.Component {
     document.body.style.overflow = '';
     this.releaseWakeLock();
     if (this._ambientTick) clearInterval(this._ambientTick);
+    if (this._dockTick) clearInterval(this._dockTick);
+    if (this._widgetTimer) clearTimeout(this._widgetTimer);
   }
 
   // Keeps the screen from sleeping mid-show - the app is meant to run
@@ -409,45 +421,21 @@ class Component extends React.Component {
     if (this._wakeLock) { try { this._wakeLock.release(); } catch (e) {} this._wakeLock = null; }
   }
 
-  // Ambient mode: a fullscreen, chrome-free now-playing view laid over the
-  // normal app (see render()) rather than a separate page, so the one
-  // persistent Mixcloud iframe and its playback state are untouched by
-  // entering or leaving it.
-  //
-  // The OS Fullscreen API must be requested synchronously inside a real
-  // user gesture or it silently no-ops - so this is only ever called
-  // directly from a click handler, never from a promise/timer callback.
-  // Unsupported entirely on iOS Safari for non-video elements; failing
-  // quietly there just leaves the browser chrome visible, which is why the
-  // ambient screen itself still reads fine without it (see render()).
-  requestAmbientFullscreen() {
-    try {
-      const el = document.documentElement;
-      if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
-    } catch (e) {}
-  }
-  exitAmbientFullscreen() {
-    try {
-      if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
-    } catch (e) {}
-  }
-  // Entering while something is already playing (the in-player button):
-  // just cover the screen. Entering cold (a bookmarked /ambient link with
-  // nothing loaded yet) shows a tap-to-start prompt instead - see the
-  // ambientTapStart-driven branch in render().
+  // Ambient mode: a chrome-free now-playing view laid over the normal app
+  // (see render()) rather than a separate page, so the one persistent
+  // Mixcloud iframe and its playback state are untouched by entering or
+  // leaving it. It is a plain in-page overlay - it deliberately does NOT
+  // call the OS Fullscreen API, so the browser's own chrome (and tabs)
+  // stay available and a single Escape always dismisses it.
   enterAmbient(ref) {
-    this.requestAmbientFullscreen();
     this.setState({ambient: true, ambientRef: ref || null});
   }
   exitAmbient() {
-    this.exitAmbientFullscreen();
     this.setState({ambient: false});
   }
   // The tap that starts a cold ambient session: one gesture covers the
-  // fullscreen request, the first pick, and (via bindWidget's play handler)
-  // the wake lock.
+  // first pick and (via bindWidget's play handler) the wake lock.
   ambientTapStart() {
-    this.requestAmbientFullscreen();
     const k = this.smartPick(this.state.items);
     if (k) this.play(k);
   }
@@ -868,6 +856,58 @@ class Component extends React.Component {
     return <React.Fragment>{prose}{list}</React.Fragment>;
   }
 
+  // Terms of Use / Privacy Policy. A real in-page view (/legal), so the
+  // header, footer and player dock stay in place around it - not an
+  // overlay. Reached from the footer "Terms & Privacy" link. Written
+  // against what the site actually does: no accounts, no analytics or ad
+  // trackers set by us, all state kept in localStorage on the visitor's
+  // own device; audio and show metadata streamed from Mixcloud; fonts
+  // from Google; hosted on Firebase.
+  legalView(v) {
+    if (!v.isLegal) return null;
+    const rule = css("height:2px;background:#201e1d;margin-bottom:24px");
+    const p = css("font:400 16px/1.65 'Archivo',sans-serif;color:#444141;margin:0 0 16px;max-width:68ch;text-wrap:pretty");
+    const ul = css("margin:0 0 16px;padding-left:22px;max-width:68ch");
+    const li = css("font:400 16px/1.65 'Archivo',sans-serif;color:#444141;margin:0 0 10px");
+    const kicker = css("font:600 10px 'Archivo',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#ae1800;margin-bottom:14px");
+    const mail = "mailto:monkeyradio.in@gmail.com";
+    const h2 = css("font-weight:800;font-size:clamp(20px,2.4vw,28px);line-height:1.05;letter-spacing:-.03em;margin:44px 0 18px");
+    return (
+      <section style={css("padding:44px 0 0;max-width:820px")}>
+        <div style={kicker}>Legal</div>
+        <h1 style={css("font-weight:800;font-size:clamp(24px,3vw,40px);line-height:1.02;letter-spacing:-.03em;margin:0 0 22px")}>Terms of Use &amp; Privacy Policy</h1>
+        <div style={rule}></div>
+        <p style={p}>Last updated 31 August 2026. This site (<strong>monkeyradio.in</strong>) is run by the Monkey Foundation, Hyderabad, India, as a free, non-commercial community radio project. By using it you agree to the terms below. If you do not agree, please stop using the site. Questions: <a href={mail} style={css("text-decoration:underline")}>monkeyradio.in@gmail.com</a>.</p>
+
+        <h2 style={h2}>Terms of Use</h2>
+        <ul style={ul}>
+          <li style={li}><strong>The service.</strong> The site is a browsable front end for Monkey Radio India&rsquo;s show archive. Audio and show information are streamed from Mixcloud through its embedded player and public API. Playback is therefore also subject to <a href="https://www.mixcloud.com/terms/" target="_blank" rel="noopener" style={css("text-decoration:underline")}>Mixcloud&rsquo;s terms</a>.</li>
+          <li style={li}><strong>Provided &ldquo;as is&rdquo;.</strong> The site is offered without warranty of any kind. We do not guarantee that it will be available, uninterrupted, error-free, or that any given show will stay online, since the archive lives on Mixcloud.</li>
+          <li style={li}><strong>Personal use.</strong> The site is for personal, non-commercial listening. Shows, mixes and their artwork remain the property of their selectors, artists and rights holders. Do not download, re-upload, redistribute, or publicly perform them without permission from the rights holders.</li>
+          <li style={li}><strong>Site content.</strong> The site&rsquo;s design, code, text and the Monkey Radio India and Monkey Sound System names and artwork are &copy; the Monkey Foundation. Please ask before reusing them.</li>
+          <li style={li}><strong>Acceptable use.</strong> Do not attempt to disrupt, overload, scrape at scale, reverse-engineer for republication, or otherwise misuse the site or the services it depends on.</li>
+          <li style={li}><strong>Submitting a show.</strong> If you send us a mix (by email or the &ldquo;Submit a show&rdquo; link) you confirm that it is your own work or that you have the rights to share it, and you give the Monkey Foundation permission to broadcast, stream and host it as part of the station. You can ask us to take it down at any time.</li>
+          <li style={li}><strong>External links.</strong> The site links to third-party services (Mixcloud, Instagram, Facebook and others). We are not responsible for their content or practices.</li>
+          <li style={li}><strong>Changes.</strong> We may update these terms or the site itself. Continued use after a change means you accept the updated terms. These terms are governed by the laws of India, with courts in Hyderabad having jurisdiction.</li>
+        </ul>
+
+        <h2 style={h2}>Privacy Policy</h2>
+        <p style={p}>Short version: we do not run accounts, advertising, or analytics or tracking scripts of our own, and we do not collect or sell personal information. A few third parties the site relies on receive technical request data, described below.</p>
+        <ul style={ul}>
+          <li style={li}><strong>No accounts, no tracking by us.</strong> There is no sign-up. We set no advertising or analytics cookies and embed no social &ldquo;like&rdquo; or tracking pixels.</li>
+          <li style={li}><strong>Storage on your device.</strong> The site saves your preferences, saved and queued shows, listening history, and playback position in your browser&rsquo;s local storage, along with a cached copy of the show list so it loads quickly. This stays on your device, is never sent to us, and you can clear it any time through your browser settings.</li>
+          <li style={li}><strong>Hosting.</strong> The site is served by Firebase Hosting (Google). Like any web host, Google&rsquo;s servers process standard request data such as your IP address, browser type and timestamps to deliver the site and keep it secure. See the <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener" style={css("text-decoration:underline")}>Firebase privacy information</a>.</li>
+          <li style={li}><strong>Mixcloud.</strong> When you open or play a show, your browser contacts Mixcloud to load the player and audio. Mixcloud may set its own cookies and collect usage data under its <a href="https://www.mixcloud.com/privacy/" target="_blank" rel="noopener" style={css("text-decoration:underline")}>privacy policy</a>.</li>
+          <li style={li}><strong>Google Fonts.</strong> Typefaces are loaded from Google&rsquo;s font servers, which means Google receives your IP address and user-agent when the fonts are fetched.</li>
+          <li style={li}><strong>Email.</strong> If you email us or submit a show, we keep that correspondence so we can reply and, where relevant, add the show to the station.</li>
+          <li style={li}><strong>Children.</strong> The site is a general-audience music service and is not directed at children under 13.</li>
+          <li style={li}><strong>Your choices.</strong> You can clear local storage, block cookies, or use the site without playing embedded shows. For any privacy question, or to ask us to remove a submission or correspondence, contact <a href={mail} style={css("text-decoration:underline")}>monkeyradio.in@gmail.com</a>.</li>
+        </ul>
+        <p style={p}>If this policy changes, the &ldquo;last updated&rdquo; date above will change with it.</p>
+      </section>
+    );
+  }
+
   // A stable per-day integer, so day-seeded hero picks don't flicker between renders.
   daySeed() {
     const d = new Date();
@@ -1111,6 +1151,9 @@ class Component extends React.Component {
     if (key !== this.state.nowKey) {
       this.clearResume();
       this._nowSince = Date.now();   // trailing ticks from the old show don't save
+      this._widgetAlive = 0;         // health clock restarts for the new load
+      this._loadAt = Date.now();
+      if (this.state.playerErr) this.setState({playerErr: false});
       const at = this.progFor(key);
       this._resumeSeek = (at > 5 && (!m.len || at < m.len - 30)) ? at : null;
       this._wpos = this._resumeSeek || 0;
@@ -1301,7 +1344,15 @@ class Component extends React.Component {
     try {
       const w = window.Mixcloud.PlayerWidget(el);
       this._widget = w;
-      w.ready.then(() => this.attachWidget(w));
+      w.ready.then(() => { this.markPlayerAlive(); this.attachWidget(w); },
+                   () => { this.setState({playerErr: true}); });
+      // Belt-and-braces: if `ready` never settles (script blocked, CSP,
+      // an ad blocker eating the widget frame) nothing above fires, so
+      // arm a one-shot timeout that trips the fallback UI.
+      clearTimeout(this._widgetTimer);
+      this._widgetTimer = setTimeout(() => {
+        if (!this._widgetAlive) this.setState({playerErr: true});
+      }, 10000);
       // The same <iframe> is reused for every show - React only swaps its
       // `src` - and each fresh load makes the widget API hand the parent a
       // new API definition, which rebuilds `w.events.*` from scratch and
@@ -1318,11 +1369,20 @@ class Component extends React.Component {
           const cur = this._bound;
           if (!this._widget || !cur || ev.source !== cur.contentWindow) return;
           let d; try { d = JSON.parse(ev.data); } catch (e) { return; }
-          if (d && d.mixcloud === 'playerWidget' && d.type === 'api') this.attachWidget(this._widget);
+          if (d && d.mixcloud === 'playerWidget' && d.type === 'api') { this.markPlayerAlive(); this.attachWidget(this._widget); }
         };
         window.addEventListener('message', this._apiRebind, false);
       }
-    } catch (e) {}
+    } catch (e) {
+      this.setState({playerErr: true});
+    }
+  }
+  // Any real sign of life from the widget (ready, an api rebuild, a play
+  // or progress event) clears the fallback and restarts the health clock.
+  markPlayerAlive() {
+    this._widgetAlive = Date.now();
+    clearTimeout(this._widgetTimer);
+    if (this.state.playerErr) this.setState({playerErr: false});
   }
   // Registers our listeners on the widget's current event registry.
   // Idempotent: the registry objects are replaced wholesale on every
@@ -1342,6 +1402,7 @@ class Component extends React.Component {
         this.releaseWakeLock();
       });
       w.events.play.on(() => {
+        this.markPlayerAlive();
         this.setState({ paused: false }); this.setMSState('playing');
         this._cold = false;
         this.requestWakeLock();
@@ -1358,6 +1419,8 @@ class Component extends React.Component {
       // home screen) and the lock-screen scrubber.
       w.events.progress.on((position) => {
         const s = this.state;
+        this._widgetAlive = Date.now();
+        if (s.playerErr) this.setState({playerErr: false});
         // Trailing ticks from the previous show carry its position but
         // the new key: don't let them save over the new show's mark.
         const settled = Date.now() - (this._nowSince || 0) > 1500;
@@ -1420,6 +1483,26 @@ class Component extends React.Component {
       clearInterval(this._ambientTick);
       this._ambientTick = null;
     }
+    // The dock / sheet scrubber is now driven by us, not a visible
+    // Mixcloud widget, so it needs its own 1/sec repaint whenever a show
+    // is loaded - on every view, not just home. The same tick runs the
+    // player health check: a playing show that has gone quiet for ~14s
+    // (no progress events, not a cold paused resume) means the hidden
+    // iframe died, so fall back.
+    if (this.state.nowKey && !this._dockTick) {
+      this._dockTick = setInterval(() => {
+        if (document.hidden) return;
+        const s = this.state;
+        if (s.nowKey && !s.paused && !this._cold && !s.playerErr &&
+            this._widgetAlive && Date.now() - this._widgetAlive > 14000) {
+          this.setState({playerErr: true});
+        }
+        if (s.nowKey && !s.paused) this.forceUpdate();
+      }, 1000);
+    } else if (!this.state.nowKey && this._dockTick) {
+      clearInterval(this._dockTick);
+      this._dockTick = null;
+    }
     // Recolour the ambient backdrop when the on-air show's genre changes
     // (e.g. auto-advancing from a house set into a dub set) while ambient
     // mode stays open.
@@ -1454,6 +1537,8 @@ class Component extends React.Component {
       if (m) {
         this._resumeSeek = r.pos;
         this._cold = true;
+        this._loadAt = Date.now();
+        this._widgetAlive = 0;
         this._nav = [r.key];
         this._navPos = 0;
         this.setState({nowKey: r.key, paused: true, upNext: this.buildUpNext(r.key, 3)});
@@ -1630,6 +1715,7 @@ class Component extends React.Component {
       isHome: s.view === 'home' && !(detail && s.bp === 'sm'), isBrowse: s.view === 'browse' && !(detail && s.bp === 'sm'),
       isDjs: s.view === 'djs' && !(detail && s.bp === 'sm'),
       isLibrary: s.view === 'library' && !(detail && s.bp === 'sm'), isAbout: s.view === 'about' && !(detail && s.bp === 'sm'),
+      isLegal: s.view === 'legal' && !(detail && s.bp === 'sm'),
       detailPage: !!detail && s.bp === 'sm',
       rootRef: this.attachRoot,
       headRef: (el) => { this._headEl = el; },
@@ -1705,9 +1791,69 @@ class Component extends React.Component {
         favFg: isFav(now.key) ? '#ec3013' : '#201e1d',
         favFill: isFav(now.key) ? 'currentColor' : 'none'
       }) : {},
-      playerSrc: now ? 'https://player-widget.mixcloud.com/widget/iframe/?hide_cover=1&light=1&autoplay=' + (this._cold ? '0' : '1') + '&feed=' + encodeURIComponent(now.url.replace('https://www.mixcloud.com', '')) : '',
+      // `mini=1`: a bare transport strip (play/scrub/time). The `light=1`
+      // variant also paints the show title and Mixcloud's own favourite /
+      // repost buttons inside the iframe, doubling up our dock title and
+      // Save button. The mini widget shows neither.
+      playerSrc: now ? 'https://player-widget.mixcloud.com/widget/iframe/?hide_cover=1&mini=1&light=1&autoplay=' + (this._cold ? '0' : '1') + '&feed=' + encodeURIComponent(now.url.replace('https://www.mixcloud.com', '')) + (this._playerNonce ? '&_r=' + this._playerNonce : '') : '',
       playerRef: (el) => { this._iframe = el; this.bindWidget(); },
       upNextName,
+
+      // ---- Dock / sheet scrubber (replaces the visible Mixcloud strip) ----
+      // Same position math as ambient mode, but always present.
+      dockHasTrack: !!(now && now.len > 0),
+      dockPct: ambientPct,
+      dockElapsed: now ? (ambientElapsed || this.fmtLen(0)) : this.fmtLen(0),
+      dockRuntime: now && now.len > 0 ? ambientRuntime : '',
+      // "Loading" until the first real progress tick lands (or a resume
+      // seek is pending, which already gives us a position to show).
+      dockLoading: !!now && !s.playerErr && !s.paused && this._resumeSeek == null &&
+        (Date.now() - (this._nowSince || 0) < 1500 || !((this._wpos || 0) > 0)),
+      playerErr: s.playerErr,
+      // The hidden iframe always paints its own title + art, so it is
+      // clipped out (see .mri-mchide) - `onError` is our only DOM-level
+      // signal that the frame itself failed to load.
+      playerIframeError: () => this.setState({playerErr: true}),
+      // Fallback action: nudge the widget back to life by forcing a
+      // fresh bind on the next tick; if it still won't come up the
+      // "Open on Mixcloud" link in the fallback UI is the escape hatch.
+      retryPlayer: () => {
+        // Force a genuine reload of the <iframe> (new `src` via the nonce),
+        // not just a re-bind - if the frame itself failed, re-calling
+        // PlayerWidget() on it would not help.
+        this._playerNonce = (this._playerNonce || 0) + 1;
+        // Keep this._widget when we have one: it survives an <iframe> src
+        // reload (same node) and the api-rebuild message re-attaches our
+        // handlers. Only when the widget never came up at all do we clear
+        // this._bound so bindWidget() runs PlayerWidget() again.
+        if (!this._widget) this._bound = null;
+        this._widgetAlive = 0;
+        this._loadAt = Date.now();
+        this._cold = false;
+        this.setState({playerErr: false});
+      },
+      seekPct: (e) => {
+        const m = now;
+        if (!m || !(m.len > 0)) return;
+        if (!this._widget) { this.flash('Player still loading'); return; }
+        const r = e.currentTarget.getBoundingClientRect();
+        const frac = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+        const target = frac * m.len;
+        this._wpos = target;
+        try { this._widget.seek(target); } catch (err) {}
+        this.forceUpdate();
+      },
+      seekKey: (e) => {
+        const m = now;
+        if (!m || !(m.len > 0) || !this._widget) return;
+        const step = e.key === 'ArrowRight' ? 15 : e.key === 'ArrowLeft' ? -15 : 0;
+        if (!step) return;
+        e.preventDefault();
+        const target = Math.max(0, Math.min(m.len, (this._wpos || 0) + step));
+        this._wpos = target;
+        try { this._widget.seek(target); } catch (err) {}
+        this.forceUpdate();
+      },
 
       // Ambient mode.
       ambient: s.ambient,
@@ -1775,7 +1921,8 @@ class Component extends React.Component {
       shareNow: () => { try { navigator.clipboard.writeText(now ? now.url : ''); } catch (e) {} this.setState({shared: true}); this.flash('Link copied'); },
       togglePlay: () => {
         if (typeof navigator !== 'undefined' && navigator.onLine === false && !this._widget) { this.flash('Offline - playback needs a connection'); return; }
-        try { this._widget && this._widget.togglePlay(); } catch (e) {}
+        if (!this._widget || s.playerErr) { this.flash('Player unavailable - try Open on Mixcloud'); return; }
+        try { this._widget.togglePlay(); } catch (e) { this.setState({playerErr: true}); }
       },
       expandPlayer: () => this.setState({playerExpanded: true}),
       collapsePlayer: () => this.setState({playerExpanded: false}),
@@ -2253,6 +2400,8 @@ class Component extends React.Component {
             </section>
           )}
 
+          {this.legalView(v)}
+
         </main>
 
         <footer style={css("border-top:2px solid #201e1d;margin-top:88px")}>
@@ -2296,6 +2445,7 @@ class Component extends React.Component {
 
             <div style={css("border-top:1px solid #d7d3d3;padding:16px 0 8px;display:flex;gap:10px 20px;flex-wrap:wrap;align-items:center;justify-content:space-between")}>
               <span style={css("font:500 11px 'Archivo',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#6a6666")}>&copy; {new Date().getFullYear()} Monkey Foundation</span>
+              <button onClick={v.nav} data-view="legal" className="h-accent-text" style={css("background:none;border:0;padding:0;cursor:pointer;font:500 11px 'Archivo',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#6a6666")}>Terms &amp; Privacy</button>
               <span style={css("font:500 11px 'Archivo',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#6a6666")}>Hyderabad, India</span>
             </div>
           </div>
@@ -2392,7 +2542,33 @@ class Component extends React.Component {
                 {v.upNextName ? <div className="mp-next">Up next &middot; {v.upNextName}</div> : null}
               </div>
               <div className="mp-scrub">
-                <iframe ref={v.playerRef} title="Mixcloud player" src={v.playerSrc} width="100%" height="60" frameBorder="0" allow="autoplay" style={css("display:block;border:0")}></iframe>
+                {v.playerErr ? (
+                  <div className="mp-scruberr">
+                    <span>Player couldn't load.</span>
+                    <div className="mp-scruberr-act">
+                      <button onClick={v.retryPlayer} type="button">Retry</button>
+                      <a href={v.now.url} target="_blank" rel="noopener">Open on Mixcloud ↗</a>
+                    </div>
+                  </div>
+                ) : (
+                  <React.Fragment>
+                    <div className="mp-scrubrow">
+                      <button onClick={v.togglePlay} type="button" aria-label={v.paused ? 'Resume' : 'Pause'} className="mp-scrubplay">
+                        {v.paused
+                          ? <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none" style={css("display:block")}><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
+                          : <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none" style={css("display:block")}><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>}
+                      </button>
+                      <div className="mp-track" role="slider" tabIndex={v.dockHasTrack ? 0 : -1} aria-label="Seek" aria-valuemin={0} aria-valuemax={100} aria-valuenow={parseInt(v.dockPct, 10) || 0} onClick={v.seekPct} onKeyDown={v.seekKey}>
+                        <span style={css("width:" + (v.dockLoading ? '0%' : v.dockPct))}></span>
+                      </div>
+                    </div>
+                    <div className="mp-scrubtime">
+                      <span>{v.dockLoading ? 'Loading…' : v.dockElapsed}</span>
+                      <span>{v.dockRuntime}</span>
+                    </div>
+                  </React.Fragment>
+                )}
+                <iframe ref={v.playerRef} title="Mixcloud player" src={v.playerSrc} className="mri-mchide" width="100%" height="60" frameBorder="0" allow="autoplay" onError={v.playerIframeError}></iframe>
               </div>
               <button onClick={v.cycleSleep} className="mp-radio" data-on={v.sleepOn ? '1' : '0'} aria-label="Sleep timer" title="Stop playback after this show or a set time">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none")}><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
@@ -2417,7 +2593,7 @@ class Component extends React.Component {
                     : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none")}><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" x2="12" y1="2" y2="15"></line></svg>}
                   {v.shared ? 'Copied' : 'Share'}
                 </button>
-                <button onClick={v.enterAmbient} className="mp-abtn" aria-label="Ambient mode" title="Fullscreen, distraction-free now-playing view">
+                <button onClick={v.enterAmbient} className="mp-abtn" aria-label="Ambient mode" title="Distraction-free now-playing view">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none")}><path d="M8 3H5a2 2 0 0 0-2 2v3"></path><path d="M21 8V5a2 2 0 0 0-2-2h-3"></path><path d="M3 16v3a2 2 0 0 0 2 2h3"></path><path d="M16 21h3a2 2 0 0 0 2-2v-3"></path></svg>
                   Ambient
                 </button>
@@ -2454,8 +2630,27 @@ class Component extends React.Component {
                 <div style={css("font:500 10px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#6a6666;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis")}>{v.now.dj}</div>
                 {v.upNextName ? <div style={css("font:600 9.5px 'Archivo',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#6c6c6c;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis")}>Next &middot; {v.upNextName}</div> : null}
               </div>
-              <div style={css("flex:1;min-width:240px")}>
-                <iframe ref={v.playerRef} title="Mixcloud player" src={v.playerSrc} width="100%" height="60" frameBorder="0" allow="autoplay" style={css("display:block;border:0")}></iframe>
+              <div style={css("flex:1;min-width:240px;display:flex;align-items:center;gap:12px")}>
+                {v.playerErr ? (
+                  <div style={css("flex:1;min-width:0;display:flex;align-items:center;gap:12px;font:600 10px 'Archivo',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#6a6666")}>
+                    <span style={css("white-space:nowrap")}>Player couldn't load</span>
+                    <button onClick={v.retryPlayer} type="button" className="h-accent-text" style={css("border:0;background:none;color:#201e1d;font:inherit;letter-spacing:inherit;text-transform:inherit;cursor:pointer;padding:0;text-decoration:underline")}>Retry</button>
+                    <a href={v.now.url} target="_blank" rel="noopener" style={css("white-space:nowrap")}>Open on Mixcloud ↗</a>
+                  </div>
+                ) : (
+                  <React.Fragment>
+                    <button onClick={v.togglePlay} type="button" aria-label={v.paused ? 'Resume' : 'Pause'} className="mri-dockbtn" style={css("width:36px;height:36px;flex:none;display:flex;align-items:center;justify-content:center;border:1px solid #201e1d;background:#201e1d;color:#f3f2f2;border-radius:0;cursor:pointer")}>
+                      {v.paused
+                        ? <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="none" style={css("display:block")}><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
+                        : <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="none" style={css("display:block")}><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>}
+                    </button>
+                    <div role="slider" tabIndex={v.dockHasTrack ? 0 : -1} aria-label="Seek" aria-valuemin={0} aria-valuemax={100} aria-valuenow={parseInt(v.dockPct, 10) || 0} onClick={v.seekPct} onKeyDown={v.seekKey} style={css("flex:1;min-width:0;cursor:pointer;padding:9px 0")}>
+                      <div style={css("height:4px;background:#ded9d9;overflow:hidden")}><span style={css("display:block;height:100%;background:#201e1d;width:" + (v.dockLoading ? '0%' : v.dockPct))}></span></div>
+                    </div>
+                    <div style={css("flex:none;font:600 10px 'Archivo',sans-serif;letter-spacing:.06em;color:#6a6666;white-space:nowrap;font-variant-numeric:tabular-nums")}>{v.dockLoading ? 'Loading…' : (v.dockElapsed + (v.dockRuntime ? ' / ' + v.dockRuntime : ''))}</div>
+                  </React.Fragment>
+                )}
+                <iframe ref={v.playerRef} title="Mixcloud player" src={v.playerSrc} className="mri-mchide" width="100%" height="60" frameBorder="0" allow="autoplay" onError={v.playerIframeError}></iframe>
               </div>
               <button onClick={v.cycleSleep} aria-label="Sleep timer" title="Stop after this show or a set time" className="mri-sleepbtn" style={css("display:flex;align-items:center;gap:9px;border:1px solid #201e1d;background:" + (v.sleepOn ? "#201e1d" : "transparent") + ";color:" + (v.sleepOn ? "#f3f2f2" : "#201e1d") + ";border-radius:0;padding:10px 13px;font:600 10.5px 'Archivo',sans-serif;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;white-space:nowrap")}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none")}><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
@@ -2470,7 +2665,7 @@ class Component extends React.Component {
               <button onClick={v.toggleFav} data-key={v.now.key} aria-label="Save show" className="h-accent-border mri-dockbtn" style={css("width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:1px solid #201e1d;background:none;color:" + v.now.favFg + ";cursor:pointer;border-radius:0")}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill={v.now.favFill} stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block")}><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>
               </button>
-              <button onClick={v.enterAmbient} aria-label="Ambient mode" title="Fullscreen, distraction-free now-playing view" className="h-invert mri-dockbtn" style={css("width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:1px solid #201e1d;background:none;color:#201e1d;cursor:pointer;border-radius:0")}>
+              <button onClick={v.enterAmbient} aria-label="Ambient mode" title="Distraction-free now-playing view" className="h-invert mri-dockbtn" style={css("width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:1px solid #201e1d;background:none;color:#201e1d;cursor:pointer;border-radius:0")}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block")}><path d="M8 3H5a2 2 0 0 0-2 2v3"></path><path d="M21 8V5a2 2 0 0 0-2-2h-3"></path><path d="M3 16v3a2 2 0 0 0 2 2h3"></path><path d="M16 21h3a2 2 0 0 0 2-2v-3"></path></svg>
               </button>
               <button onClick={v.stopPlaying} aria-label="Close player" className="h-invert mri-dockbtn" style={css("width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:1px solid #201e1d;background:none;color:#201e1d;cursor:pointer;border-radius:0")}>

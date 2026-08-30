@@ -185,7 +185,13 @@ class Component extends React.Component {
     sleep: null,
     // Auto-generated station lineup, kept topped up to 3 at all times.
     // Ephemeral: never written to prefs, unlike the user's `queue`.
-    upNext: []
+    upNext: [],
+    // Ambient mode: a fullscreen, distraction-free now-playing view (a
+    // venue counter display, a second monitor, anyone who wants the app
+    // out of the way). Ephemeral, and layered as an overlay rather than a
+    // real view swap - see enterAmbient() - so the persistent player
+    // (and its live Mixcloud iframe) never unmounts underneath it.
+    ambient: false, ambientRef: null
   };
 
   // One of the four colourways, picked once per load for the Station page.
@@ -213,6 +219,7 @@ class Component extends React.Component {
   slugOf(key) { return (key || '').replace(/^\/+|\/+$/g, '').split('/').pop(); }
 
   routeToPath(s) {
+    if (s.ambient) return '/ambient' + (s.ambientRef ? '?ref=' + encodeURIComponent(s.ambientRef) : '');
     if (s.detailKey) return '/show/' + this.slugOf(s.detailKey);
     const qs = new URLSearchParams();
     if (s.genre) qs.set('genre', s.genre);
@@ -227,6 +234,7 @@ class Component extends React.Component {
   routeFromLocation() {
     const parts = location.pathname.replace(/^\/+|\/+$/g, '').split('/').filter(Boolean);
     const q = new URLSearchParams(location.search);
+    if (parts[0] === 'ambient') return {_ambient: true, ambientRef: q.get('ref') || null};
     if (parts[0] === 'show' && parts[1]) return {_showSlug: decodeURIComponent(parts[1])};
     const view = this.SLUG_TO_VIEW[parts[0]] || (this.ROUTE_VIEWS.indexOf(parts[0]) >= 0 ? parts[0] : 'home');
     return {view, detailKey: null, genre: q.get('genre'), mood: q.get('mood'), dj: q.get('dj'), query: q.get('q') || ''};
@@ -240,13 +248,14 @@ class Component extends React.Component {
   applyRoute() {
     if (!this._routing) return;
     const r = this.routeFromLocation();
+    this._pendingShowSlug = null;
+    if (r._ambient) { this.setState({ambient: true, ambientRef: r.ambientRef}); return; }
     if (r._showSlug) {
       const key = this.resolveShowSlug(r._showSlug);
-      if (key) { this._pendingShowSlug = null; this.setState({detailKey: key}); }
-      else this._pendingShowSlug = r._showSlug;   // items not loaded yet
+      if (key) this.setState({detailKey: key, ambient: false});
+      else { this._pendingShowSlug = r._showSlug; this.setState({ambient: false}); }   // items not loaded yet
     } else {
-      this._pendingShowSlug = null;
-      this.setState(r);
+      this.setState(Object.assign({ambient: false}, r));
     }
   }
 
@@ -256,7 +265,11 @@ class Component extends React.Component {
     if (target === location.pathname + location.search) return;
     // New keystrokes in the search box only rewrite the query, not the
     // page identity, so they replace rather than pile up history entries.
-    const key = [this.state.detailKey || '', this.state.view, this.state.genre || '', this.state.mood || '', this.state.dj || ''].join('|');
+    // Ambient mode always gets its own history entry, so the back button
+    // is a working exit gesture even for someone who never finds the
+    // on-screen close control.
+    const key = this.state.ambient ? 'ambient:' + (this.state.ambientRef || '')
+      : [this.state.detailKey || '', this.state.view, this.state.genre || '', this.state.mood || '', this.state.dj || ''].join('|');
     const method = key === this._routeKey ? 'replaceState' : 'pushState';
     this._routeKey = key;
     try { history[method](null, '', target); } catch (e) {}
@@ -381,6 +394,49 @@ class Component extends React.Component {
     if (this._wakeLock) { try { this._wakeLock.release(); } catch (e) {} this._wakeLock = null; }
   }
 
+  // Ambient mode: a fullscreen, chrome-free now-playing view laid over the
+  // normal app (see render()) rather than a separate page, so the one
+  // persistent Mixcloud iframe and its playback state are untouched by
+  // entering or leaving it.
+  //
+  // The OS Fullscreen API must be requested synchronously inside a real
+  // user gesture or it silently no-ops - so this is only ever called
+  // directly from a click handler, never from a promise/timer callback.
+  // Unsupported entirely on iOS Safari for non-video elements; failing
+  // quietly there just leaves the browser chrome visible, which is why the
+  // ambient screen itself still reads fine without it (see render()).
+  requestAmbientFullscreen() {
+    try {
+      const el = document.documentElement;
+      if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
+    } catch (e) {}
+  }
+  exitAmbientFullscreen() {
+    try {
+      if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
+    } catch (e) {}
+  }
+  // Entering while something is already playing (the in-player button):
+  // just cover the screen. Entering cold (a bookmarked /ambient link with
+  // nothing loaded yet) shows a tap-to-start prompt instead - see the
+  // ambientTapStart-driven branch in render().
+  enterAmbient(ref) {
+    this.requestAmbientFullscreen();
+    this.setState({ambient: true, ambientRef: ref || null});
+  }
+  exitAmbient() {
+    this.exitAmbientFullscreen();
+    this.setState({ambient: false});
+  }
+  // The tap that starts a cold ambient session: one gesture covers the
+  // fullscreen request, the first pick, and (via bindWidget's play handler)
+  // the wake lock.
+  ambientTapStart() {
+    this.requestAmbientFullscreen();
+    const k = this.smartPick(this.state.items);
+    if (k) this.play(k);
+  }
+
   savePrefs(patch) {
     const next = {favs: this.state.favs, queue: this.state.queue, history: this.state.history, ...patch};
     this.setState(patch);
@@ -436,18 +492,42 @@ class Component extends React.Component {
   }
 
   NOT_A_DJ = ['indiearth','monkey radio','monkeyradio','monkey sound','tune inn','souls of sound','music manthan','disco freak','bass sanskriti','dub vibration','roots unwired','daktadub','dakta dub','hyderabad underground movement','hyderabad hi fi','hi fi hyderabad','sunday special','sunday live','excursions in','guest mix','radio show','podcast'];
-  ALIASES = ['dj def hawk','selekta chakkra','dj amul','psylenz','berencz balazs','dj makarun'];
+  ALIASES = ['dj def hawk','selekta chakkra','amul','psylenz','berencz balazs','dj makarun'];
 
   djFrom(raw) {
     let s = (raw || '').replace(/│/g, '|').trim();
     const flat = x => (x || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-    const alias = this.ALIASES.find(a => flat(s).indexOf(flat(a)) === 0);
+    const alias = this.ALIASES.find(a => flat(s).indexOf(flat(a)) >= 0);
     if (alias) return alias.replace(/\b\w/g, c => c.toUpperCase());
     const bar = s.split('|');
     const barred = bar.length > 1 && bar[0].trim().length > 1;
     if (barred) s = bar[0].trim();
     let cand = null;
+    // The text before a "presents"/"feat"/"showcase" keyword is the station
+    // or one of its recurring programme names, not a person - so there, the
+    // selector is whatever comes after the keyword.
+    const isShowish = x => /monkey|indiearth/i.test(x) || this.NOT_A_DJ.some(n => flat(x).indexOf(flat(n)) >= 0);
+    const nameish = x => x.length >= 2 && x.length <= 34
+      && /^[\p{L}\p{N}][\p{L}\p{N}.'’ -]*$/u.test(x)
+      && x.split(/\s+/).length <= 3
+      && !/\b(?:of|the|a|an|evolution)\b/i.test(x);
+    const trimTail = x => x
+      .replace(/\s*[({\[].*$/, '')
+      .replace(/\s+-\s+.*$/, '')
+      .replace(/\s*\d{1,2}[./-]\d{1,2}[./-]\d{2,4}\s*$/, '')
+      .replace(/\s*\b(?:19|20)\d{2}\b\s*$/, '')
+      .replace(/\s+from\s+[A-Z][\w'’-]+\s*$/i, '')
+      .trim();
     { const m = s.match(/\bby\s+([A-Za-z][^|,]{1,34})$/i); if (m) cand = m[1]; }
+    // "<station/show> presents|feat|features|showcase - <guest>"
+    if (!cand) {
+      const m = s.match(/^(.{2,46}?)\s+(?:presents?|pres\.?|featuring|features|feat\.?|ft\.?)\s+(.{2,40}?)\s*$/i)
+        || s.match(/\bshowcase\s*[-–]\s*(.{2,40}?)\s*$/i);
+      if (m) {
+        const after = trimTail((m.length > 2 ? m[2] : m[1]).trim());
+        if ((m.length <= 2 || isShowish(m[1])) && nameish(after)) cand = after;
+      }
+    }
     if (!cand) { const i = s.indexOf(' - '); if (i > 1 && i < 52) cand = s.slice(0, i); }
     if (!cand) { const m = s.match(/^(.{2,46}?)\s+(?:presents|present|pres\.?)\s+/i); if (m) cand = m[1]; }
     if (!cand) { const m = s.match(/^(.{2,46}?)\s+(?:feat\.?|ft\.?|w\/)\s+/i); if (m) cand = m[1]; }
@@ -1125,11 +1205,12 @@ class Component extends React.Component {
                 });
               } catch (e) {}
             }
-            // The hero "on air" bar is the only thing this repaints for, and
-            // it only needs whole-second resolution - cap it at 1/sec so a
-            // widget that ticks faster than that doesn't force extra full
-            // re-renders of the page underneath it.
-            if (s.view === 'home' && !document.hidden && s.nowKey && Date.now() - (this._lastHeroTick || 0) >= 950) {
+            // The hero "on air" bar (and, sharing the same throttle,
+            // ambient mode's progress bar) is the only thing this repaints
+            // for, and it only needs whole-second resolution - cap it at
+            // 1/sec so a widget that ticks faster than that doesn't force
+            // extra full re-renders of the page underneath it.
+            if ((s.view === 'home' || s.ambient) && !document.hidden && s.nowKey && Date.now() - (this._lastHeroTick || 0) >= 950) {
               this._lastHeroTick = Date.now();
               this.forceUpdate();
             }
@@ -1302,6 +1383,16 @@ class Component extends React.Component {
     const list = this.filtered();
     const detail = s.detailKey ? this.byKey(s.detailKey) : null;
     const now = s.nowKey ? this.byKey(s.nowKey) : null;
+    // Ambient mode's own progress bar - same math as the hero on-air bar
+    // above, just against whatever's actually loaded (`now`) rather than
+    // whichever show the home hero happens to be featuring right now.
+    let ambientPct = '0%', ambientElapsed = '', ambientRuntime = '';
+    if (now && now.len > 0) {
+      const pos = Math.max(0, Math.min(this._wpos || this._resumeSeek || 0, now.len));
+      ambientPct = (Math.round((pos / now.len) * 1000) / 10) + '%';
+      ambientElapsed = this.fmtLen(Math.floor(pos));
+      ambientRuntime = this.fmtLen(now.len);
+    }
     const isFav = k => s.favs.indexOf(k) >= 0;
 
     const libSrc = s.tab === 'favs' ? s.favs : s.tab === 'queue' ? s.queue : s.history;
@@ -1416,6 +1507,14 @@ class Component extends React.Component {
       playerSrc: now ? 'https://player-widget.mixcloud.com/widget/iframe/?hide_cover=1&light=1&autoplay=' + (this._cold ? '0' : '1') + '&feed=' + encodeURIComponent(now.url.replace('https://www.mixcloud.com', '')) : '',
       playerRef: (el) => { this._iframe = el; this.bindWidget(); },
       upNextName,
+
+      // Ambient mode.
+      ambient: s.ambient,
+      ambientPct, ambientElapsed, ambientRuntime,
+      ambientShowUrl: now ? 'https://www.monkeyradio.in/show/' + this.slugOf(now.key) : '',
+      enterAmbient: () => this.enterAmbient(),
+      exitAmbient: () => this.exitAmbient(),
+      ambientTapStart: () => this.ambientTapStart(),
 
       goHome: () => this.setState({view: 'home', genre: null, mood: null, dj: null, query: '', detailKey: null}),
       goSubmit: () => { this._scrollTo = 'mri-submit'; this.setState({view: 'about', menuOpen: false, genre: null, mood: null, dj: null, query: '', detailKey: null}); },
@@ -1539,6 +1638,53 @@ class Component extends React.Component {
 
     return (
       <div ref={v.rootRef} className="mri-app" style={css("min-height:100vh;background:#f3f2f2;padding-bottom:" + v.padBottom)}>
+
+        {/* Ambient mode: a fullscreen overlay, not a separate view - the
+            normal app (header, browse UI, and critically the persistent
+            Mixcloud iframe further down) stays mounted underneath the
+            whole time, so entering/leaving never touches playback. */}
+        {v.ambient && (
+          <div role="dialog" aria-label="Ambient mode" style={css("position:fixed;inset:0;z-index:400;background:#201e1d;color:#f3f2f2;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;overflow:hidden;padding:32px")}>
+            <div aria-hidden="true" style={css("position:absolute;right:-40px;bottom:-40px;width:min(70vw,520px);aspect-ratio:460/421;opacity:.07;pointer-events:none;background:center/contain no-repeat " + SOUND_SYSTEM_BG)}></div>
+
+            <button onClick={v.exitAmbient} aria-label="Exit ambient mode" style={css("position:absolute;top:20px;right:20px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;background:none;border:1px solid rgba(243,242,242,.4);color:#f3f2f2;border-radius:0;cursor:pointer;opacity:.65")}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block")}><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+            </button>
+
+            <img src="assets/logo.png" alt="Monkey Radio India" style={css("position:absolute;left:20px;bottom:20px;width:30px;height:28px;object-fit:contain;opacity:.85")} />
+
+            {!v.now.key ? (
+              <button onClick={v.ambientTapStart} style={css("background:none;border:0;color:#f3f2f2;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:22px;padding:0")}>
+                <div role="img" aria-label="The Monkey Sound System, a hand-built dub speaker stack" style={css("aspect-ratio:460/421;pointer-events:none;width:min(260px,52vw);background:center/contain no-repeat " + SOUND_SYSTEM_BG)}></div>
+                <div style={css("font:600 13px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase")}>Tap to start the radio</div>
+              </button>
+            ) : (
+              <React.Fragment>
+                <ArtBg url={v.now.pic} role="img" aria-label="Album art" base={"width:min(58vh," + (v.isSm ? "72vw" : "440px") + ");aspect-ratio:1;background-size:cover;background-position:center;background-color:#33302f;border:2px solid #f3f2f2"} />
+                <h1 style={css("font:800 clamp(20px,3.4vw,34px)/1.2 'Archivo',sans-serif;margin:26px 0 0;max-width:min(90vw,720px)")}>{v.now.name}</h1>
+                <div style={css("font:600 11px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#c9c6c5;margin-top:10px")}>Selected by {v.now.dj}</div>
+                {v.ambientRuntime ? (
+                  <div style={css("width:min(90vw,420px);margin-top:26px")}>
+                    <div style={css("height:2px;background:rgba(243,242,242,.2)")}><span style={css("display:block;height:100%;background:#ec3013;width:" + v.ambientPct)}></span></div>
+                    <div style={css("font:600 9.5px 'Archivo',sans-serif;letter-spacing:.12em;color:#8a8685;margin-top:8px")}>{v.ambientElapsed} / {v.ambientRuntime}</div>
+                  </div>
+                ) : null}
+                {!v.isSm && v.ambientShowUrl ? (
+                  <div style={css("position:absolute;right:20px;bottom:20px;display:flex;flex-direction:column;align-items:center;gap:6px")}>
+                    <img
+                      src={"https://api.qrserver.com/v1/create-qr-code/?size=104x104&margin=6&data=" + encodeURIComponent(v.ambientShowUrl)}
+                      alt=""
+                      width="72" height="72"
+                      style={css("display:block;background:#f3f2f2;padding:5px")}
+                      onError={(e) => { e.currentTarget.parentElement.style.display = 'none'; }}
+                    />
+                    <span style={css("font:600 8px 'Archivo',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#8a8685")}>Discover this show</span>
+                  </div>
+                ) : null}
+              </React.Fragment>
+            )}
+          </div>
+        )}
 
         <header ref={v.headRef} style={css("position:sticky;top:0;z-index:62;background:#f3f2f2;border-bottom:2px solid #201e1d")}>
           <div className="mri-headbar" style={css("max-width:1560px;margin:0 auto;padding:12px clamp(16px,3.2vw,32px);display:flex;align-items:center;gap:clamp(12px,2vw,26px);flex-wrap:wrap")}>
@@ -2060,6 +2206,10 @@ class Component extends React.Component {
                     : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none")}><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" x2="12" y1="2" y2="15"></line></svg>}
                   {v.shared ? 'Copied' : 'Share'}
                 </button>
+                <button onClick={v.enterAmbient} className="mp-abtn" aria-label="Ambient mode" title="Fullscreen, distraction-free now-playing view">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none")}><path d="M8 3H5a2 2 0 0 0-2 2v3"></path><path d="M21 8V5a2 2 0 0 0-2-2h-3"></path><path d="M3 16v3a2 2 0 0 0 2 2h3"></path><path d="M16 21h3a2 2 0 0 0 2-2v-3"></path></svg>
+                  Ambient
+                </button>
               </div>
             </div>
             <div className="mp-mini">
@@ -2108,6 +2258,9 @@ class Component extends React.Component {
               </button>
               <button onClick={v.toggleFav} data-key={v.now.key} aria-label="Save show" className="h-accent-border mri-dockbtn" style={css("width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:1px solid #201e1d;background:none;color:" + v.now.favFg + ";cursor:pointer;border-radius:0")}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill={v.now.favFill} stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block")}><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>
+              </button>
+              <button onClick={v.enterAmbient} aria-label="Ambient mode" title="Fullscreen, distraction-free now-playing view" className="h-invert mri-dockbtn" style={css("width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:1px solid #201e1d;background:none;color:#201e1d;cursor:pointer;border-radius:0")}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block")}><path d="M8 3H5a2 2 0 0 0-2 2v3"></path><path d="M21 8V5a2 2 0 0 0-2-2h-3"></path><path d="M3 16v3a2 2 0 0 0 2 2h3"></path><path d="M16 21h3a2 2 0 0 0 2-2v-3"></path></svg>
               </button>
               <button onClick={v.stopPlaying} aria-label="Close player" className="h-invert mri-dockbtn" style={css("width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:1px solid #201e1d;background:none;color:#201e1d;cursor:pointer;border-radius:0")}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block")}><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>

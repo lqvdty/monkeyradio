@@ -4,5 +4,6 @@
 /selectors   /index.html      200
 /saved       /index.html      200
 /about       /index.html      200
+/ambient     /index.html      200
 /show/*      /index.html      200
 /*           /404.html        404

@@ -68,7 +68,7 @@ const OVERRIDES = [
   [/world of sound 10112012/i, 'Sonoluminescence'],
   [/\bworld of sound\b/i, 'Dakta Dub'],
   [/world radio day special/i, 'Dakta Dub'],
-  [/^\s*dub\s*$/i, 'Dakta Dub'],
+  [/^\s*dub\s*$/i, 'Mr Nobody'],
   [/dub'in and step'in/i, 'Dakta Dub'],
   [/sunday special ozy breaks/i, 'Dj Ozon'],
   [/100,?000 vibrations/i, 'Dakta Dub'],

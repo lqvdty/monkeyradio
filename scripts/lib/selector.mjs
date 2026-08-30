@@ -13,7 +13,7 @@
  * import a Node module, so that copy is kept in step by hand).
  */
 
-const NOT_A_DJ = ['indiearth', 'monkey radio', 'monkeyradio', 'monkey sound', 'tune inn', 'souls of sound', 'music manthan', 'disco freak', 'bass sanskriti', 'dub vibration', 'roots unwired', 'aurelia pszichedelia', 'sleepless monk', 'puri juggernaut', 'the situation', 'steppin outta babylon', 'ziggys blunts', 'ziggy blunts', 'deep space traveller', 'folk viber', 'daktadub', 'dakta dub', 'hyderabad underground movement', 'hyderabad hi fi', 'hi fi hyderabad', 'sunday special', 'sunday live', 'excursions in', 'guest mix', 'radio show', 'podcast'];
+const NOT_A_DJ = ['indiearth', 'monkey radio', 'monkeyradio', 'monkey sound', 'tune inn', 'souls of sound', 'music manthan', 'disco freak', 'bass sanskriti', 'dub vibration', 'roots unwired', 'aurelia pszichedelia', 'puri juggernaut', 'the situation', 'steppin outta babylon', 'ziggys blunts', 'ziggy blunts', 'deep space traveller', 'folk viber', 'daktadub', 'dakta dub', 'hyderabad underground movement', 'hyderabad hi fi', 'hi fi hyderabad', 'sunday special', 'sunday live', 'excursions in', 'guest mix', 'radio show', 'podcast'];
 const ALIASES = ['dj def hawk', 'selekta chakkra', 'amul', 'psylenz', 'berencz balazs', 'dj makarun', 'the groove thief'];
 const GENERIC = ['the', 'a', 'of', 'and', 'in', 'on', 'for', 'my', 'our', 'your', 'music', 'musical', 'journey', 'transmission', 'world', 'day', 'vibration', 'vibes', 'special', 'session', 'sessions', 'sound', 'sounds', 'radio', 'show', 'mix', 'mixes', 'set', 'selection', 'live', 'dancehall', 'funk', 'bass', 'soul', 'jazz', 'dub', 'house', 'techno', 'hip', 'hop', 'rap', 'reggae', 'disco', 'edition', 'episode', 'vol', 'volume', 'part', 'night', 'weekend', 'sunday', 'monday', 'friday', 'saturday', 'summer', 'winter', 'new', 'best', 'top'];
 const flat = (x) => (x || '').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -36,7 +36,12 @@ const RESIDENTS = [
   [/funk assassin/i, 'Funk Assassin'],
   [/deep space travellers?/i, 'Dj Ozon and Dr Analog'],
   [/bol hyderabad|musical journey with balu/i, 'Dakta Dub'],
-  [/folk\s?viber/i, 'Themeekcrab']
+  [/folk\s?viber/i, 'Themeekcrab'],
+  [/\bsleepless monk\b/i, 'Sleepless Monk'],
+  [/\byidam\b/i, 'Yidam'],
+  [/svaha sound system/i, 'Svaha Sound System'],
+  [/\bdr\.?\s?dub\b/i, 'Dr.Dub'],
+  [/steppa vibration|love vibration|dancehall vibration/i, 'Dakta Dub']
 ];
 
 // One-off titles that bury the selector's name in phrasing no rule can
@@ -50,7 +55,8 @@ const OVERRIDES = [
   [/sunday special\b.*rudy roots selekta/i, 'Rudy Roots Selekta'],
   [/sunday special\s*-\s*roman nz selekta/i, 'Roman NZ Selekta'],
   [/monkey radio india special mix\s*-\s*von dewey/i, 'Von Dewey'],
-  [/\bmango\s?-?\s?p-zion highway/i, 'Selecta Mango P']
+  [/\bmango\s?-?\s?p-zion highway/i, 'Selecta Mango P'],
+  [/cloudcast by daktadub/i, 'Dakta Dub']
 ];
 
 // The text before a "presents"/"feat"/"showcase" keyword is the station or

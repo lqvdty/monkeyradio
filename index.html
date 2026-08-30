@@ -102,6 +102,10 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #ec30
 .h-fade:hover{opacity:.72}
 .h-row:hover{background:#eae9e9 !important}
 .h-close:hover{background:#ec3013 !important;border-color:#ec3013 !important;color:#fff !important}
+/* Ambient-mode exit: a bare X, no chrome. Quiet by default, full strength
+   on hover / keyboard focus. */
+.mri-ambclose{opacity:.6;transition:opacity .15s ease}
+.mri-ambclose:hover,.mri-ambclose:focus-visible{opacity:1}
 /* Album art (see ArtImg / ArtBg in src/app.jsx): a bundled placeholder is
    painted at the final box size first, then the real cover fades in once it
    has decoded, so nothing around it reflows while the network is slow. */

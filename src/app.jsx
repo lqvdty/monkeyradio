@@ -1855,8 +1855,8 @@ class Component extends React.Component {
                 gradient's bright orange lobe. */}
             <div aria-hidden="true" style={css("position:absolute;inset:0;z-index:0;pointer-events:none;background:linear-gradient(180deg,rgba(32,30,29,.28),rgba(32,30,29,.55))")}></div>
 
-            <button onClick={v.exitAmbient} aria-label="Exit ambient mode" style={css("position:absolute;top:20px;right:20px;z-index:3;width:38px;height:38px;display:flex;align-items:center;justify-content:center;background:rgba(32,30,29,.35);border:1px solid rgba(243,242,242,.4);color:#f3f2f2;border-radius:0;cursor:pointer;opacity:.8")}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block")}><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+            <button onClick={v.exitAmbient} aria-label="Exit ambient mode" className="mri-ambclose" style={css("position:absolute;top:16px;right:16px;z-index:3;width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:none;border:0;color:#f3f2f2;cursor:pointer;filter:drop-shadow(0 1px 6px rgba(0,0,0,.4))")}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block")}><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
             </button>
 
             {!v.now.key ? (

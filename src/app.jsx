@@ -518,6 +518,9 @@ class Component extends React.Component {
       .replace(/\s*\d{1,2}[./-]\d{1,2}[./-]\d{2,4}\s*$/, '')
       .replace(/\s*\b(?:19|20)\d{2}\b\s*$/, '')
       .replace(/\s+from\s+[A-Z][\w'’-]+\s*$/i, '')
+      // "<multi-word name>-<show>" glued with a hyphen (e.g.
+      // "Rudy Roots Selekta-Bangaranga") - keep the name, drop the show.
+      .replace(/([\p{L}\p{N}]+(?:\s+[\p{L}\p{N}]+)+)[-–][\p{L}\p{N}]+\s*$/u, '$1')
       .trim();
     { const m = s.match(/\bby\s+([A-Za-z][^|,]{1,34})$/i); if (m) cand = m[1]; }
     // "<station/show> presents|feat|features|showcase - <guest>"

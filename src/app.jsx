@@ -1779,7 +1779,7 @@ class Component extends React.Component {
         e.preventDefault();
         this.setState({dj: e.currentTarget.dataset.id, view: 'browse', genre: null, mood: null, limit: 48, detailKey: null, menuOpen: false});
       },
-      openShelf: (e) => { const id = e.currentTarget.dataset.id; const g = this.GENRES.find(x => x.id === id); this.setState({view: 'browse', genre: g ? id : null, mood: null, dj: null, query: '', sort: id === 'long' ? 'longest' : id === 'latest' ? 'latest' : 'plays', limit: 48}); },
+      openShelf: (e) => { const id = e.currentTarget.dataset.id; const g = this.GENRES.find(x => x.id === id); this._scrollTop = true; this.setState({view: 'browse', genre: g ? id : null, mood: null, dj: null, query: '', sort: id === 'long' ? 'longest' : id === 'latest' ? 'latest' : 'plays', limit: 48}); },
       cycleSort: () => { const order = ['latest', 'plays', 'longest', 'oldest']; this.setState({sort: order[(order.indexOf(s.sort) + 1) % order.length]}); },
       clearFilters: () => this.setState({genre: null, mood: null, dj: null, query: '', sort: 'latest', limit: 48}),
       showMore: () => this.setState({limit: s.limit + 48}),

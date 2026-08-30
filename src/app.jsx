@@ -492,7 +492,7 @@ class Component extends React.Component {
     }
   }
 
-  NOT_A_DJ = ['indiearth','monkey radio','monkeyradio','monkey sound','tune inn','souls of sound','music manthan','disco freak','bass sanskriti','dub vibration','roots unwired','aurelia pszichedelia','sleepless monk','puri juggernaut','the situation','daktadub','dakta dub','hyderabad underground movement','hyderabad hi fi','hi fi hyderabad','sunday special','sunday live','excursions in','guest mix','radio show','podcast'];
+  NOT_A_DJ = ['indiearth','monkey radio','monkeyradio','monkey sound','tune inn','souls of sound','music manthan','disco freak','bass sanskriti','dub vibration','roots unwired','aurelia pszichedelia','sleepless monk','puri juggernaut','the situation','steppin outta babylon','ziggys blunts','ziggy blunts','deep space traveller','folk viber','daktadub','dakta dub','hyderabad underground movement','hyderabad hi fi','hi fi hyderabad','sunday special','sunday live','excursions in','guest mix','radio show','podcast'];
   ALIASES = ['dj def hawk','selekta chakkra','amul','psylenz','berencz balazs','dj makarun','the groove thief'];
   // Resident selector behind a recurring show - credited only when the
   // title itself names no guest, so a "<show> ft <guest>" episode still
@@ -505,7 +505,14 @@ class Component extends React.Component {
     [/souls of sound/i, 'Selecta Psylenz'],
     [/\bpuri juggernaut\b/i, 'Shivacult'],
     [/\bthe situation\b/i, 'Kid Move'],
-    [/\btransmissions?\b/i, 'Chidakasha']
+    [/\btransmissions?\b/i, 'Chidakasha'],
+    [/di+sco freak/i, 'Amul'],
+    [/steppin['`´’]?\s*outta\s+babylon/i, 'Selekta Dreadhead'],
+    [/ziggy['`´’]?s?\s+blunts/i, 'Ziggy B'],
+    [/funk assassin/i, 'Funk Assassin'],
+    [/deep space travellers?/i, 'Dj Ozon and Dr Analog'],
+    [/bol hyderabad|musical journey with balu/i, 'Dakta Dub'],
+    [/folk\s?viber/i, 'Themeekcrab']
   ];
 
   djFrom(raw) {
@@ -547,8 +554,8 @@ class Component extends React.Component {
     { const m = s.match(/\bby\s+([A-Za-z][^|,]{1,34})$/i); if (m) cand = m[1]; }
     // "<station/show> presents|feat|features|showcase - <guest>"
     if (!cand) {
-      const m = s.match(/^(.{2,46}?)\s+(?:presents?|pres\.?|introduces?|introducing|featuring|features|feat\.?|ft\.?)\s+(.{2,60}?)\s*$/i)
-        || s.match(/^(.{2,46}?)\s+(?:presents?|pres\.?|introduces?|introducing|featuring|features|feat\.?|ft\.?)\s+([^-–(){}[\]]{2,40}?)\s*(?=[-–(]|\s\d|$)/i)
+      const m = s.match(/^(.{2,46}?)\s+(?:presents?|pres\.?|introduces?|introducing|featuring|features?|feat\.?|ft\.?)\s+(.{2,60}?)\s*$/i)
+        || s.match(/^(.{2,46}?)\s+(?:presents?|pres\.?|introduces?|introducing|featuring|features?|feat\.?|ft\.?)\s+([^-–(){}[\]]{2,40}?)\s*(?=[-–(]|\s\d|$)/i)
         || s.match(/\bexcursions in dub\s?techno\b.*?\)\s*(.{2,40}?)\s+\d/i)
         || s.match(/\bshowcase\s*[-–]\s*(.{2,60}?)\s*$/i);
       if (m) {

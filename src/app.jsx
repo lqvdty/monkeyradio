@@ -1668,7 +1668,10 @@ class Component extends React.Component {
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block")}><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
             </button>
 
-            <img src="assets/logo.png" alt="Monkey Radio India" style={css("position:absolute;left:20px;bottom:20px;width:30px;height:28px;object-fit:contain;opacity:.85")} />
+            <div style={css("position:absolute;left:20px;bottom:20px;display:flex;align-items:center;gap:10px")}>
+              <img src="assets/logo.png" alt="" style={css("width:38px;height:36px;object-fit:contain;display:block")} />
+              <span style={css("font:800 13px 'Archivo',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#f3f2f2")}>Monkey Radio India</span>
+            </div>
 
             {!v.now.key ? (
               <button onClick={v.ambientTapStart} style={css("background:none;border:0;color:#f3f2f2;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:22px;padding:0")}>

@@ -1810,7 +1810,7 @@ class Component extends React.Component {
                       <div style={css("font:600 14px 'Archivo',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis")}>{m.name}</div>
                       <div style={css("font:500 11px 'Archivo',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#6a6666;margin-top:4px")}>{m.dj}</div>
                     </div>
-                    <span style={css("font:500 12px 'Archivo',sans-serif;color:#6a6666")}>{m.len}</span>
+                    <span style={css("font:500 12px 'Archivo',sans-serif;color:#6a6666;padding-right:4px;flex:none")}>{m.len}</span>
                   </div>
                 ))}
               </div>

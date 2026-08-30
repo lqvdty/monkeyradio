@@ -1968,7 +1968,7 @@ class Component extends React.Component {
                     <ArtImg src={d.pic} alt="" loading="lazy" style={css("width:52px;height:52px;object-fit:cover;flex:none;border:1px solid #d7d3d3;display:block")} />
                     <div style={css("flex:1 1 220px;min-width:0;font:600 15px 'Archivo',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis")}>{d.name}</div>
                     <div style={css("flex:1 1 180px;min-width:0;font:500 12px 'Archivo',sans-serif;color:#6a6666;white-space:nowrap;overflow:hidden;text-overflow:ellipsis")}>{d.tags}</div>
-                    <div style={css("flex:none;min-width:78px;text-align:right;font:600 12px 'Archivo',sans-serif;letter-spacing:.08em;text-transform:uppercase")}>{d.count} shows</div>
+                    <div style={css("flex:none;min-width:78px;text-align:right;font:600 12px 'Archivo',sans-serif;letter-spacing:.08em;text-transform:uppercase")}>{d.count} {d.count === 1 ? 'show' : 'shows'}</div>
                     <div style={css("flex:none;min-width:52px;text-align:right;font:500 12px 'Archivo',sans-serif;color:#6a6666")}>{d.hours} h</div>
                   </div>
                 ))}

@@ -34,6 +34,9 @@ const trimTail = (x) => x
   .replace(/\s*\d{1,2}[./-]\d{1,2}[./-]\d{2,4}\s*$/, '')
   .replace(/\s*\b(?:19|20)\d{2}\b\s*$/, '')
   .replace(/\s+from\s+[A-Z][\w'’-]+\s*$/i, '')
+  // "<multi-word name>-<show>" glued with a hyphen (e.g.
+  // "Rudy Roots Selekta-Bangaranga") - keep the name, drop the show.
+  .replace(/([\p{L}\p{N}]+(?:\s+[\p{L}\p{N}]+)+)[-–][\p{L}\p{N}]+\s*$/u, '$1')
   .trim();
 
 export function djFrom(raw) {

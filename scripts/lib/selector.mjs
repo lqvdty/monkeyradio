@@ -81,7 +81,8 @@ const OVERRIDES = [
   [/indiearth's 2013 wrapup/i, 'Dakta Dub'],
   [/4th anniversary mix/i, 'Dakta Dub'],
   [/one year anniversary/i, 'Dakta Dub'],
-  [/disco kebab/i, 'Vedat Akdağ']
+  [/disco kebab/i, 'Vedat Akdağ'],
+  [/khaas aap ke liye-jstar/i, 'JStar']
 ];
 
 // The text before a "presents"/"feat"/"showcase" keyword is the station or

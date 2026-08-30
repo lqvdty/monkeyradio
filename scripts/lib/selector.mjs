@@ -13,10 +13,23 @@
  * import a Node module, so that copy is kept in step by hand).
  */
 
-const NOT_A_DJ = ['indiearth', 'monkey radio', 'monkeyradio', 'monkey sound', 'tune inn', 'souls of sound', 'music manthan', 'disco freak', 'bass sanskriti', 'dub vibration', 'roots unwired', 'aurelia pszichedelia', 'sleepless monk', 'daktadub', 'dakta dub', 'hyderabad underground movement', 'hyderabad hi fi', 'hi fi hyderabad', 'sunday special', 'sunday live', 'excursions in', 'guest mix', 'radio show', 'podcast'];
+const NOT_A_DJ = ['indiearth', 'monkey radio', 'monkeyradio', 'monkey sound', 'tune inn', 'souls of sound', 'music manthan', 'disco freak', 'bass sanskriti', 'dub vibration', 'roots unwired', 'aurelia pszichedelia', 'sleepless monk', 'puri juggernaut', 'the situation', 'daktadub', 'dakta dub', 'hyderabad underground movement', 'hyderabad hi fi', 'hi fi hyderabad', 'sunday special', 'sunday live', 'excursions in', 'guest mix', 'radio show', 'podcast'];
 const ALIASES = ['dj def hawk', 'selekta chakkra', 'amul', 'psylenz', 'berencz balazs', 'dj makarun'];
 const GENERIC = ['the', 'a', 'of', 'and', 'in', 'on', 'for', 'my', 'our', 'your', 'music', 'musical', 'journey', 'transmission', 'world', 'day', 'vibration', 'vibes', 'special', 'session', 'sessions', 'sound', 'sounds', 'radio', 'show', 'mix', 'mixes', 'set', 'selection', 'live', 'dancehall', 'funk', 'bass', 'soul', 'jazz', 'dub', 'house', 'techno', 'hip', 'hop', 'rap', 'reggae', 'disco', 'edition', 'episode', 'vol', 'volume', 'part', 'night', 'weekend', 'sunday', 'monday', 'friday', 'saturday', 'summer', 'winter', 'new', 'best', 'top'];
 const flat = (x) => (x || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+// Resident selector behind a recurring show - credited only when the title
+// itself names no guest, so a "<show> ft <guest>" episode still keeps its
+// guest. First regex to match wins.
+const RESIDENTS = [
+  [/\b(?:dub vibration|tune inn|hyderabad hi.?fi|hi.?fi hyderabad)\b/i, 'Dakta Dub'],
+  [/\bmusic manthan\b/i, 'Selekta Chakkra'],
+  [/\broots unwired\b/i, 'Mr Nobody'],
+  [/\bswatantram\b/i, 'Velugu'],
+  [/\bsouls of sound\b/i, 'Selecta Psylenz'],
+  [/\bpuri juggernaut\b/i, 'Shivacult'],
+  [/\bthe situation\b/i, 'Kid Move']
+];
 
 // The text before a "presents"/"feat"/"showcase" keyword is the station or
 // one of its recurring programme names, not a person - so when we see it
@@ -40,6 +53,15 @@ const trimTail = (x) => x
   .trim();
 
 export function djFrom(raw) {
+  const named = pickDj(raw);
+  if (named) return named;
+  // No guest in the title - fall back to the show's resident selector.
+  const s = (raw || '').replace(/│/g, '|');
+  for (const [re, name] of RESIDENTS) if (re.test(s)) return name;
+  return null;
+}
+
+function pickDj(raw) {
   let s = (raw || '').replace(/│/g, '|').trim();
   const alias = ALIASES.find((a) => flat(s).indexOf(flat(a)) >= 0);
   if (alias) return alias.replace(/\b\w/g, (c) => c.toUpperCase());

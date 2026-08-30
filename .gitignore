@@ -17,3 +17,7 @@ firebase-debug.log
 
 # Node
 node_modules/
+
+# Prerendered per-show social-preview pages (scripts/build-show-pages.mjs).
+# Regenerated on every deploy via the firebase.json predeploy hook and CI.
+/show/

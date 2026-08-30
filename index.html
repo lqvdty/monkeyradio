@@ -422,6 +422,49 @@ class Component extends React.Component {
     try { history[method](null, '', target); } catch (e) {}
   }
 
+  // Swap the document title + OG/Twitter tags to match the open show, so a
+  // link pasted straight from the address bar unfurls with the show's own
+  // artwork, title and selector in clients that run JS (Slack, Discord,
+  // Telegram). Static crawlers (Facebook, WhatsApp, X) instead read the
+  // prerendered /show/<slug>.html (scripts/build-show-pages.mjs). Restores
+  // the site defaults, captured once, when no show is open.
+  syncMeta() {
+    if (typeof document === 'undefined' || !document.head) return;
+    const set = (sel, attr, val) => { const el = document.head.querySelector(sel); if (el) el.setAttribute(attr, val); };
+    const FIELDS = [
+      ['link[rel="canonical"]', 'href'], ['meta[property="og:url"]', 'content'],
+      ['meta[property="og:type"]', 'content'], ['meta[property="og:title"]', 'content'],
+      ['meta[name="twitter:title"]', 'content'], ['meta[property="og:description"]', 'content'],
+      ['meta[name="twitter:description"]', 'content'], ['meta[name="description"]', 'content'],
+      ['meta[property="og:image"]', 'content'], ['meta[name="twitter:image"]', 'content']
+    ];
+    if (!this._meta0) {
+      this._meta0 = {title: document.title};
+      FIELDS.forEach(([sel, attr]) => { const el = document.head.querySelector(sel); if (el) this._meta0[sel] = el.getAttribute(attr); });
+    }
+    const m = this.state.detailKey ? this.byKey(this.state.detailKey) : null;
+    if (m) {
+      const url = 'https://www.monkeyradio.in/show/' + this.slugOf(m.key);
+      const title = m.name + ', selected by ' + m.dj + ' · Monkey Radio India';
+      const tags = (m.tags || []).filter(t => this.STOP.indexOf(t) < 0).slice(0, 4);
+      const desc = m.dj + ' on Monkey Radio India.' + (tags.length ? ' ' + tags.join(', ') + '.' : '') + ' Listen in the in-page player.';
+      document.title = title;
+      set('link[rel="canonical"]', 'href', url);
+      set('meta[property="og:url"]', 'content', url);
+      set('meta[property="og:type"]', 'content', 'music.radio_station');
+      set('meta[property="og:title"]', 'content', title);
+      set('meta[name="twitter:title"]', 'content', title);
+      set('meta[property="og:description"]', 'content', desc);
+      set('meta[name="twitter:description"]', 'content', desc);
+      set('meta[name="description"]', 'content', desc);
+      set('meta[property="og:image"]', 'content', m.pic);
+      set('meta[name="twitter:image"]', 'content', m.pic);
+    } else {
+      document.title = this._meta0.title;
+      FIELDS.forEach(([sel, attr]) => { if (this._meta0[sel] != null) set(sel, attr, this._meta0[sel]); });
+    }
+  }
+
   componentDidMount() {
     try {
       const p = JSON.parse(localStorage.getItem(this.PREF_KEY) || '{}');
@@ -1205,6 +1248,7 @@ class Component extends React.Component {
       if (seed.length) this.setState({upNext: seed});
     }
     this.syncUrl();
+    if (this._metaKey !== (this.state.detailKey || '')) { this._metaKey = this.state.detailKey || ''; this.syncMeta(); }
     // Deferred scroll to a section (e.g. footer "Submit a show" -> the
     // About page's submission block), once that view has rendered.
     if (this._scrollTo) {
@@ -1306,6 +1350,20 @@ class Component extends React.Component {
     const related = detail ? items.filter(m => m.key !== detail.key && m.tags.some(t => this.STOP.indexOf(t) < 0 && detail.tags.includes(t))).slice(0, 12).map(m => this.card(m)) : [];
     const heroTags = hero ? hero.tags.filter(t => this.STOP.indexOf(t) < 0).slice(0, 2).join(', ') : '';
 
+    // Per-show share targets. The URL is always the canonical production
+    // permalink (never localhost) so Facebook and the others can actually
+    // crawl the prerendered /show/<slug>.html page for its artwork, title
+    // and selector (see scripts/build-show-pages.mjs). Every share is a backlink.
+    const shareUrl = detail ? ('https://www.monkeyradio.in/show/' + this.slugOf(detail.key)) : '';
+    const shareText = detail ? (detail.name + ', selected by ' + detail.dj + ' on Monkey Radio India') : '';
+    const shareLinks = detail ? {
+      url: shareUrl,
+      caption: shareText + '\n' + shareUrl,
+      facebook: 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(shareUrl),
+      twitter: 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(shareText) + '&url=' + encodeURIComponent(shareUrl),
+      whatsapp: 'https://api.whatsapp.com/send?text=' + encodeURIComponent(shareText + ' ' + shareUrl)
+    } : null;
+
     return {
       indexing: s.indexing, loadedCount: items.length,
       isHome: s.view === 'home' && !(detail && s.bp === 'sm'), isBrowse: s.view === 'browse' && !(detail && s.bp === 'sm'),
@@ -1375,7 +1433,7 @@ class Component extends React.Component {
           ? {intro: '', tracks: s.secs[detail.key]}
           : this.parseTrackText(s.descs[detail.key] || '')) || null
       }) : {tags: []},
-      related, shareLabel: s.shared ? 'Link copied' : 'Share', shared: s.shared,
+      related, shareLinks, shareLabel: s.shared ? 'Link copied' : 'Share', shared: s.shared,
       toast: s.toast,
       toastBottom: !s.nowKey ? '28px' : s.bp === 'sm' ? (s.playerExpanded ? '112px' : '84px') : '150px',
       playing: !!now, paused: s.paused, playerExpanded: s.playerExpanded,
@@ -1403,7 +1461,20 @@ class Component extends React.Component {
       stop: (e) => e.stopPropagation(),
       playDetail: () => this.play(s.detailKey, this._detailCtx ? {ctx: this._detailCtx} : null),
       queueDetail: () => { this.savePrefs({queue: s.queue.concat([s.detailKey]).filter((v, i, a) => a.indexOf(v) === i)}); this.setState({detailKey: null, view: 'library', tab: 'queue'}); },
-      shareDetail: () => { const link = detail ? (location.origin + '/show/' + this.slugOf(detail.key)) : location.href; try { navigator.clipboard.writeText(link); } catch (e) {} this.setState({shared: true}); this.flash('Link copied'); },
+      shareDetail: () => { const link = shareUrl || location.href; try { navigator.clipboard.writeText(link); } catch (e) {} this.setState({shared: true}); this.flash('Link copied'); },
+      shareInstagram: () => {
+        if (!shareLinks) return;
+        const nav = typeof navigator !== 'undefined' ? navigator : {};
+        // Mobile: the OS share sheet is the only real path into Instagram -
+        // the user picks Instagram, then Story / Feed / DM.
+        if (nav.share) { nav.share({title: detail.name, text: shareText, url: shareUrl}).catch(() => {}); return; }
+        // Desktop has no Instagram web share target, so copy a ready-to-paste
+        // caption and open the story camera.
+        try { nav.clipboard && nav.clipboard.writeText(shareLinks.caption); } catch (e) {}
+        this.setState({shared: true});
+        this.flash('Caption + link copied - opening Instagram for your story');
+        try { window.open('https://www.instagram.com/', '_blank', 'noopener'); } catch (e) {}
+      },
       shareNow: () => { try { navigator.clipboard.writeText(now ? now.url : ''); } catch (e) {} this.setState({shared: true}); this.flash('Link copied'); },
       togglePlay: () => { try { this._widget && this._widget.togglePlay(); } catch (e) {} },
       expandPlayer: () => this.setState({playerExpanded: true}),
@@ -1453,6 +1524,13 @@ class Component extends React.Component {
     const iconQueue = <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none")}><path d="M11 12H3"></path><path d="M16 6H3"></path><path d="M16 18H3"></path><path d="M18 9v6"></path><path d="M21 12h-6"></path></svg>;
     const iconShare = <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block")}><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" x2="12" y1="2" y2="15"></line></svg>;
     const iconArrow = <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none")}><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>;
+    // Brand marks for the per-show share row (single-path, currentColor).
+    const brandSvg = (d) => <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" stroke="none" style={css("display:block;flex:none")}><path d={d}></path></svg>;
+    const iconFacebook = brandSvg("M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z");
+    const iconInstagram = brandSvg("M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z");
+    const iconTwitter = brandSvg("M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z");
+    const iconWhatsApp = brandSvg("M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.881 11.881 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z");
+    const shareNetStyle = css("width:46px;height:46px;display:flex;align-items:center;justify-content:center;background:none;color:#201e1d;border:1px solid #201e1d;border-radius:0;cursor:pointer;text-decoration:none;transition:background .15s,color .15s");
 
     return (
       <div ref={v.rootRef} className="mri-app" style={css("min-height:100vh;background:#f3f2f2;padding-bottom:" + v.padBottom)}>
@@ -1552,6 +1630,17 @@ class Component extends React.Component {
                   </button>
                 </div>
               </div>
+              {v.shareLinks && (
+                <div style={css("margin-bottom:24px")}>
+                  <div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#7d7979;margin-bottom:10px")}>Share this show</div>
+                  <div style={css("display:flex;gap:8px")}>
+                    <a href={v.shareLinks.facebook} target="_blank" rel="noopener" className="h-invert" aria-label="Share on Facebook" style={shareNetStyle}>{iconFacebook}</a>
+                    <button onClick={v.shareInstagram} className="h-invert" aria-label="Copy caption for Instagram" style={shareNetStyle}>{iconInstagram}</button>
+                    <a href={v.shareLinks.twitter} target="_blank" rel="noopener" className="h-invert" aria-label="Share on X (Twitter)" style={shareNetStyle}>{iconTwitter}</a>
+                    <a href={v.shareLinks.whatsapp} target="_blank" rel="noopener" className="h-invert" aria-label="Share on WhatsApp" style={shareNetStyle}>{iconWhatsApp}</a>
+                  </div>
+                </div>
+              )}
               <div style={css("display:flex;flex-wrap:wrap;gap:6px;margin-bottom:26px")}>
                 {v.detail.tags.map((t, i) => (
                   <span key={i} style={css("font:500 10.5px 'Archivo',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#605d5d;border:1px solid #d7d3d3;padding:5px 9px")}>{t}</span>
@@ -1891,6 +1980,17 @@ class Component extends React.Component {
                       {v.shareLabel}
                     </button>
                   </div>
+                  {v.shareLinks && (
+                    <div style={css("margin-top:16px")}>
+                      <div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#7d7979;margin-bottom:10px")}>Share this show</div>
+                      <div style={css("display:flex;gap:8px")}>
+                        <a href={v.shareLinks.facebook} target="_blank" rel="noopener" className="h-invert" aria-label="Share on Facebook" style={shareNetStyle}>{iconFacebook}</a>
+                        <button onClick={v.shareInstagram} className="h-invert" aria-label="Copy caption for Instagram" style={shareNetStyle}>{iconInstagram}</button>
+                        <a href={v.shareLinks.twitter} target="_blank" rel="noopener" className="h-invert" aria-label="Share on X (Twitter)" style={shareNetStyle}>{iconTwitter}</a>
+                        <a href={v.shareLinks.whatsapp} target="_blank" rel="noopener" className="h-invert" aria-label="Share on WhatsApp" style={shareNetStyle}>{iconWhatsApp}</a>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <button onClick={v.closeDetail} aria-label="Close" className="h-close" style={css("position:fixed;top:16px;right:16px;z-index:61;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:1px solid #201e1d;background:#f3f2f2;color:#201e1d;cursor:pointer;border-radius:0")}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block")}><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>

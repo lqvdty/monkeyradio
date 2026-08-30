@@ -15,13 +15,19 @@
  * static routes, so crawlers are actually pointed at what this script just
  * built - see robots.txt, which already refers to it.
  *
+ * Also writes archive.html and selectors.html - crawlable linked indexes of
+ * the whole archive, served at the /archive and /selectors clean URLs (a
+ * static file outranks the SPA rewrite) - and llms.txt, a Markdown digest
+ * of the site for language models (https://llmstxt.org).
+ *
  * Also writes assets/archive.json, a prebuilt snapshot of the whole
  * normalised archive the client can boot from instantly instead of paging
  * the Mixcloud API live on a cold visit - see sync() in src/app.jsx.
  *
- * Output (show/, sitemap.xml, assets/archive.json) is git-ignored and
- * regenerated in CI right before every deploy - see .github/workflows/*.yml
- * and the firebase.json predeploy hook.
+ * Output (show/, sitemap.xml, archive.html, selectors.html, llms.txt,
+ * assets/archive.json) is git-ignored and regenerated in CI right before
+ * every deploy - see .github/workflows/*.yml and the firebase.json
+ * predeploy hook.
  *
  *     node scripts/build-show-pages.mjs
  */
@@ -231,6 +237,101 @@ function buildSitemap(shows, slugFor) {
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>\n`;
 }
 
+// ---- crawlable hub pages (/archive, /selectors) -------------------------
+// Firebase serves these physical files at the clean URL (static content
+// outranks the /archive + /selectors rewrites), so a non-JS crawler gets a
+// real linked index of the whole archive. The SPA still boots and clears
+// #root exactly as on a show page.
+function hubShell(tpl, { path, title, desc, bodyHtml }) {
+  const url = `${SITE}${path}`;
+  let out = tpl;
+  const sub = (re, val) => { out = out.replace(re, val); };
+  sub(/<title>[^<]*<\/title>/, `<title>${esc(title)}</title>`);
+  sub(/(<meta name="description" content=")[^"]*(">)/, `$1${esc(desc)}$2`);
+  sub(/(<link rel="canonical" href=")[^"]*(">)/, `$1${esc(url)}$2`);
+  sub(/(<meta property="og:url" content=")[^"]*(">)/, `$1${esc(url)}$2`);
+  sub(/(<meta property="og:title" content=")[^"]*(">)/, `$1${esc(title)}$2`);
+  sub(/(<meta property="og:description" content=")[^"]*(">)/, `$1${esc(desc)}$2`);
+  sub(/(<meta name="twitter:title" content=")[^"]*(">)/, `$1${esc(title)}$2`);
+  sub(/(<meta name="twitter:description" content=")[^"]*(">)/, `$1${esc(desc)}$2`);
+  sub(/<div id="root"><\/div>/, `<div id="root">${bodyHtml}</div>`);
+  return out;
+}
+
+const HUB_WRAP = (inner) => `<div id="prerender" style="max-width:820px;margin:0 auto;padding:32px 20px;font-family:'Archivo',system-ui,sans-serif;color:#201e1d">
+  <p style="font:600 11px/1 sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#6a6666;margin:0 0 16px"><a href="/" style="color:#ae1800">Monkey Radio India</a></p>
+${inner}
+</div>`;
+
+const LI = 'style="margin:0 0 6px;font-size:14px;line-height:1.5"';
+
+function archiveHub(shows) {
+  const rows = shows
+    .map((c) => ({ c, t: Date.parse(c.created_time || '') || 0 }))
+    .sort((a, b) => b.t - a.t)
+    .map(({ c }) => {
+      const dj = selector(c);
+      const when = fmtDate(c.created_time);
+      const tail = [dj !== 'Monkey Radio India' && esc(dj), when && esc(when)].filter(Boolean).join(' &middot; ');
+      return `    <li ${LI}><a href="/show/${esc(slugOf(c.key))}" style="color:#ae1800">${esc(c.name)}</a>${tail ? ` <span style="color:#6a6666">&mdash; ${tail}</span>` : ''}</li>`;
+    }).join('\n');
+  return HUB_WRAP(`  <h1 style="font-weight:800;font-size:clamp(26px,5vw,40px);letter-spacing:-.03em;margin:0 0 10px">Archive</h1>
+  <p style="font-size:15px;line-height:1.6;margin:0 0 24px">Every Monkey Radio India show, newest first &mdash; ${shows.length} DJ mixes and radio broadcasts of dub, reggae, bass, techno, disco, hip hop, jazz and funk from Hyderabad. Open any show to stream it or read its tracklist.</p>
+  <ul style="list-style:none;padding:0;margin:0">
+${rows}
+  </ul>`);
+}
+
+function selectorsHub(shows) {
+  const by = new Map();
+  for (const c of shows) {
+    const dj = selector(c);
+    if (dj === 'Monkey Radio India') continue;
+    by.set(dj, (by.get(dj) || 0) + 1);
+  }
+  const rows = [...by.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .map(([dj, n]) => `    <li ${LI}><a href="/archive?dj=${encodeURIComponent(dj)}" style="color:#ae1800">${esc(dj)}</a> <span style="color:#6a6666">&mdash; ${n} show${n === 1 ? '' : 's'}</span></li>`)
+    .join('\n');
+  return HUB_WRAP(`  <h1 style="font-weight:800;font-size:clamp(26px,5vw,40px);letter-spacing:-.03em;margin:0 0 10px">Selectors</h1>
+  <p style="font-size:15px;line-height:1.6;margin:0 0 24px">${by.size} selectors and guests who have played on Monkey Radio India. Each link opens their shows in the archive.</p>
+  <ul style="list-style:none;padding:0;margin:0">
+${rows}
+  </ul>`);
+}
+
+// ---- llms.txt ----------------------------------------------------------
+// https://llmstxt.org convention: a single Markdown digest of the site for
+// language models, linking out to the per-show pages for detail.
+function buildLlmsTxt(shows) {
+  const ordered = shows
+    .map((c) => ({ c, t: Date.parse(c.created_time || '') || 0 }))
+    .sort((a, b) => b.t - a.t);
+  const lines = ordered.map(({ c }) => {
+    const dj = selector(c);
+    const when = (c.created_time || '').slice(0, 10);
+    const tags = (c.tags || []).map((t) => (t.name || '').toLowerCase()).filter(Boolean).slice(0, 4);
+    const bits = [dj !== 'Monkey Radio India' && `selected by ${dj}`, when, tags.length && tags.join(', ')].filter(Boolean).join('; ');
+    return `- [${c.name}](${SITE}/show/${slugOf(c.key)})${bits ? `: ${bits}` : ''}`;
+  });
+  return `# Monkey Radio India
+
+> Independent community radio and sound system culture out of Hyderabad, India. Public and non-profit since 25 October 2011, run by the Monkey Foundation. The site is the browsable archive of every Monkey Radio India broadcast: ${shows.length} DJ mixes and radio shows spanning dub, reggae, dancehall, bass, techno, house, disco, hip hop, jazz, funk and ambient.
+
+## Site
+
+- [Archive](${SITE}/archive): every show, newest first
+- [Selectors](${SITE}/selectors): every DJ and guest, linking to their shows
+- [About](${SITE}/about): about the station and the Monkey Foundation
+- [RSS feed](${SITE}/feed.xml): new shows
+- [Sitemap](${SITE}/sitemap.xml)
+
+## Shows
+
+${lines.join('\n')}
+`;
+}
+
 // ---- run ----------------------------------------------------------------
 const tpl = readFileSync(join(ROOT, 'index.html'), 'utf8');
 const raw = await fetchAll();
@@ -253,6 +354,21 @@ console.log(`Prerendered ${n} show pages into show/`);
 
 writeFileSync(join(ROOT, 'sitemap.xml'), buildSitemap(shows, (c) => slugOf(c.key)));
 console.log(`Wrote sitemap.xml (${STATIC_ROUTES.length} static routes + ${n} shows)`);
+
+writeFileSync(join(ROOT, 'archive.html'), hubShell(tpl, {
+  path: '/archive',
+  title: 'Archive · Monkey Radio India',
+  desc: `Every Monkey Radio India show, newest first — ${shows.length} DJ mixes and radio broadcasts of dub, reggae, bass, techno, disco, hip hop, jazz and funk from Hyderabad.`,
+  bodyHtml: archiveHub(shows)
+}));
+writeFileSync(join(ROOT, 'selectors.html'), hubShell(tpl, {
+  path: '/selectors',
+  title: 'Selectors · Monkey Radio India',
+  desc: 'Every DJ, selector and guest who has played on Monkey Radio India, each linking to their shows in the archive.',
+  bodyHtml: selectorsHub(shows)
+}));
+writeFileSync(join(ROOT, 'llms.txt'), buildLlmsTxt(shows));
+console.log('Wrote archive.html, selectors.html, llms.txt');
 
 // ---- prebuilt archive index -----------------------------------------------
 // Ships the whole normalised archive as a same-origin static file, in the

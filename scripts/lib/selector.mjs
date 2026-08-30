@@ -85,7 +85,8 @@ const OVERRIDES = [
   [/khaas aap ke liye-jstar/i, 'JStar'],
   [/presents hemant chotani/i, 'Hemant Chotani'],
   [/puri juggernaut - guest mix - balu/i, 'Dakta Dub'],
-  [/xmas special featuring hemant/i, 'Hemant Chotani']
+  [/xmas special featuring hemant/i, 'Hemant Chotani'],
+  [/banyan tree dub - moonchild/i, 'MoonChild']
 ];
 
 // The text before a "presents"/"feat"/"showcase" keyword is the station or
@@ -110,6 +111,12 @@ const trimTail = (x) => x
   .trim();
 
 export function djFrom(raw) {
+  const n = resolveDj(raw);
+  // Normalise the "DJ" token to uppercase however the title spelled it.
+  return n ? n.replace(/\bdj\b/gi, 'DJ') : null;
+}
+
+function resolveDj(raw) {
   const s = (raw || '').replace(/│/g, '|');
   for (const [re, name] of OVERRIDES) if (re.test(s)) return name;
   const named = pickDj(raw);

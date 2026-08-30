@@ -1855,8 +1855,6 @@ class Component extends React.Component {
                 gradient's bright orange lobe. */}
             <div aria-hidden="true" style={css("position:absolute;inset:0;z-index:0;pointer-events:none;background:linear-gradient(180deg,rgba(32,30,29,.28),rgba(32,30,29,.55))")}></div>
 
-            <div aria-hidden="true" style={css("position:absolute;right:-40px;bottom:-40px;z-index:1;width:min(70vw,520px);aspect-ratio:460/421;opacity:.12;pointer-events:none;background:center/contain no-repeat " + SOUND_SYSTEM_BG)}></div>
-
             <button onClick={v.exitAmbient} aria-label="Exit ambient mode" style={css("position:absolute;top:20px;right:20px;z-index:3;width:38px;height:38px;display:flex;align-items:center;justify-content:center;background:rgba(32,30,29,.35);border:1px solid rgba(243,242,242,.4);color:#f3f2f2;border-radius:0;cursor:pointer;opacity:.8")}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block")}><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
             </button>

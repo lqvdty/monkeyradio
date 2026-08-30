@@ -492,7 +492,7 @@ class Component extends React.Component {
     }
   }
 
-  NOT_A_DJ = ['indiearth','monkey radio','monkeyradio','monkey sound','tune inn','souls of sound','music manthan','disco freak','bass sanskriti','dub vibration','roots unwired','aurelia pszichedelia','sleepless monk','puri juggernaut','the situation','steppin outta babylon','ziggys blunts','ziggy blunts','deep space traveller','folk viber','daktadub','dakta dub','hyderabad underground movement','hyderabad hi fi','hi fi hyderabad','sunday special','sunday live','excursions in','guest mix','radio show','podcast'];
+  NOT_A_DJ = ['indiearth','monkey radio','monkeyradio','monkey sound','tune inn','souls of sound','music manthan','disco freak','bass sanskriti','dub vibration','roots unwired','aurelia pszichedelia','puri juggernaut','the situation','steppin outta babylon','ziggys blunts','ziggy blunts','deep space traveller','folk viber','daktadub','dakta dub','hyderabad underground movement','hyderabad hi fi','hi fi hyderabad','sunday special','sunday live','excursions in','guest mix','radio show','podcast'];
   ALIASES = ['dj def hawk','selekta chakkra','amul','psylenz','berencz balazs','dj makarun','the groove thief'];
   // Resident selector behind a recurring show - credited only when the
   // title itself names no guest, so a "<show> ft <guest>" episode still
@@ -512,7 +512,12 @@ class Component extends React.Component {
     [/funk assassin/i, 'Funk Assassin'],
     [/deep space travellers?/i, 'Dj Ozon and Dr Analog'],
     [/bol hyderabad|musical journey with balu/i, 'Dakta Dub'],
-    [/folk\s?viber/i, 'Themeekcrab']
+    [/folk\s?viber/i, 'Themeekcrab'],
+    [/\bsleepless monk\b/i, 'Sleepless Monk'],
+    [/\byidam\b/i, 'Yidam'],
+    [/svaha sound system/i, 'Svaha Sound System'],
+    [/\bdr\.?\s?dub\b/i, 'Dr.Dub'],
+    [/steppa vibration|love vibration|dancehall vibration/i, 'Dakta Dub']
   ];
   // One-off titles that bury the selector's name in phrasing no rule can
   // reasonably parse. Checked before everything else.
@@ -525,7 +530,8 @@ class Component extends React.Component {
     [/sunday special\b.*rudy roots selekta/i, 'Rudy Roots Selekta'],
     [/sunday special\s*-\s*roman nz selekta/i, 'Roman NZ Selekta'],
     [/monkey radio india special mix\s*-\s*von dewey/i, 'Von Dewey'],
-    [/\bmango\s?-?\s?p-zion highway/i, 'Selecta Mango P']
+    [/\bmango\s?-?\s?p-zion highway/i, 'Selecta Mango P'],
+    [/cloudcast by daktadub/i, 'Dakta Dub']
   ];
 
   djFrom(raw) {

@@ -4,8 +4,12 @@
  * show's own artwork, title and selector - static crawlers do not run the
  * SPA, so the site-wide card is all they would otherwise see.
  *
- * Each file is index.html with only its <head> social tags rewritten; the
- * app still boots and opens the show exactly as the /show/** rewrite does.
+ * Each file is index.html with its <head> social tags rewritten, a per-show
+ * AudioObject JSON-LD block added, and a block of real crawlable content
+ * (title, selector, date, runtime, genres, artwork, Mixcloud link) placed
+ * inside #root - which the SPA clears on mount, so a visitor never dwells on
+ * it but a non-JS crawler (most AI crawlers; Googlebot pre-render) reads it.
+ * The app still boots and opens the show exactly as the /show/** rewrite does.
  *
  * Also writes sitemap.xml, listing every one of those pages plus the site's
  * static routes, so crawlers are actually pointed at what this script just
@@ -36,7 +40,7 @@ const esc = (s) => String(s == null ? '' : s)
   .replace(/"/g, '&quot;');
 
 // Mirrors norm() in src/app.jsx field-for-field - this is what ships as
-// assets/archive.json, and the client's localStorage cache (mri.cloudcasts.v7)
+// assets/archive.json, and the client's localStorage cache (mri.cloudcasts.v8)
 // is expected to be interchangeable with it. Keep the two in step.
 function norm(c) {
   const pics = c.pictures || {};
@@ -68,16 +72,114 @@ async function fetchAll() {
 // ---- head rewrite -------------------------------------------------------
 const slugOf = (key) => (key || '').replace(/^\/+|\/+$/g, '').split('/').pop();
 
+// "2026-08-01T14:16:32Z" -> "1 August 2026". Crawler-facing prose only; the
+// machine-readable date goes in <time datetime> and JSON-LD untouched.
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
+  'August', 'September', 'October', 'November', 'December'];
+function fmtDate(iso) {
+  const d = new Date(iso || '');
+  if (Number.isNaN(d.getTime())) return '';
+  return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+}
+
+// audio_length (seconds) -> ISO 8601 duration ("PT1H38M") + a "98 min" label.
+function durationParts(sec) {
+  const s = Math.max(0, Math.round(Number(sec) || 0));
+  const h = Math.floor(s / 3600), m = Math.round((s % 3600) / 60);
+  const iso = 'PT' + (h ? `${h}H` : '') + (m || !h ? `${m}M` : '');
+  const label = h ? `${h} hr ${m} min` : `${m} min`;
+  return { iso, label, minutes: Math.round(s / 60) };
+}
+
+// Real, crawlable page content injected inside #root. The SPA mounts with
+// ReactDOM.createRoot(...).render(), which clears these children on boot, so
+// this is what a non-JS crawler (most AI crawlers, and Googlebot before it
+// renders) reads, and nothing a visitor sees for more than a blink.
+function bodyBlock(c, { dj, url, img, alt, tags, desc }) {
+  const when = fmtDate(c.created_time);
+  const dur = durationParts(c.audio_length);
+  const plays = Number(c.play_count) || 0;
+  const favs = Number(c.favorite_count) || 0;
+  const plural = (n, word) => `${n.toLocaleString('en-IN')} ${word}${n === 1 ? '' : 's'}`;
+  const meta = [
+    when && `<time datetime="${esc((c.created_time || '').slice(0, 10))}">${esc(when)}</time>`,
+    dur.minutes && `${esc(dur.label)}`,
+    plays && plural(plays, 'play'),
+    favs && plural(favs, 'favourite')
+  ].filter(Boolean).join(' &middot; ');
+  const tagList = tags.length
+    ? `<p class="pr-tags">Genres: ${tags.map((t) => esc(t)).join(', ')}</p>` : '';
+  return `<div id="prerender" style="max-width:680px;margin:0 auto;padding:32px 20px;font-family:'Archivo',system-ui,sans-serif;color:#201e1d">
+  <p style="font:600 11px/1 sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#6a6666;margin:0 0 16px">
+    <a href="/" style="color:#ae1800">Monkey Radio India</a> &rsaquo; <a href="/archive" style="color:#ae1800">Archive</a>
+  </p>
+  <img src="${esc(img)}" alt="${esc(alt)}" width="600" height="600" style="max-width:100%;height:auto;border:1px solid #d7d3d3">
+  <h1 style="font-weight:800;font-size:clamp(24px,5vw,38px);line-height:1.1;letter-spacing:-.03em;margin:20px 0 8px">${esc(c.name)}</h1>
+  <p style="font-size:15px;margin:0 0 4px">${dj ? `Selected by <strong>${esc(dj)}</strong> for Monkey Radio India.` : 'Aired on <strong>Monkey Radio India</strong>.'}</p>
+  <p style="font:600 12px/1.5 sans-serif;color:#6a6666;margin:0 0 16px">${meta}</p>
+  <p style="font-size:15px;line-height:1.6;margin:0 0 16px">${esc(desc)}</p>
+  ${tagList}
+  <p style="margin:20px 0 0"><a href="${esc(c.url || url)}" rel="noopener" style="color:#ae1800;font-weight:600">Listen to this show on Mixcloud</a></p>
+</div>`;
+}
+
+// Per-show JSON-LD. The template already carries a site-wide RadioStation
+// block; this adds an AudioObject for the show itself so it can surface as
+// its own result / be cited on its own.
+function showLd(c, { dj, url, img, tags }) {
+  const dur = durationParts(c.audio_length);
+  const node = {
+    '@context': 'https://schema.org',
+    '@type': 'AudioObject',
+    name: c.name,
+    url,
+    contentUrl: c.url,
+    embedUrl: `https://www.mixcloud.com/widget/iframe/?feed=${encodeURIComponent(c.key)}`,
+    thumbnailUrl: img,
+    uploadDate: c.created_time,
+    duration: dur.iso,
+    inLanguage: 'en',
+    isPartOf: {
+      '@type': 'RadioStation',
+      name: 'Monkey Radio India',
+      url: `${SITE}/`
+    },
+    publisher: { '@type': 'Organization', name: 'Monkey Foundation' }
+  };
+  if (dj) node.creator = { '@type': 'Person', name: dj };
+  if (tags.length) node.genre = tags;
+  if (Number(c.play_count)) {
+    node.interactionStatistic = {
+      '@type': 'InteractionCounter',
+      interactionType: 'https://schema.org/ListenAction',
+      userInteractionCount: Number(c.play_count)
+    };
+  }
+  return `<script type="application/ld+json">\n${JSON.stringify(node, null, 2)}\n</script>`;
+}
+
 function render(tpl, c) {
   const slug = slugOf(c.key);
   const dj = selector(c);
+  const hasDj = dj !== 'Monkey Radio India';
   const url = `${SITE}/show/${slug}`;
   const title = `${c.name}, selected by ${dj} · Monkey Radio India`;
-  const tags = (c.tags || []).map((t) => (t.name || '').toLowerCase()).filter(Boolean).slice(0, 4);
+  const djFlat = dj.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const tags = (c.tags || []).map((t) => (t.name || '').toLowerCase()).filter(Boolean)
+    .filter((t) => { const f = t.replace(/[^a-z0-9]/g, ''); return f && f.indexOf('monkeyradio') < 0 && f !== djFlat; })
+    .slice(0, 4);
   const desc = `${dj} on Monkey Radio India.` + (tags.length ? ` ${tags.join(', ')}.` : '') + ' Listen in the in-page player.';
   const pics = c.pictures || {};
   const img = pics.extra_large || pics.large || pics['640wx640h'] || `${SITE}/assets/og-image.png`;
   const alt = `${c.name} cover art`;
+  const when = fmtDate(c.created_time);
+  const dur = durationParts(c.audio_length);
+  const prose = `${c.name} is a ${dur.minutes ? `${dur.label} ` : ''}`
+    + `${tags.length ? `${tags.slice(0, 3).join(', ')} ` : ''}set`
+    + `${hasDj ? ` selected by ${dj}` : ''}`
+    + `${when ? `, first aired ${when}` : ''} on Monkey Radio India, `
+    + 'independent community radio and sound system culture out of Hyderabad. '
+    + 'Stream it in the in-page player or on Mixcloud.';
   const sub = (re, val) => { tpl = tpl.replace(re, val); };
 
   sub(/<title>[^<]*<\/title>/, `<title>${esc(title)}</title>`);
@@ -98,6 +200,12 @@ function render(tpl, c) {
   sub(/(<meta name="twitter:description" content=")[^"]*(">)/, `$1${esc(desc)}$2`);
   sub(/(<meta name="twitter:image" content=")[^"]*(">)/, `$1${esc(img)}$2`);
   sub(/(<meta name="twitter:image:alt" content=")[^"]*(">)/, `$1${esc(alt)}$2`);
+
+  // Per-show structured data, right after the template's site-wide block.
+  sub(/(<\/script>\n)(<link rel="icon")/, `$1${showLd(c, { dj: hasDj ? dj : null, url, img, tags })}\n$2`);
+  // Crawlable body content inside #root (the SPA clears it on mount).
+  sub(/<div id="root"><\/div>/, `<div id="root">${bodyBlock(c, { dj: hasDj ? dj : null, url, img, alt, tags, desc: prose })}</div>`);
+
   return { slug, html: tpl };
 }
 
@@ -148,7 +256,7 @@ console.log(`Wrote sitemap.xml (${STATIC_ROUTES.length} static routes + ${n} sho
 
 // ---- prebuilt archive index -----------------------------------------------
 // Ships the whole normalised archive as a same-origin static file, in the
-// exact shape the client's own localStorage cache uses (mri.cloudcasts.v7 -
+// exact shape the client's own localStorage cache uses (mri.cloudcasts.v8 -
 // see CACHE_KEY in src/app.jsx), so a first-ever visit paints instantly from
 // one fast request instead of paging the Mixcloud API ~10 times live. The
 // client still checks Mixcloud for anything published after this build and

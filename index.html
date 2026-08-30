@@ -118,10 +118,11 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #ec30
 .mri-card .mri-art::before{
   content:"";position:absolute;inset:0;pointer-events:none;
   background:#ec3013;opacity:.20;
-  transition:opacity .5s cubic-bezier(.2,.7,.2,1);
+  transition:none;
 }
-/* on hover the wash eases away so the true cover art comes through */
-.mri-card:hover .mri-art::before{opacity:0}
+/* on hover the wash eases away so the true cover art comes through;
+   on mouse-out it snaps straight back (transition lives on :hover only) */
+.mri-card:hover .mri-art::before{opacity:0;transition:opacity .5s cubic-bezier(.2,.7,.2,1)}
 /* keep the runtime chip legible above the wash */
 .mri-card .mri-art .mri-arttag{z-index:2}
 @media (prefers-reduced-motion:reduce){

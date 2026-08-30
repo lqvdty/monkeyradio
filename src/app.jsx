@@ -564,7 +564,8 @@ class Component extends React.Component {
     [/presents hemant chotani/i, 'Hemant Chotani'],
     [/puri juggernaut - guest mix - balu/i, 'Dakta Dub'],
     [/xmas special featuring hemant/i, 'Hemant Chotani'],
-    [/banyan tree dub - moonchild/i, 'MoonChild']
+    [/banyan tree dub - moonchild/i, 'MoonChild'],
+    [/features smoke signals/i, 'Bagula Bhagat']
   ];
 
   djFrom(raw) {
@@ -1255,77 +1256,107 @@ class Component extends React.Component {
     try {
       const w = window.Mixcloud.PlayerWidget(el);
       this._widget = w;
-      w.ready.then(() => {
-        try {
-          w.events.pause.on(() => {
-            // A show switch briefly fires pause on the outgoing stream; that
-            // is not a real pause and its position belongs to the old show.
-            if (Date.now() - (this._nowSince || 0) < 1500) return;
-            this.setState({ paused: true }); this.setMSState('paused');
-            if (this.state.nowKey && this._wpos > 5) this.saveResume(this.state.nowKey, this._wpos);
-            this.releaseWakeLock();
-          });
-          w.events.play.on(() => {
-            this.setState({ paused: false }); this.setMSState('playing');
-            this._cold = false;
-            this.requestWakeLock();
-            // First play after a reload or a show switch: jump to where we
-            // left off. Done here (not in `ready`) because seeking only
-            // sticks once the stream has actually started buffering.
-            if (this._resumeSeek != null) {
-              const p = this._resumeSeek; this._resumeSeek = null;
-              try { w.seek(p); } catch (e) {}
-            }
-          });
-          // Real playback position, straight from the widget. Drives the
-          // hero "on air" bar (while that show is the featured one on the
-          // home screen) and the lock-screen scrubber.
-          w.events.progress.on((position) => {
-            const s = this.state;
-            // Trailing ticks from the previous show carry its position but
-            // the new key: don't let them save over the new show's mark.
-            const settled = Date.now() - (this._nowSince || 0) > 1500;
-            if (settled) this._wpos = position;
-            if (settled && s.nowKey && !s.paused && position > 5 && Date.now() - (this._lastResumeSave || 0) > 5000) {
-              this.saveResume(s.nowKey, position);
-            }
-            const m = s.nowKey && this.byKey(s.nowKey);
-            if (m && m.len > 0 && typeof navigator !== 'undefined' && 'mediaSession' in navigator && navigator.mediaSession.setPositionState) {
-              try {
-                navigator.mediaSession.setPositionState({
-                  duration: m.len,
-                  position: Math.max(0, Math.min(position, m.len)),
-                  playbackRate: 1
-                });
-              } catch (e) {}
-            }
-            // The hero "on air" bar is the only thing this repaints for,
-            // and it only needs whole-second resolution - cap it at 1/sec
-            // so a widget that ticks faster than that doesn't force extra
-            // full re-renders of the page underneath it. Ambient mode's own
-            // progress bar has its own independent timer (see
-            // componentDidUpdate) rather than piggybacking on this - it
-            // needs to keep advancing even while `view` is away from
-            // 'home', and a dedicated 1/sec interval is simpler to reason
-            // about than widening this gate's conditions further.
-            if (s.view === 'home' && !document.hidden && s.nowKey && Date.now() - (this._lastHeroTick || 0) >= 950) {
-              this._lastHeroTick = Date.now();
-              this.forceUpdate();
-            }
-          });
-        } catch (e) {}
-        w.events.ended.on(() => {
-          this.clearResume();   // a finished show shouldn't be "resumed"
-          this.clearProg(this.state.nowKey);
-          if (this.state.sleep && this.state.sleep.type === 'show') {
-            this.setState({sleep: null});
-            this.flash('Sleep timer, stopped');
-            this.releaseWakeLock();
-            return;
-          }
-          this.advance();   // play() tops the lineup back up to 3; its own
-                             // play event re-acquires the wake lock
-        });
+      w.ready.then(() => this.attachWidget(w));
+      // The same <iframe> is reused for every show - React only swaps its
+      // `src` - and each fresh load makes the widget API hand the parent a
+      // new API definition, which rebuilds `w.events.*` from scratch and
+      // silently drops every handler attached to the previous one. So the
+      // handlers below have to be re-attached on each of those rebuilds,
+      // not just once when `ready` first resolves; without this, progress
+      // (and play/pause/ended) stop firing after the first show switch,
+      // freezing both progress bars at the outgoing show's position.
+      // Mixcloud's own message listener was registered inside
+      // PlayerWidget() above, so it has already rebuilt the registry by
+      // the time this one runs.
+      if (!this._apiRebind) {
+        this._apiRebind = (ev) => {
+          const cur = this._bound;
+          if (!this._widget || !cur || ev.source !== cur.contentWindow) return;
+          let d; try { d = JSON.parse(ev.data); } catch (e) { return; }
+          if (d && d.mixcloud === 'playerWidget' && d.type === 'api') this.attachWidget(this._widget);
+        };
+        window.addEventListener('message', this._apiRebind, false);
+      }
+    } catch (e) {}
+  }
+  // Registers our listeners on the widget's current event registry.
+  // Idempotent: the registry objects are replaced wholesale on every
+  // rebuild, so a marker on one of them tells us whether this particular
+  // registry has been wired up already (both `ready` and the message
+  // listener above can land on the same one).
+  attachWidget(w) {
+    if (!w || !w.events || !w.events.progress || w.events.progress._mriBound) return;
+    w.events.progress._mriBound = true;
+    try {
+      w.events.pause.on(() => {
+        // A show switch briefly fires pause on the outgoing stream; that
+        // is not a real pause and its position belongs to the old show.
+        if (Date.now() - (this._nowSince || 0) < 1500) return;
+        this.setState({ paused: true }); this.setMSState('paused');
+        if (this.state.nowKey && this._wpos > 5) this.saveResume(this.state.nowKey, this._wpos);
+        this.releaseWakeLock();
+      });
+      w.events.play.on(() => {
+        this.setState({ paused: false }); this.setMSState('playing');
+        this._cold = false;
+        this.requestWakeLock();
+        // First play after a reload or a show switch: jump to where we
+        // left off. Done here (not in `ready`) because seeking only
+        // sticks once the stream has actually started buffering.
+        if (this._resumeSeek != null) {
+          const p = this._resumeSeek; this._resumeSeek = null;
+          try { w.seek(p); } catch (e) {}
+        }
+      });
+      // Real playback position, straight from the widget. Drives the
+      // hero "on air" bar (while that show is the featured one on the
+      // home screen) and the lock-screen scrubber.
+      w.events.progress.on((position) => {
+        const s = this.state;
+        // Trailing ticks from the previous show carry its position but
+        // the new key: don't let them save over the new show's mark.
+        const settled = Date.now() - (this._nowSince || 0) > 1500;
+        if (settled) this._wpos = position;
+        if (settled && s.nowKey && !s.paused && position > 5 && Date.now() - (this._lastResumeSave || 0) > 5000) {
+          this.saveResume(s.nowKey, position);
+        }
+        const m = s.nowKey && this.byKey(s.nowKey);
+        if (m && m.len > 0 && typeof navigator !== 'undefined' && 'mediaSession' in navigator && navigator.mediaSession.setPositionState) {
+          try {
+            navigator.mediaSession.setPositionState({
+              duration: m.len,
+              position: Math.max(0, Math.min(position, m.len)),
+              playbackRate: 1
+            });
+          } catch (e) {}
+        }
+        // The hero "on air" bar is the only thing this repaints for,
+        // and it only needs whole-second resolution - cap it at 1/sec
+        // so a widget that ticks faster than that doesn't force extra
+        // full re-renders of the page underneath it. Ambient mode's own
+        // progress bar has its own independent timer (see
+        // componentDidUpdate) rather than piggybacking on this - it
+        // needs to keep advancing even while `view` is away from
+        // 'home', and a dedicated 1/sec interval is simpler to reason
+        // about than widening this gate's conditions further.
+        if (s.view === 'home' && !document.hidden && s.nowKey && Date.now() - (this._lastHeroTick || 0) >= 950) {
+          this._lastHeroTick = Date.now();
+          this.forceUpdate();
+        }
+      });
+    } catch (e) {}
+    try {
+      w.events.ended.on(() => {
+        this.clearResume();   // a finished show shouldn't be "resumed"
+        this.clearProg(this.state.nowKey);
+        if (this.state.sleep && this.state.sleep.type === 'show') {
+          this.setState({sleep: null});
+          this.flash('Sleep timer, stopped');
+          this.releaseWakeLock();
+          return;
+        }
+        this.advance();   // play() tops the lineup back up to 3; its own
+                           // play event re-acquires the wake lock
       });
     } catch (e) {}
   }

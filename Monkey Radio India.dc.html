@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/modernist-d815c8b9-7839-4987-8744-a253fee81dfe/styles.css">
+<script src="_ds/modernist-d815c8b9-7839-4987-8744-a253fee81dfe/_ds_bundle.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://widget.mixcloud.com/media/js/widgetApi.js"></script>
+<style>
+html,body{margin:0;padding:0}
+body{background:#06150F;color:#EAF3E4;font-family:'Hanken Grotesk',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#C6F24E;text-decoration:none}
+a:hover{color:#E4FF8F}
+::selection{background:#C6F24E;color:#06150F}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #C6F24E;outline-offset:2px}
+.mri-row{scrollbar-width:none;-ms-overflow-style:none}
+.mri-row::-webkit-scrollbar{display:none}
+@keyframes mri-rain{0%{transform:translateY(-100%)}100%{transform:translateY(100%)}}
+@keyframes mri-sway{0%,100%{transform:rotate(-2deg) translateY(0)}50%{transform:rotate(2deg) translateY(-8px)}}
+@keyframes mri-eq{0%,100%{height:20%}50%{height:100%}}
+@keyframes mri-spin{to{transform:rotate(360deg)}}
+@keyframes mri-fade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+</style>
+</helmet>
+
+<div style="position:relative;min-height:100vh;padding-bottom:150px;overflow-x:hidden">
+
+<div style="position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(900px 600px at 8% -5%, rgba(47,163,95,.30), transparent 60%), radial-gradient(700px 500px at 92% 4%, rgba(20,120,140,.26), transparent 62%), radial-gradient(1000px 700px at 50% 100%, rgba(168,216,74,.10), transparent 65%), #06150F"></div>
+<div style="position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.35;background-image:repeating-linear-gradient(115deg, rgba(255,255,255,.030) 0 1px, transparent 1px 7px)"></div>
+
+<header style="position:sticky;top:0;z-index:40;backdrop-filter:blur(18px);background:rgba(6,21,15,.78);border-bottom:1px solid rgba(168,216,74,.16)">
+<div style="max-width:1440px;margin:0 auto;padding:12px 24px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+<button onClick="{{ goHome }}" style="display:flex;align-items:center;gap:11px;background:none;border:0;padding:0;cursor:pointer;color:inherit">
+<img src="assets/logo.png" alt="Monkey Radio India" style="width:46px;height:43px;object-fit:contain;filter:drop-shadow(0 2px 8px rgba(238,59,34,.45))">
+<span style="display:flex;flex-direction:column;align-items:flex-start;line-height:1">
+<span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:17px;letter-spacing:-.02em;white-space:nowrap">MONKEY RADIO</span>
+<span style="font-size:10.5px;letter-spacing:.34em;color:#8FBF7A;margin-top:3px;white-space:nowrap">INDIA · HYDERABAD</span>
+</span>
+</button>
+
+<nav class="mri-row" style="display:flex;gap:4px;margin-left:8px;overflow-x:auto;flex:0 1 auto;min-width:0;-webkit-mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 22px),transparent 100%);mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 22px),transparent 100%)">
+<button onClick="{{ nav }}" data-view="home" style="font:600 13.5px 'Hanken Grotesk',sans-serif;color:#DDF0CE;background:none;border:0;padding:9px 13px;border-radius:99px;cursor:pointer;white-space:nowrap" style-hover="background:rgba(198,242,78,.12);color:#C6F24E">Home</button>
+<button onClick="{{ nav }}" data-view="browse" style="font:600 13.5px 'Hanken Grotesk',sans-serif;color:#DDF0CE;background:none;border:0;padding:9px 13px;border-radius:99px;cursor:pointer;white-space:nowrap" style-hover="background:rgba(198,242,78,.12);color:#C6F24E">Browse</button>
+<button onClick="{{ nav }}" data-view="djs" style="font:600 13.5px 'Hanken Grotesk',sans-serif;color:#DDF0CE;background:none;border:0;padding:9px 13px;border-radius:99px;cursor:pointer;white-space:nowrap" style-hover="background:rgba(198,242,78,.12);color:#C6F24E">DJs</button>
+<button onClick="{{ nav }}" data-view="library" style="font:600 13.5px 'Hanken Grotesk',sans-serif;color:#DDF0CE;background:none;border:0;padding:9px 13px;border-radius:99px;cursor:pointer;white-space:nowrap" style-hover="background:rgba(198,242,78,.12);color:#C6F24E">Crate</button>
+<button onClick="{{ nav }}" data-view="about" style="font:600 13.5px 'Hanken Grotesk',sans-serif;color:#DDF0CE;background:none;border:0;padding:9px 13px;border-radius:99px;cursor:pointer;white-space:nowrap" style-hover="background:rgba(198,242,78,.12);color:#C6F24E">Station</button>
+</nav>
+
+<div style="flex:1 1 12px;min-width:0"></div>
+
+<div style="position:relative;display:flex;align-items:center">
+<span style="position:absolute;left:13px;font-size:14px;color:#7FA96C;pointer-events:none">⌕</span>
+<input value="{{ query }}" onInput="{{ onSearch }}" placeholder="{{ searchHint }}" style="width:270px;max-width:34vw;min-width:120px;background:rgba(255,255,255,.05);border:1px solid rgba(168,216,74,.20);border-radius:99px;padding:10px 14px 10px 32px;color:#EAF3E4;font:500 13.5px 'Hanken Grotesk',sans-serif;outline:none" style-hover="border-color:rgba(198,242,78,.45)">
+</div>
+<button onClick="{{ tuneIn }}" style="display:flex;align-items:center;gap:7px;background:#C6F24E;color:#06150F;border:0;border-radius:99px;padding:11px 17px;font:700 13.5px 'Hanken Grotesk',sans-serif;cursor:pointer;white-space:nowrap" style-hover="background:#E4FF8F" style-active="background:#A8D84A">▸ Tune me in</button>
+</div>
+<div style="height:2px;background:linear-gradient(90deg,#EE3B22,#F7B32B,#C6F24E,#2FA35F,#1478A0)"></div>
+</header>
+
+<sc-if value="{{ indexing }}" hint-placeholder-val="{{ false }}">
+<div style="position:relative;z-index:5;max-width:1440px;margin:0 auto;padding:10px 24px 0">
+<div style="display:flex;align-items:center;gap:12px;font:500 12.5px 'Hanken Grotesk',sans-serif;color:#9DC98A">
+<span style="display:inline-block;width:12px;height:12px;border:2px solid rgba(198,242,78,.35);border-top-color:#C6F24E;border-radius:50%;animation:mri-spin .8s linear infinite"></span>
+<span>Digging through the crates — indexed {{ loadedCount }} shows</span>
+</div>
+</div>
+</sc-if>
+
+<main style="position:relative;z-index:5;max-width:1440px;margin:0 auto;padding:0 24px">
+
+<sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+<section style="animation:mri-fade .4s ease both">
+<div style="display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:26px;padding:30px 0 6px">
+
+<div style="position:relative;border-radius:26px;overflow:hidden;border:1px solid rgba(168,216,74,.22);background:linear-gradient(135deg,rgba(30,122,75,.55),rgba(10,46,34,.85))">
+<div style="position:absolute;inset:0;opacity:.30;background-size:cover;background-position:center;filter:blur(2px) saturate(1.2);background-image:{{ heroBg }}"></div>
+<div style="position:absolute;inset:0;background:linear-gradient(100deg,rgba(6,21,15,.92) 20%,rgba(6,21,15,.35))"></div>
+<div style="position:relative;padding:30px 32px 30px;display:flex;gap:26px;align-items:flex-end;min-height:300px">
+<div style="flex:1;min-width:0">
+<div style="display:flex;align-items:center;gap:9px;margin-bottom:16px">
+<span style="display:flex;align-items:end;gap:2px;height:13px">
+<i style="display:block;width:3px;height:50%;background:#EE3B22;animation:mri-eq .9s ease-in-out infinite"></i>
+<i style="display:block;width:3px;height:80%;background:#F7B32B;animation:mri-eq .9s ease-in-out .2s infinite"></i>
+<i style="display:block;width:3px;height:40%;background:#C6F24E;animation:mri-eq .9s ease-in-out .4s infinite"></i>
+</span>
+<span style="font:700 11px 'Hanken Grotesk',sans-serif;letter-spacing:.24em;color:#EE6B55">LATEST DROP</span>
+</div>
+<h1 style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:clamp(28px,3.6vw,48px);line-height:1.02;letter-spacing:-.03em;margin:0 0 12px;text-wrap:pretty">{{ heroTitle }}</h1>
+<p style="margin:0 0 20px;font-size:15px;color:#B9D6A8;max-width:52ch">{{ heroMeta }}</p>
+<div style="display:flex;flex-wrap:wrap;gap:10px">
+<button onClick="{{ openMix }}" data-key="{{ heroKey }}" style="display:flex;align-items:center;gap:8px;background:#C6F24E;color:#06150F;border:0;border-radius:99px;padding:13px 22px;font:700 14.5px 'Hanken Grotesk',sans-serif;cursor:pointer" style-hover="background:#E4FF8F">▸ Play the set</button>
+<button onClick="{{ toggleFav }}" data-key="{{ heroKey }}" style="background:rgba(255,255,255,.07);color:#EAF3E4;border:1px solid rgba(168,216,74,.28);border-radius:99px;padding:13px 20px;font:600 14px 'Hanken Grotesk',sans-serif;cursor:pointer" style-hover="border-color:#F7B32B;color:#F7B32B">♡ Save to crate</button>
+</div>
+</div>
+<div role="img" aria-label="Album art" style="width:190px;height:190px;background-size:cover;background-position:center;background-color:#0B2A1E;border-radius:18px;border:1px solid rgba(198,242,78,.28);box-shadow:0 24px 60px rgba(0,0,0,.55);flex:none;animation:mri-sway 9s ease-in-out infinite;background-image:{{ heroBg }}"></div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:14px">
+<div style="border-radius:22px;border:1px solid rgba(168,216,74,.20);background:rgba(255,255,255,.045);padding:20px 22px">
+<div style="font:700 11px 'Hanken Grotesk',sans-serif;letter-spacing:.24em;color:#8FBF7A;margin-bottom:14px">THE STATION</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px 10px">
+<div><div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:26px;color:#C6F24E;line-height:1">{{ totalShows }}</div><div style="font-size:12px;color:#9DC98A">shows in the vault</div></div>
+<div><div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:26px;color:#F7B32B;line-height:1">{{ totalHours }}</div><div style="font-size:12px;color:#9DC98A">hours of tape</div></div>
+<div><div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:26px;color:#7FD8A0;line-height:1">{{ djCount }}</div><div style="font-size:12px;color:#9DC98A">DJs on the deck</div></div>
+<div><div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:26px;color:#8FD6EE;line-height:1">2,704</div><div style="font-size:12px;color:#9DC98A">heads following</div></div>
+</div>
+</div>
+<div style="flex:1;border-radius:22px;border:1px solid rgba(168,216,74,.20);background:rgba(255,255,255,.045);padding:20px 22px">
+<div style="font:700 11px 'Hanken Grotesk',sans-serif;letter-spacing:.24em;color:#8FBF7A;margin-bottom:13px">PICK A MOOD</div>
+<div style="display:flex;flex-wrap:wrap;gap:8px">
+<sc-for list="{{ moods }}" as="mo" hint-placeholder-count="6">
+<button onClick="{{ pickMood }}" data-id="{{ mo.id }}" style="border:1px solid rgba(168,216,74,.26);background:rgba(198,242,78,.06);color:#DDF0CE;border-radius:99px;padding:9px 14px;font:600 13px 'Hanken Grotesk',sans-serif;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:8px" style-hover="background:rgba(198,242,78,.18);border-color:#C6F24E"><span style="width:8px;height:8px;border-radius:50%;background:{{ mo.dot }};flex:none"></span>{{ mo.label }}</button>
+</sc-for>
+</div>
+</div>
+</div>
+</div>
+
+<sc-for list="{{ shelves }}" as="shelf" hint-placeholder-count="4">
+<div style="padding:28px 0 6px">
+<div style="display:flex;align-items:baseline;gap:14px;margin-bottom:14px">
+<h2 style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:23px;letter-spacing:-.02em;margin:0">{{ shelf.title }}</h2>
+<span style="font-size:13px;color:#8FBF7A">{{ shelf.sub }}</span>
+<div style="flex:1"></div>
+<button onClick="{{ openShelf }}" data-id="{{ shelf.id }}" style="background:none;border:0;color:#C6F24E;font:600 13px 'Hanken Grotesk',sans-serif;cursor:pointer;padding:4px 8px" style-hover="color:#E4FF8F">See all →</button>
+<button onClick="{{ scrollShelf }}" data-shelf="{{ shelf.id }}" data-dir="-1" style="width:32px;height:32px;border-radius:50%;border:1px solid rgba(168,216,74,.28);background:rgba(255,255,255,.05);color:#DDF0CE;cursor:pointer;font-size:14px" style-hover="background:rgba(198,242,78,.18)">‹</button>
+<button onClick="{{ scrollShelf }}" data-shelf="{{ shelf.id }}" data-dir="1" style="width:32px;height:32px;border-radius:50%;border:1px solid rgba(168,216,74,.28);background:rgba(255,255,255,.05);color:#DDF0CE;cursor:pointer;font-size:14px" style-hover="background:rgba(198,242,78,.18)">›</button>
+</div>
+<div class="mri-row" id="shelf-{{ shelf.id }}" style="display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 2px 10px">
+<sc-for list="{{ shelf.items }}" as="m" hint-placeholder-count="7">
+<div onClick="{{ openMix }}" data-key="{{ m.key }}" style="flex:none;width:212px;scroll-snap-align:start;cursor:pointer;border-radius:18px;border:1px solid rgba(168,216,74,.16);background:rgba(255,255,255,.045);overflow:hidden;transition:transform .18s ease,border-color .18s ease" style-hover="transform:translateY(-6px);border-color:rgba(198,242,78,.55)">
+<div style="position:relative;aspect-ratio:1;overflow:hidden;background:#0B2A1E">
+<img src="{{ m.pic }}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block">
+<span style="position:absolute;right:8px;bottom:8px;background:rgba(6,21,15,.82);color:#DDF0CE;font:600 11px 'Hanken Grotesk',sans-serif;padding:3px 7px;border-radius:6px">{{ m.len }}</span>
+</div>
+<div style="padding:12px 13px 14px">
+<div style="font:700 13.5px/1.25 'Hanken Grotesk',sans-serif;color:#EAF3E4;height:34px;overflow:hidden">{{ m.name }}</div>
+<div style="margin-top:7px;font-size:11.5px;color:#8FBF7A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ m.dj }}</div>
+<div style="margin-top:8px;display:flex;gap:6px;align-items:center">
+<span style="font-size:10.5px;color:#06150F;background:#7FD8A0;padding:2px 7px;border-radius:5px;font-weight:700">{{ m.topTag }}</span>
+<span style="font-size:11px;color:#6F9A5E">{{ m.plays }} plays</span>
+</div>
+</div>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-for>
+</section>
+</sc-if>
+
+<sc-if value="{{ isBrowse }}" hint-placeholder-val="{{ false }}">
+<section style="padding:26px 0 0;animation:mri-fade .4s ease both">
+<h1 style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:34px;letter-spacing:-.03em;margin:0 0 6px">{{ browseTitle }}</h1>
+<p style="margin:0 0 20px;color:#9DC98A;font-size:14.5px">{{ browseCount }} shows · sorted by {{ sortLabel }}</p>
+
+<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+<sc-for list="{{ genreChips }}" as="g" hint-placeholder-count="10">
+<button onClick="{{ pickGenre }}" data-id="{{ g.id }}" style="border:1px solid {{ g.border }};background:{{ g.bg }};color:{{ g.fg }};border-radius:99px;padding:8px 14px;font:600 13px 'Hanken Grotesk',sans-serif;cursor:pointer" style-hover="border-color:#C6F24E">{{ g.label }} <span style="opacity:.6">{{ g.count }}</span></button>
+</sc-for>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px;align-items:center">
+<sc-for list="{{ moodChips }}" as="mo" hint-placeholder-count="6">
+<button onClick="{{ pickMood }}" data-id="{{ mo.id }}" style="border:1px solid {{ mo.border }};background:{{ mo.bg }};color:{{ mo.fg }};border-radius:99px;padding:8px 14px;font:600 13px 'Hanken Grotesk',sans-serif;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:8px" style-hover="border-color:#F7B32B"><span style="width:8px;height:8px;border-radius:50%;background:{{ mo.dot }};flex:none"></span>{{ mo.label }}</button>
+</sc-for>
+<div style="flex:1"></div>
+<button onClick="{{ cycleSort }}" style="border:1px solid rgba(168,216,74,.26);background:rgba(255,255,255,.05);color:#DDF0CE;border-radius:99px;padding:8px 14px;font:600 13px 'Hanken Grotesk',sans-serif;cursor:pointer" style-hover="border-color:#C6F24E">⇅ {{ sortLabel }}</button>
+<button onClick="{{ clearFilters }}" style="border:0;background:none;color:#8FBF7A;font:600 13px 'Hanken Grotesk',sans-serif;cursor:pointer;padding:8px" style-hover="color:#EE6B55">Clear</button>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:18px">
+<sc-for list="{{ gridItems }}" as="m" hint-placeholder-count="12">
+<div onClick="{{ openMix }}" data-key="{{ m.key }}" style="cursor:pointer;border-radius:18px;border:1px solid rgba(168,216,74,.16);background:rgba(255,255,255,.045);overflow:hidden;transition:transform .18s ease,border-color .18s ease" style-hover="transform:translateY(-6px);border-color:rgba(198,242,78,.55)">
+<div style="position:relative;aspect-ratio:1;overflow:hidden;background:#0B2A1E">
+<img src="{{ m.pic }}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block">
+<span style="position:absolute;right:8px;bottom:8px;background:rgba(6,21,15,.82);color:#DDF0CE;font:600 11px 'Hanken Grotesk',sans-serif;padding:3px 7px;border-radius:6px">{{ m.len }}</span>
+</div>
+<div style="padding:12px 13px 14px">
+<div style="font:700 13.5px/1.25 'Hanken Grotesk',sans-serif;height:34px;overflow:hidden">{{ m.name }}</div>
+<div style="margin-top:7px;font-size:11.5px;color:#8FBF7A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ m.dj }} · {{ m.when }}</div>
+</div>
+</div>
+</sc-for>
+</div>
+<sc-if value="{{ hasMore }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;justify-content:center;padding:30px 0 6px">
+<button onClick="{{ showMore }}" style="border:1px solid rgba(168,216,74,.3);background:rgba(198,242,78,.08);color:#C6F24E;border-radius:99px;padding:13px 28px;font:700 14px 'Hanken Grotesk',sans-serif;cursor:pointer" style-hover="background:rgba(198,242,78,.2)">Load more shows</button>
+</div>
+</sc-if>
+<sc-if value="{{ gridEmpty }}" hint-placeholder-val="{{ false }}">
+<div style="padding:60px 0;text-align:center;color:#8FBF7A;font-size:15px">Nothing in that crate yet. Try another genre.</div>
+</sc-if>
+</section>
+</sc-if>
+
+<sc-if value="{{ isDjs }}" hint-placeholder-val="{{ false }}">
+<section style="padding:26px 0 0;animation:mri-fade .4s ease both">
+<h1 style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:34px;letter-spacing:-.03em;margin:0 0 6px">Behind the decks</h1>
+<p style="margin:0 0 24px;color:#9DC98A;font-size:14.5px">{{ djCount }} residents and guests who've played the station.</p>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px">
+<sc-for list="{{ djs }}" as="d" hint-placeholder-count="9">
+<div onClick="{{ pickDj }}" data-id="{{ d.name }}" style="cursor:pointer;display:flex;gap:14px;align-items:center;padding:14px;border-radius:18px;border:1px solid rgba(168,216,74,.16);background:rgba(255,255,255,.045);transition:border-color .18s ease" style-hover="border-color:rgba(198,242,78,.55)">
+<img src="{{ d.pic }}" alt="" loading="lazy" style="width:66px;height:66px;border-radius:50%;object-fit:cover;flex:none;border:2px solid rgba(198,242,78,.3)">
+<div style="min-width:0">
+<div style="font:700 15px 'Hanken Grotesk',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ d.name }}</div>
+<div style="font-size:12.5px;color:#8FBF7A;margin-top:4px">{{ d.count }} shows · {{ d.hours }}h</div>
+<div style="font-size:11.5px;color:#7FD8A0;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ d.tags }}</div>
+</div>
+</div>
+</sc-for>
+</div>
+</section>
+</sc-if>
+
+<sc-if value="{{ isLibrary }}" hint-placeholder-val="{{ false }}">
+<section style="padding:26px 0 0;animation:mri-fade .4s ease both">
+<h1 style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:34px;letter-spacing:-.03em;margin:0 0 18px">Your crate</h1>
+<div style="display:flex;gap:8px;margin-bottom:24px">
+<button onClick="{{ setTab }}" data-tab="favs" style="border:1px solid {{ tabFavBorder }};background:{{ tabFavBg }};color:{{ tabFavFg }};border-radius:99px;padding:9px 16px;font:600 13.5px 'Hanken Grotesk',sans-serif;cursor:pointer">♡ Saved</button>
+<button onClick="{{ setTab }}" data-tab="queue" style="border:1px solid {{ tabQueueBorder }};background:{{ tabQueueBg }};color:{{ tabQueueFg }};border-radius:99px;padding:9px 16px;font:600 13.5px 'Hanken Grotesk',sans-serif;cursor:pointer">≡ Up next</button>
+<button onClick="{{ setTab }}" data-tab="history" style="border:1px solid {{ tabHistBorder }};background:{{ tabHistBg }};color:{{ tabHistFg }};border-radius:99px;padding:9px 16px;font:600 13.5px 'Hanken Grotesk',sans-serif;cursor:pointer">↺ Recently played</button>
+</div>
+<div style="display:flex;flex-direction:column;gap:10px">
+<sc-for list="{{ libItems }}" as="m" hint-placeholder-count="5">
+<div onClick="{{ openMix }}" data-key="{{ m.key }}" style="cursor:pointer;display:flex;gap:14px;align-items:center;padding:11px 14px;border-radius:16px;border:1px solid rgba(168,216,74,.16);background:rgba(255,255,255,.045)" style-hover="border-color:rgba(198,242,78,.55)">
+<img src="{{ m.pic }}" alt="" loading="lazy" style="width:56px;height:56px;border-radius:11px;object-fit:cover;flex:none">
+<div style="flex:1;min-width:0">
+<div style="font:700 14.5px 'Hanken Grotesk',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ m.name }}</div>
+<div style="font-size:12px;color:#8FBF7A;margin-top:3px">{{ m.dj }} · {{ m.len }}</div>
+</div>
+<span style="font-size:12px;color:#6F9A5E">{{ m.when }}</span>
+</div>
+</sc-for>
+</div>
+<sc-if value="{{ libEmpty }}" hint-placeholder-val="{{ false }}">
+<div style="padding:60px 0;text-align:center;color:#8FBF7A;font-size:15px">{{ libEmptyMsg }}</div>
+</sc-if>
+</section>
+</sc-if>
+
+<sc-if value="{{ isAbout }}" hint-placeholder-val="{{ false }}">
+<section style="padding:26px 0 0;max-width:820px;animation:mri-fade .4s ease both">
+<img src="assets/logo.png" alt="" style="width:120px;margin-bottom:18px">
+<h1 style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:clamp(30px,4.4vw,54px);line-height:1.03;letter-spacing:-.035em;margin:0 0 20px">Independent, honest and colourful radio out of Hyderabad.</h1>
+<p style="font-size:17px;line-height:1.65;color:#C9E2B8;margin:0 0 16px">Monkey Radio India is interactive and audience-oriented. Non-profit, public, transparent, free of commercials — a civilian approach to broadcasting, run by the Monkey Foundation.</p>
+<p style="font-size:17px;line-height:1.65;color:#C9E2B8;margin:0 0 30px">The principal objective is uplifting the urban society with respect to culture and art: promoting music, literature and all art forms to the community, at international standards of radio broadcasting.</p>
+<div style="height:2px;background:linear-gradient(90deg,#EE3B22,#F7B32B,#C6F24E,#2FA35F,#1478A0);margin-bottom:26px"></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:18px">
+<div><div style="font:700 11px 'Hanken Grotesk',sans-serif;letter-spacing:.24em;color:#8FBF7A;margin-bottom:8px">BASED</div><div style="font-size:16px">Hyderabad, India</div></div>
+<div><div style="font:700 11px 'Hanken Grotesk',sans-serif;letter-spacing:.24em;color:#8FBF7A;margin-bottom:8px">ON THE WEB</div><a href="http://www.monkeyradio.in" target="_blank">monkeyradio.in</a></div>
+<div><div style="font:700 11px 'Hanken Grotesk',sans-serif;letter-spacing:.24em;color:#8FBF7A;margin-bottom:8px">ARCHIVE</div><a href="https://www.mixcloud.com/monkeyradioindia/" target="_blank">Mixcloud</a></div>
+<div><div style="font:700 11px 'Hanken Grotesk',sans-serif;letter-spacing:.24em;color:#8FBF7A;margin-bottom:8px">SOCIAL</div><a href="https://www.x.com/monkeyradioin" target="_blank">@monkeyradioin</a></div>
+</div>
+</section>
+</sc-if>
+
+</main>
+
+<sc-if value="{{ detailOpen }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ closeDetail }}" style="position:fixed;inset:0;z-index:60;background:rgba(3,12,8,.72);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:24px">
+<div onClick="{{ stop }}" style="width:min(880px,100%);max-height:86vh;overflow-y:auto;border-radius:26px;border:1px solid rgba(168,216,74,.28);background:linear-gradient(160deg,#0E3327,#08201700 70%),#08201A;animation:mri-fade .25s ease both">
+<div style="position:relative;display:flex;gap:24px;padding:26px;flex-wrap:wrap">
+<div role="img" aria-label="Album art" style="width:250px;height:250px;background-size:cover;background-position:center;background-color:#0B2A1E;border-radius:18px;border:1px solid rgba(198,242,78,.24);flex:none;box-shadow:0 20px 50px rgba(0,0,0,.5);background-image:{{ detail.bg }}"></div>
+<div style="flex:1;min-width:260px">
+<div style="font:700 11px 'Hanken Grotesk',sans-serif;letter-spacing:.24em;color:#EE6B55;margin-bottom:10px">{{ detail.when }} · MONKEY RADIO INDIA</div>
+<h2 style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:29px;line-height:1.08;letter-spacing:-.025em;margin:0 0 10px;text-wrap:pretty">{{ detail.name }}</h2>
+<div style="font-size:15px;color:#7FD8A0;margin-bottom:16px">Selected by <strong style="color:#EAF3E4">{{ detail.dj }}</strong></div>
+<div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:20px">
+<sc-for list="{{ detail.tags }}" as="t" hint-placeholder-count="5">
+<span style="font-size:11.5px;color:#DDF0CE;background:rgba(198,242,78,.10);border:1px solid rgba(168,216,74,.24);padding:4px 10px;border-radius:99px">{{ t }}</span>
+</sc-for>
+</div>
+<div style="display:flex;gap:22px;margin-bottom:22px;font-size:13px;color:#9DC98A">
+<span><strong style="color:#EAF3E4;font-size:16px">{{ detail.len }}</strong><br>runtime</span>
+<span><strong style="color:#EAF3E4;font-size:16px">{{ detail.plays }}</strong><br>plays</span>
+<span><strong style="color:#EAF3E4;font-size:16px">{{ detail.favs }}</strong><br>faves</span>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:9px">
+<button onClick="{{ playDetail }}" style="display:flex;align-items:center;gap:8px;background:#C6F24E;color:#06150F;border:0;border-radius:99px;padding:12px 22px;font:700 14px 'Hanken Grotesk',sans-serif;cursor:pointer" style-hover="background:#E4FF8F">▸ Play now</button>
+<button onClick="{{ queueDetail }}" style="background:rgba(255,255,255,.07);color:#EAF3E4;border:1px solid rgba(168,216,74,.26);border-radius:99px;padding:12px 18px;font:600 14px 'Hanken Grotesk',sans-serif;cursor:pointer" style-hover="border-color:#C6F24E">≡ Queue</button>
+<button onClick="{{ toggleFav }}" data-key="{{ detail.key }}" style="background:rgba(255,255,255,.07);color:{{ detail.favColor }};border:1px solid rgba(168,216,74,.26);border-radius:99px;padding:12px 18px;font:600 14px 'Hanken Grotesk',sans-serif;cursor:pointer" style-hover="border-color:#F7B32B">{{ detail.favLabel }}</button>
+<button onClick="{{ shareDetail }}" style="background:rgba(255,255,255,.07);color:#EAF3E4;border:1px solid rgba(168,216,74,.26);border-radius:99px;padding:12px 18px;font:600 14px 'Hanken Grotesk',sans-serif;cursor:pointer" style-hover="border-color:#C6F24E">{{ shareLabel }}</button>
+</div>
+</div>
+<button onClick="{{ closeDetail }}" style="position:absolute;top:16px;right:18px;width:34px;height:34px;border-radius:50%;border:1px solid rgba(168,216,74,.26);background:rgba(6,21,15,.6);color:#DDF0CE;cursor:pointer;font-size:15px" style-hover="border-color:#EE3B22;color:#EE6B55">✕</button>
+</div>
+<div style="border-top:1px solid rgba(168,216,74,.16);padding:20px 26px 26px">
+<div style="font:700 11px 'Hanken Grotesk',sans-serif;letter-spacing:.24em;color:#8FBF7A;margin-bottom:14px">MORE IN THIS VEIN</div>
+<div class="mri-row" style="display:flex;gap:12px;overflow-x:auto;padding-bottom:6px">
+<sc-for list="{{ related }}" as="m" hint-placeholder-count="6">
+<div onClick="{{ openMix }}" data-key="{{ m.key }}" style="flex:none;width:132px;cursor:pointer">
+<img src="{{ m.pic }}" alt="" loading="lazy" style="width:132px;height:132px;object-fit:cover;border-radius:13px;border:1px solid rgba(168,216,74,.18)">
+<div style="font:600 12px/1.3 'Hanken Grotesk',sans-serif;margin-top:8px;height:31px;overflow:hidden;color:#DDF0CE">{{ m.name }}</div>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ playing }}" hint-placeholder-val="{{ false }}">
+<div style="position:fixed;left:0;right:0;bottom:0;z-index:70;background:rgba(7,26,18,.94);backdrop-filter:blur(20px);border-top:1px solid rgba(168,216,74,.26)">
+<div style="height:2px;background:linear-gradient(90deg,#EE3B22,#F7B32B,#C6F24E,#2FA35F,#1478A0)"></div>
+<div style="max-width:1440px;margin:0 auto;padding:11px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+<div role="img" aria-label="Album art" style="width:54px;height:54px;border-radius:11px;background-size:cover;background-position:center;background-color:#0B2A1E;flex:none;border:1px solid rgba(198,242,78,.24);background-image:{{ now.bg }}"></div>
+<div style="min-width:150px;max-width:260px">
+<div style="font:700 13.5px 'Hanken Grotesk',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ now.name }}</div>
+<div style="font-size:11.5px;color:#8FBF7A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px">{{ now.dj }}</div>
+</div>
+<div style="flex:1;min-width:240px">
+<iframe ref="{{ playerRef }}" title="Mixcloud player" src="{{ playerSrc }}" width="100%" height="60" frameBorder="0" allow="autoplay" style="display:block;border:0;border-radius:10px;overflow:hidden"></iframe>
+</div>
+<button onClick="{{ toggleRadio }}" title="Autoplay the next show when this one ends" style="display:flex;align-items:center;gap:7px;border:1px solid {{ radioBorder }};background:{{ radioBg }};color:{{ radioFg }};border-radius:99px;padding:9px 14px;font:700 12.5px 'Hanken Grotesk',sans-serif;cursor:pointer;white-space:nowrap">◉ Radio mode {{ radioState }}</button>
+<button onClick="{{ playNext }}" style="border:1px solid rgba(168,216,74,.26);background:rgba(255,255,255,.05);color:#DDF0CE;border-radius:99px;padding:9px 14px;font:600 12.5px 'Hanken Grotesk',sans-serif;cursor:pointer">⏭ Next</button>
+<button onClick="{{ toggleFav }}" data-key="{{ now.key }}" style="width:36px;height:36px;border-radius:50%;border:1px solid rgba(168,216,74,.26);background:rgba(255,255,255,.05);color:{{ now.favColor }};cursor:pointer;font-size:14px">♡</button>
+<button onClick="{{ stopPlaying }}" style="width:36px;height:36px;border-radius:50%;border:1px solid rgba(168,216,74,.26);background:rgba(255,255,255,.05);color:#DDF0CE;cursor:pointer;font-size:13px">✕</button>
+</div>
+</div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:950}}">
+class Component extends DCLogic {
+  // Show/DJ/station branding tags — never treated as genres.
+  STOP = ['monkey radio india','monkeyradioindia','monkey radio','hyderabad','india','daktadub','dakta dub','dakta-dub','roots unwired','dub vibration','mr nobody','mrnobody','tune inn','souls of sound','psylenz','selekta chakkra','music manthan','disco freak','bass sanskriti','hyderabad underground movement','dj amul','dj def hawk','radio','radio show','mix','dj mix','podcast','live','guest mix','india radio','underground'];
+  GENRES = [
+    {id:'hiphop', label:'Hip Hop & Rap', tags:['hip hop','hip-hop','hiphop','rap','boom bap','boombap','old school hip hop','underground hip hop','g-funk','g funk','west coast hip hop','east coast hip hop','instrumental hip hop','turntablism','trap','conscious hip hop','90s hip hop','golden era','beats & rhymes','scratch']},
+    {id:'funk', label:'Funk, Soul & Disco', tags:['funk','soul','r&b','rnb','r and b','disco','nu disco','motown','northern soul','boogie','rare groove','neo soul','soul funk','funk soul','1970s','1980s','70s','80s soul']},
+    {id:'afro', label:'Afro & Global', tags:['afrobeat','afrobeats','afro house','afro','afrofunk','world','world music','latin','cumbia','reggaeton','salsa','bollywood','indian classical','carnatic','hindustani','desi','bhangra','arabic','balkan','ethiopian','ethio jazz','highlife','tropical','global bass','fusion','sufi','folk']},
+    {id:'house', label:'House & Techno', tags:['house','techno','deep house','tech house','minimal','minimal techno','electro','edm','dance','acid','acid house','disco house','progressive house','electronica','electronic','melodic techno','dub techno','dubtechno','italo','detroit techno']},
+    {id:'psy', label:'Psy & Ambient', tags:['psychill','psy chill','psydub','psy dub','psybient','psytrance','psy trance','goa','goa trance','ambient','ambient dub','chillgressive','forest psy','organic house','ethnic ambient','dark psy','downtempo psy']},
+    {id:'reggae', label:'Reggae & Dub', tags:['reggae','dub','dancehall','ska','roots reggae','rocksteady','riddim','dub reggae','steppers','lovers rock','ragga','reggae roots','uk dub','sound system']},
+    {id:'chill', label:'Downtempo & Chill', tags:['lofi','lo-fi','lo fi','chillout','chill','chill out','downtempo','trip hop','triphop','jazz hop','beats','lounge','balearic','slow burn']},
+    {id:'jazz', label:'Jazz & Blues', tags:['jazz','blues','bossa nova','bossa','latin jazz','swing','soul jazz','spiritual jazz','free jazz','jazz funk','nu jazz','afro jazz']},
+    {id:'rock', label:'Rock & Alternative', tags:['rock','indie','punk','surf rock','psychedelic rock','metal','garage rock','post punk','alternative','new wave','shoegaze','grunge','classic rock','indie rock','post rock']},
+    {id:'bass', label:'Jungle, D&B & Bass', tags:['drum and bass','drum & bass','drum n bass','dnb','d&b','jungle','breakbeat','breaks','garage','uk garage','dubstep','bass','bass music','grime','footwork','halftime','neurofunk']},
+    {id:'vinyl', label:'Vinyl Only', tags:['vinyl only','vinyl','all vinyl','45s','7 inch','vinyl mix','vinyl set','wax']},
+    {id:'pop', label:'Pop & Classics', tags:['pop','90s','classics','oldies','retro','1990s','throwback','mashup','party','synthpop','city pop','80s pop']}
+  ];
+  MOODS = [
+    {id:'latenight', label:'Late night', dot:'#8FA6EE', tags:['deep house','techno','downtempo','ambient','dub','trip hop','triphop','minimal','lofi','psydub','dub techno','underground hip hop','melodic techno']},
+    {id:'monsoon', label:'Monsoon', dot:'#8FD6EE', tags:['lofi','lo-fi','ambient','downtempo','dub','trip hop','chillout','psychill','psydub','ambient dub','bossa nova','soul','jazz']},
+    {id:'sunday', label:'Sunday morning', dot:'#F7B32B', tags:['soul','jazz','bossa nova','blues','chillout','r&b','lounge','funk','balearic','nu jazz']},
+    {id:'party', label:'Party', dot:'#EE3B22', tags:['funk','disco','house','afrobeat','afrobeats','dancehall','party','hip hop','pop','mashup','edm','tech house','breakbeat']},
+    {id:'cratedig', label:'Crate digger', dot:'#C6F24E', tags:['vinyl only','vinyl','old school hip hop','rare groove','45s','oldies','soul jazz','1970s','boogie','northern soul']},
+    {id:'focus', label:'Focus', dot:'#7FD8A0', tags:['instrumental hip hop','ambient','jazz','lofi','beats','minimal','downtempo','psychill','organic house']}
+  ];
+  CACHE_KEY = 'mri.cloudcasts.v1';
+  PREF_KEY = 'mri.prefs.v1';
+
+  state = {
+    items: [], indexing: false, view: 'home', query: '', genre: null, mood: null, dj: null,
+    sort: 'latest', limit: 48, detailKey: null, nowKey: null, radio: true, tab: 'favs',
+    favs: [], queue: [], history: [], shared: false
+  };
+
+  componentDidMount() {
+    try {
+      const p = JSON.parse(localStorage.getItem(this.PREF_KEY) || '{}');
+      this.setState({favs: p.favs || [], queue: p.queue || [], history: p.history || [], radio: p.radio !== false});
+    } catch (e) {}
+    let cached = null;
+    try { cached = JSON.parse(localStorage.getItem(this.CACHE_KEY) || 'null'); } catch (e) {}
+    if (cached && cached.items && cached.items.length) this.setState({items: cached.items});
+    this.sync(cached);
+    this._onKey = (e) => { if (e.key === 'Escape') this.setState({detailKey: null}); };
+    window.addEventListener('keydown', this._onKey);
+  }
+  componentWillUnmount() { window.removeEventListener('keydown', this._onKey); }
+
+  savePrefs(patch) {
+    const next = {favs: this.state.favs, queue: this.state.queue, history: this.state.history, radio: this.state.radio, ...patch};
+    this.setState(patch);
+    try { localStorage.setItem(this.PREF_KEY, JSON.stringify(next)); } catch (e) {}
+  }
+
+  norm(c) {
+    const pics = c.pictures || {};
+    let dj = '';
+    const t = c.name || '';
+    const dash = t.indexOf(' - ');
+    if (dash > 1 && dash < 34) dj = t.slice(0, dash).trim();
+    if (!dj && c.user && c.user.name && c.user.name !== 'Monkey Radio India') dj = c.user.name;
+    if (!dj) dj = 'Monkey Radio India';
+    return {
+      key: c.key, name: t, url: c.url, dj,
+      pic: pics.extra_large || pics.large || pics['640wx640h'] || 'assets/logo.png',
+      created: c.created_time, len: c.audio_length || 0,
+      plays: c.play_count || 0, favs: c.favorite_count || 0,
+      tags: (c.tags || []).map(x => (x.name || '').toLowerCase())
+    };
+  }
+
+  async sync(cached) {
+    // Fast path: fetch newest page; if the head matches cache, we're current.
+    this.setState({indexing: true});
+    const base = 'https://api.mixcloud.com/monkeyradioindia/cloudcasts/?limit=100';
+    try {
+      const first = await (await fetch(base)).json();
+      const head = (first.data || []).map(c => this.norm(c));
+      if (cached && cached.items && cached.complete && head.length && cached.items[0] && head[0].key === cached.items[0].key) {
+        this.setState({indexing: false});
+        return;
+      }
+      let all = head.slice();
+      this.setState({items: all});
+      let next = first.paging && first.paging.next;
+      let guard = 0;
+      while (next && guard++ < 40) {
+        const page = await (await fetch(next)).json();
+        const rows = (page.data || []).map(c => this.norm(c));
+        if (!rows.length) break;
+        all = all.concat(rows);
+        // paint every other page so the UI fills in progressively
+        if (guard % 2 === 0 || !page.paging || !page.paging.next) this.setState({items: all});
+        next = page.paging && page.paging.next;
+      }
+      const seen = new Set();
+      all = all.filter(m => (seen.has(m.key) ? false : seen.add(m.key)));
+      this.setState({items: all, indexing: false});
+      try { localStorage.setItem(this.CACHE_KEY, JSON.stringify({ts: Date.now(), complete: !next, items: all})); } catch (e) {}
+    } catch (e) {
+      this.setState({indexing: false});
+    }
+  }
+
+  fmtLen(s) {
+    if (!s) return '—';
+    const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+    return h ? h + ':' + String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0') : m + ':' + String(sec).padStart(2, '0');
+  }
+  fmtWhen(iso) {
+    if (!iso) return '';
+    const d = (Date.now() - new Date(iso).getTime()) / 86400000;
+    if (d < 1) return 'today';
+    if (d < 14) return Math.round(d) + 'd ago';
+    if (d < 60) return Math.round(d / 7) + 'w ago';
+    if (d < 730) return Math.round(d / 30.4) + 'mo ago';
+    return Math.round(d / 365) + 'y ago';
+  }
+  fmtNum(n) { return n >= 1000 ? (n / 1000).toFixed(1).replace('.0', '') + 'k' : String(n || 0); }
+
+  card(m) {
+    const clean = m.tags.filter(t => this.STOP.indexOf(t) < 0);
+    const g = this.GENRES.find(x => this.matchTags(m, x.tags));
+    const top = clean[0] || (g ? g.label : 'Radio');
+    return {key: m.key, name: m.name, dj: m.dj, pic: m.pic, len: this.fmtLen(m.len),
+      when: this.fmtWhen(m.created), plays: this.fmtNum(m.plays), bg: 'url(' + m.pic + ')',
+      topTag: top.replace(/\b\w/g, c => c.toUpperCase())};
+  }
+  // Exact tag match, or whole-word containment — never a bare substring, so
+  // show-branding tags like "daktadub" don't fall into the Dub bucket.
+  matchTags(m, set) {
+    return m.tags.some(t => {
+      if (this.STOP.indexOf(t) >= 0) return false;
+      return set.some(s => t === s || new RegExp('(^|[^a-z0-9])' + s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '($|[^a-z0-9])').test(t));
+    });
+  }
+  inGenre(m, id) { const g = this.GENRES.find(x => x.id === id); return g ? this.matchTags(m, g.tags) : true; }
+  inMood(m, id) { const g = this.MOODS.find(x => x.id === id); return g ? this.matchTags(m, g.tags) : true; }
+
+  filtered() {
+    const s = this.state;
+    const q = s.query.trim().toLowerCase();
+    let out = s.items.filter(m => {
+      if (s.genre && !this.inGenre(m, s.genre)) return false;
+      if (s.mood && !this.inMood(m, s.mood)) return false;
+      if (s.dj && m.dj !== s.dj) return false;
+      if (q && !(m.name.toLowerCase().includes(q) || m.dj.toLowerCase().includes(q) || m.tags.some(t => t.includes(q)))) return false;
+      return true;
+    });
+    if (s.sort === 'plays') out = out.slice().sort((a, b) => b.plays - a.plays);
+    else if (s.sort === 'longest') out = out.slice().sort((a, b) => b.len - a.len);
+    else if (s.sort === 'oldest') out = out.slice().reverse();
+    return out;
+  }
+
+  byKey(k) { return this.state.items.find(m => m.key === k); }
+
+  play(key) {
+    const m = this.byKey(key);
+    if (!m) return;
+    const hist = [key].concat(this.state.history.filter(h => h !== key)).slice(0, 40);
+    this.setState({nowKey: key, detailKey: null});
+    this.savePrefs({history: hist});
+  }
+
+  nextKey() {
+    const s = this.state;
+    if (s.queue.length) return s.queue[0];
+    const pool = this.filtered().length > 3 ? this.filtered() : s.items;
+    const i = pool.findIndex(m => m.key === s.nowKey);
+    if (i >= 0 && pool[i + 1]) return pool[i + 1].key;
+    return pool.length ? pool[Math.floor(Math.random() * pool.length)].key : null;
+  }
+
+  bindWidget() {
+    const el = this._iframe;
+    if (!el || !window.Mixcloud || el === this._bound) return;
+    this._bound = el;
+    try {
+      const w = window.Mixcloud.PlayerWidget(el);
+      w.ready.then(() => {
+        w.events.ended.on(() => {
+          if (!this.state.radio) return;
+          const q = this.state.queue.slice();
+          const k = q.length ? q.shift() : this.nextKey();
+          if (q.length !== this.state.queue.length) this.savePrefs({queue: q});
+          if (k) this.play(k);
+        });
+      });
+    } catch (e) {}
+  }
+  componentDidUpdate() { this.bindWidget(); }
+
+  renderVals() {
+    const s = this.state;
+    const items = s.items;
+    const has = items.length > 0;
+    const hero = items[0];
+    const shelves = [];
+    if (has) {
+      shelves.push({id: 'latest', title: 'Fresh off the deck', sub: 'Straight from the studio', items: items.slice(0, 14).map(m => this.card(m))});
+      shelves.push({id: 'popular', title: 'Most spun', sub: 'What the heads keep coming back to', items: items.slice().sort((a, b) => b.plays - a.plays).slice(0, 14).map(m => this.card(m))});
+      if (s.favs.length) shelves.push({id: 'favs', title: 'In your crate', sub: 'Saved for later', items: s.favs.map(k => this.byKey(k)).filter(Boolean).slice(0, 14).map(m => this.card(m))});
+      shelves.push({id: 'long', title: 'The long haul', sub: 'Two hours and up', items: items.filter(m => m.len > 7000).slice(0, 14).map(m => this.card(m))});
+      this.GENRES.forEach(g => {
+        const list = items.filter(m => this.inGenre(m, g.id));
+        if (list.length >= 4) shelves.push({id: g.id, title: g.label, sub: list.length + ' shows', items: list.slice(0, 14).map(m => this.card(m))});
+      });
+    }
+
+    const djMap = {};
+    items.forEach(m => {
+      const d = djMap[m.dj] || (djMap[m.dj] = {name: m.dj, count: 0, secs: 0, pic: m.pic, tags: {}});
+      d.count++; d.secs += m.len;
+      m.tags.slice(0, 3).forEach(t => { d.tags[t] = (d.tags[t] || 0) + 1; });
+    });
+    const djs = Object.values(djMap).sort((a, b) => b.count - a.count).map(d => ({
+      name: d.name, count: d.count, hours: Math.round(d.secs / 3600), pic: d.pic,
+      tags: Object.keys(d.tags).sort((a, b) => d.tags[b] - d.tags[a]).slice(0, 3).join(' · ')
+    }));
+
+    const chip = (active, hue) => active
+      ? {border: hue, bg: hue === '#F7B32B' ? 'rgba(247,179,43,.20)' : 'rgba(198,242,78,.20)', fg: hue}
+      : {border: 'rgba(168,216,74,.20)', bg: 'rgba(255,255,255,.04)', fg: '#DDF0CE'};
+
+    const genreChips = this.GENRES.map(g => Object.assign({id: g.id, label: g.label,
+      count: items.filter(m => this.inGenre(m, g.id)).length}, chip(s.genre === g.id, '#C6F24E')));
+    const moodChips = this.MOODS.map(mo => Object.assign({id: mo.id, label: mo.label, dot: mo.dot}, chip(s.mood === mo.id, '#F7B32B')));
+
+    const list = this.filtered();
+    const detail = s.detailKey ? this.byKey(s.detailKey) : null;
+    const now = s.nowKey ? this.byKey(s.nowKey) : null;
+    const isFav = k => s.favs.indexOf(k) >= 0;
+
+    const libSrc = s.tab === 'favs' ? s.favs : s.tab === 'queue' ? s.queue : s.history;
+    const libItems = libSrc.map(k => this.byKey(k)).filter(Boolean).map(m => this.card(m));
+
+    const sortLabel = {latest: 'newest first', oldest: 'oldest first', plays: 'most played', longest: 'longest'}[s.sort];
+    const tabCol = (on) => on ? {b: '#C6F24E', bg: 'rgba(198,242,78,.18)', f: '#C6F24E'} : {b: 'rgba(168,216,74,.20)', bg: 'rgba(255,255,255,.04)', f: '#DDF0CE'};
+    const tf = tabCol(s.tab === 'favs'), tq = tabCol(s.tab === 'queue'), th = tabCol(s.tab === 'history');
+
+    const related = detail ? items.filter(m => m.key !== detail.key && m.tags.some(t => detail.tags.includes(t))).slice(0, 12).map(m => this.card(m)) : [];
+
+    return {
+      indexing: s.indexing, loadedCount: items.length,
+      isHome: s.view === 'home', isBrowse: s.view === 'browse', isDjs: s.view === 'djs',
+      isLibrary: s.view === 'library', isAbout: s.view === 'about',
+      query: s.query, moods: this.MOODS, shelves,
+      heroTitle: hero ? hero.name : 'Loading the vault…',
+      heroMeta: hero ? hero.dj + ' · ' + this.fmtLen(hero.len) + ' · ' + this.fmtWhen(hero.created) + ' · ' + (hero.tags.slice(0, 3).join(', ') || 'radio') : 'Pulling 974 shows from the Mixcloud archive.',
+      heroPic: hero ? hero.pic : 'assets/logo.png',
+      hasHero: !!hero,
+      heroBg: hero ? 'url(' + hero.pic + ')' : 'none',
+      searchHint: 'Search ' + (items.length || '974') + ' shows, DJs, genres…',
+      heroKey: hero ? hero.key : '',
+      totalShows: items.length || '—',
+      totalHours: items.length ? Math.round(items.reduce((a, m) => a + m.len, 0) / 3600) : '—',
+      djCount: djs.length || '—',
+      djs,
+      browseTitle: s.dj ? s.dj : s.query ? '“' + s.query + '”' : s.genre ? (this.GENRES.find(g => g.id === s.genre) || {}).label : s.mood ? (this.MOODS.find(m => m.id === s.mood) || {}).label : 'The whole vault',
+      browseCount: list.length, sortLabel, genreChips, moodChips,
+      gridItems: list.slice(0, s.limit).map(m => this.card(m)),
+      hasMore: list.length > s.limit, gridEmpty: !list.length && !s.indexing,
+      libItems, libEmpty: !libItems.length,
+      libEmptyMsg: s.tab === 'favs' ? 'Nothing saved yet — hit ♡ on a show.' : s.tab === 'queue' ? 'Queue is empty. Add shows from a mix card.' : 'No listening history yet.',
+      tabFavBorder: tf.b, tabFavBg: tf.bg, tabFavFg: tf.f,
+      tabQueueBorder: tq.b, tabQueueBg: tq.bg, tabQueueFg: tq.f,
+      tabHistBorder: th.b, tabHistBg: th.bg, tabHistFg: th.f,
+      detailOpen: !!detail,
+      detail: detail ? Object.assign({}, this.card(detail), {
+        tags: detail.tags.slice(0, 8), favs: this.fmtNum(detail.favs),
+        favLabel: isFav(detail.key) ? '♥ In your crate' : '♡ Save',
+        favColor: isFav(detail.key) ? '#F7B32B' : '#EAF3E4'
+      }) : {tags: []},
+      related, shareLabel: s.shared ? '✓ Link copied' : '↗ Share',
+      playing: !!now,
+      now: now ? Object.assign({}, this.card(now), {favColor: isFav(now.key) ? '#F7B32B' : '#DDF0CE'}) : {},
+      playerSrc: now ? 'https://player-widget.mixcloud.com/widget/iframe/?hide_cover=1&light=0&autoplay=1&feed=' + encodeURIComponent(now.url.replace('https://www.mixcloud.com', '')) : '',
+      playerRef: (el) => { this._iframe = el; this.bindWidget(); },
+      radioState: s.radio ? 'on' : 'off',
+      radioBorder: s.radio ? '#C6F24E' : 'rgba(168,216,74,.26)',
+      radioBg: s.radio ? 'rgba(198,242,78,.18)' : 'rgba(255,255,255,.05)',
+      radioFg: s.radio ? '#C6F24E' : '#DDF0CE',
+
+      goHome: () => this.setState({view: 'home', genre: null, mood: null, dj: null, query: ''}),
+      nav: (e) => this.setState({view: e.currentTarget.dataset.view, limit: 48}),
+      onSearch: (e) => this.setState({query: e.target.value, view: 'browse', limit: 48}),
+      openMix: (e) => this.setState({detailKey: e.currentTarget.dataset.key, shared: false}),
+      closeDetail: () => this.setState({detailKey: null}),
+      stop: (e) => e.stopPropagation(),
+      playDetail: () => this.play(s.detailKey),
+      queueDetail: () => { this.savePrefs({queue: s.queue.concat([s.detailKey]).filter((v, i, a) => a.indexOf(v) === i)}); this.setState({detailKey: null, view: 'library', tab: 'queue'}); },
+      shareDetail: () => { try { navigator.clipboard.writeText(detail ? detail.url : ''); } catch (e) {} this.setState({shared: true}); },
+      toggleFav: (e) => { e.stopPropagation(); const k = e.currentTarget.dataset.key; if (!k) return; this.savePrefs({favs: isFav(k) ? s.favs.filter(x => x !== k) : [k].concat(s.favs)}); },
+      toggleRadio: () => this.savePrefs({radio: !s.radio}),
+      playNext: () => { const q = s.queue.slice(); const k = q.length ? q.shift() : this.nextKey(); if (q.length !== s.queue.length) this.savePrefs({queue: q}); if (k) this.play(k); },
+      stopPlaying: () => this.setState({nowKey: null}),
+      tuneIn: () => { const pool = list.length ? list : items; if (pool.length) this.play(pool[Math.floor(Math.random() * pool.length)].key); },
+      pickGenre: (e) => { const id = e.currentTarget.dataset.id; this.setState({genre: s.genre === id ? null : id, view: 'browse', dj: null, limit: 48}); },
+      pickMood: (e) => { const id = e.currentTarget.dataset.id; this.setState({mood: s.mood === id ? null : id, view: 'browse', dj: null, limit: 48}); },
+      pickDj: (e) => this.setState({dj: e.currentTarget.dataset.id, view: 'browse', genre: null, mood: null, limit: 48}),
+      openShelf: (e) => { const id = e.currentTarget.dataset.id; const g = this.GENRES.find(x => x.id === id); this.setState({view: g ? 'browse' : 'browse', genre: g ? id : null, mood: null, dj: null, query: '', sort: id === 'popular' ? 'plays' : id === 'long' ? 'longest' : 'latest', limit: 48}); },
+      cycleSort: () => { const order = ['latest', 'plays', 'longest', 'oldest']; this.setState({sort: order[(order.indexOf(s.sort) + 1) % order.length]}); },
+      clearFilters: () => this.setState({genre: null, mood: null, dj: null, query: '', sort: 'latest', limit: 48}),
+      showMore: () => this.setState({limit: s.limit + 48}),
+      setTab: (e) => this.setState({tab: e.currentTarget.dataset.tab}),
+      scrollShelf: (e) => { const el = document.getElementById('shelf-' + e.currentTarget.dataset.shelf); if (el) el.scrollBy({left: 460 * Number(e.currentTarget.dataset.dir), behavior: 'smooth'}); }
+    };
+  }
+}
+</script>
+</body>
+</html>

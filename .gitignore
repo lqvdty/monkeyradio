@@ -1,0 +1,19 @@
+# macOS / design-tool metadata
+.DS_Store
+.thumbnail
+**/.DS_Store
+**/.thumbnail
+
+# Export archives
+*.zip
+
+# Duplicated design export
+Monkey Radio India webapp design/
+
+# Firebase
+.firebase/
+firebase-debug.log
+*-debug.log
+
+# Node
+node_modules/

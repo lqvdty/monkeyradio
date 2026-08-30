@@ -1,0 +1,4 @@
+/assets/*  /assets/:splat  200
+/_ds/*     /_ds/:splat     200
+/uploads/* /uploads/:splat 200
+/*         /index.html     200

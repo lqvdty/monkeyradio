@@ -22,10 +22,10 @@ const flat = (x) => (x || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 // itself names no guest, so a "<show> ft <guest>" episode still keeps its
 // guest. First regex to match wins.
 const RESIDENTS = [
-  [/\b(?:dub vibration|tune inn|hyderabad hi.?fi|hi.?fi hyderabad)\b/i, 'Dakta Dub'],
+  [/\b(?:dub\s+vibr|tune\s?inn|hyderabad hi.?fi|hi.?fi hyderabad)/i, 'Dakta Dub'],
   [/\bmusic manthan\b/i, 'Selekta Chakkra'],
   [/\broots unwired\b/i, 'Mr Nobody'],
-  [/\bswatantram\b/i, 'Velugu'],
+  [/swatantram/i, 'Velugu'],
   [/souls of sound/i, 'Selecta Psylenz'],
   [/\bpuri juggernaut\b/i, 'Shivacult'],
   [/\bthe situation\b/i, 'Kid Move'],
@@ -37,6 +37,20 @@ const RESIDENTS = [
   [/deep space travellers?/i, 'Dj Ozon and Dr Analog'],
   [/bol hyderabad|musical journey with balu/i, 'Dakta Dub'],
   [/folk\s?viber/i, 'Themeekcrab']
+];
+
+// One-off titles that bury the selector's name in phrasing no rule can
+// reasonably parse. Checked before everything else.
+const OVERRIDES = [
+  [/sunday guest mix\s*-\s*george vargas/i, 'George Vargas'],
+  [/^\s*george vargas monkey radio india part/i, 'George Vargas'],
+  [/\btune in features daham/i, 'Daham'],
+  [/monkey radio india\s*-\s*dj quincy/i, 'DJ Quincy'],
+  [/sunday special\s*-\s*mr\.?\s*skunk/i, 'Mr.Skunk'],
+  [/sunday special\b.*rudy roots selekta/i, 'Rudy Roots Selekta'],
+  [/sunday special\s*-\s*roman nz selekta/i, 'Roman NZ Selekta'],
+  [/monkey radio india special mix\s*-\s*von dewey/i, 'Von Dewey'],
+  [/\bmango\s?-?\s?p-zion highway/i, 'Selecta Mango P']
 ];
 
 // The text before a "presents"/"feat"/"showcase" keyword is the station or
@@ -61,10 +75,11 @@ const trimTail = (x) => x
   .trim();
 
 export function djFrom(raw) {
+  const s = (raw || '').replace(/│/g, '|');
+  for (const [re, name] of OVERRIDES) if (re.test(s)) return name;
   const named = pickDj(raw);
   if (named) return named;
   // No guest in the title - fall back to the show's resident selector.
-  const s = (raw || '').replace(/│/g, '|');
   for (const [re, name] of RESIDENTS) if (re.test(s)) return name;
   return null;
 }

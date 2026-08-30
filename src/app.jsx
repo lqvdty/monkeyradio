@@ -504,7 +504,8 @@ class Component extends React.Component {
     [/\bswatantram\b/i, 'Velugu'],
     [/\bsouls of sound\b/i, 'Selecta Psylenz'],
     [/\bpuri juggernaut\b/i, 'Shivacult'],
-    [/\bthe situation\b/i, 'Kid Move']
+    [/\bthe situation\b/i, 'Kid Move'],
+    [/\btransmissions?\b/i, 'Chidakasha']
   ];
 
   djFrom(raw) {

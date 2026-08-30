@@ -376,6 +376,7 @@ class Component extends React.Component {
     (this._timers || []).forEach(t => { clearTimeout(t); });
     document.body.style.overflow = '';
     this.releaseWakeLock();
+    if (this._ambientTick) clearInterval(this._ambientTick);
   }
 
   // Keeps the screen from sleeping mid-show - the app is meant to run
@@ -491,7 +492,7 @@ class Component extends React.Component {
     }
   }
 
-  NOT_A_DJ = ['indiearth','monkey radio','monkeyradio','monkey sound','tune inn','souls of sound','music manthan','disco freak','bass sanskriti','dub vibration','roots unwired','daktadub','dakta dub','hyderabad underground movement','hyderabad hi fi','hi fi hyderabad','sunday special','sunday live','excursions in','guest mix','radio show','podcast'];
+  NOT_A_DJ = ['indiearth','monkey radio','monkeyradio','monkey sound','tune inn','souls of sound','music manthan','disco freak','bass sanskriti','dub vibration','roots unwired','aurelia pszichedelia','sleepless monk','daktadub','dakta dub','hyderabad underground movement','hyderabad hi fi','hi fi hyderabad','sunday special','sunday live','excursions in','guest mix','radio show','podcast'];
   ALIASES = ['dj def hawk','selekta chakkra','amul','psylenz','berencz balazs','dj makarun'];
 
   djFrom(raw) {
@@ -521,8 +522,8 @@ class Component extends React.Component {
     { const m = s.match(/\bby\s+([A-Za-z][^|,]{1,34})$/i); if (m) cand = m[1]; }
     // "<station/show> presents|feat|features|showcase - <guest>"
     if (!cand) {
-      const m = s.match(/^(.{2,46}?)\s+(?:presents?|pres\.?|featuring|features|feat\.?|ft\.?)\s+(.{2,40}?)\s*$/i)
-        || s.match(/\bshowcase\s*[-–]\s*(.{2,40}?)\s*$/i);
+      const m = s.match(/^(.{2,46}?)\s+(?:presents?|pres\.?|introduces?|introducing|featuring|features|feat\.?|ft\.?)\s+(.{2,60}?)\s*$/i)
+        || s.match(/\bshowcase\s*[-–]\s*(.{2,60}?)\s*$/i);
       if (m) {
         const after = trimTail((m.length > 2 ? m[2] : m[1]).trim());
         if ((m.length <= 2 || isShowish(m[1])) && nameish(after)) cand = after;
@@ -1205,12 +1206,16 @@ class Component extends React.Component {
                 });
               } catch (e) {}
             }
-            // The hero "on air" bar (and, sharing the same throttle,
-            // ambient mode's progress bar) is the only thing this repaints
-            // for, and it only needs whole-second resolution - cap it at
-            // 1/sec so a widget that ticks faster than that doesn't force
-            // extra full re-renders of the page underneath it.
-            if ((s.view === 'home' || s.ambient) && !document.hidden && s.nowKey && Date.now() - (this._lastHeroTick || 0) >= 950) {
+            // The hero "on air" bar is the only thing this repaints for,
+            // and it only needs whole-second resolution - cap it at 1/sec
+            // so a widget that ticks faster than that doesn't force extra
+            // full re-renders of the page underneath it. Ambient mode's own
+            // progress bar has its own independent timer (see
+            // componentDidUpdate) rather than piggybacking on this - it
+            // needs to keep advancing even while `view` is away from
+            // 'home', and a dedicated 1/sec interval is simpler to reason
+            // about than widening this gate's conditions further.
+            if (s.view === 'home' && !document.hidden && s.nowKey && Date.now() - (this._lastHeroTick || 0) >= 950) {
               this._lastHeroTick = Date.now();
               this.forceUpdate();
             }
@@ -1233,6 +1238,19 @@ class Component extends React.Component {
   }
   componentDidUpdate() {
     this.bindWidget();
+    // Ambient mode's progress bar needs its own steady 1/sec heartbeat,
+    // independent of the Mixcloud widget's own progress-event cadence (and
+    // of the `view === 'home'` gate the hero bar's repaint uses) - it has
+    // to keep advancing however ambient mode was entered or which page
+    // sits underneath it. Started/stopped here rather than in
+    // enterAmbient()/exitAmbient() so it also covers the direct-URL entry
+    // (visiting /ambient sets `ambient` straight from applyRoute()).
+    if (this.state.ambient && !this._ambientTick) {
+      this._ambientTick = setInterval(() => { if (!document.hidden) this.forceUpdate(); }, 1000);
+    } else if (!this.state.ambient && this._ambientTick) {
+      clearInterval(this._ambientTick);
+      this._ambientTick = null;
+    }
     // Keep the measured header height current so the show-detail modal can
     // sit below it (header stays visible while the modal is open).
     this._measure();
@@ -1511,7 +1529,6 @@ class Component extends React.Component {
       // Ambient mode.
       ambient: s.ambient,
       ambientPct, ambientElapsed, ambientRuntime,
-      ambientShowUrl: now ? 'https://www.monkeyradio.in/show/' + this.slugOf(now.key) : '',
       enterAmbient: () => this.enterAmbient(),
       exitAmbient: () => this.exitAmbient(),
       ambientTapStart: () => this.ambientTapStart(),
@@ -1669,18 +1686,8 @@ class Component extends React.Component {
                     <div style={css("font:600 9.5px 'Archivo',sans-serif;letter-spacing:.12em;color:#8a8685;margin-top:8px")}>{v.ambientElapsed} / {v.ambientRuntime}</div>
                   </div>
                 ) : null}
-                {!v.isSm && v.ambientShowUrl ? (
-                  <div style={css("position:absolute;right:20px;bottom:20px;display:flex;flex-direction:column;align-items:center;gap:6px")}>
-                    <img
-                      src={"https://api.qrserver.com/v1/create-qr-code/?size=104x104&margin=6&data=" + encodeURIComponent(v.ambientShowUrl)}
-                      alt=""
-                      width="72" height="72"
-                      style={css("display:block;background:#f3f2f2;padding:5px")}
-                      onError={(e) => { e.currentTarget.parentElement.style.display = 'none'; }}
-                    />
-                    <span style={css("font:600 8px 'Archivo',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#8a8685")}>Discover this show</span>
-                  </div>
-                ) : null}
+                {/* A per-show QR code (linking to /show/<slug>) lived here
+                    briefly and is parked for now, not dropped for good. */}
               </React.Fragment>
             )}
           </div>

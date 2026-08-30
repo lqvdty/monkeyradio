@@ -1859,10 +1859,11 @@ class Component extends React.Component {
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block")}><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
             </button>
 
-            <div style={css("position:absolute;left:20px;bottom:20px;z-index:2;display:flex;align-items:center;gap:10px")}>
-              <img src="assets/logo.png" alt="" style={css("width:38px;height:36px;object-fit:contain;display:block")} />
-              <span style={css("font:800 13px 'Archivo',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#f3f2f2")}>Monkey Radio India</span>
-            </div>
+            {/* Station ident: a quiet text-only wordmark in the top-left,
+                readable at a glance from across a room without reading as a
+                pasted-on logo. The now-playing block below carries the
+                louder "· ON AIR" kicker. */}
+            <div style={css("position:absolute;left:24px;top:22px;z-index:2;font:800 12px 'Archivo',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:rgba(243,242,242,.62);text-shadow:0 1px 10px rgba(0,0,0,.35);pointer-events:none")}>Monkey Radio India</div>
 
             {!v.now.key ? (
               <button onClick={v.ambientTapStart} style={css("position:relative;z-index:2;background:none;border:0;color:#f3f2f2;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:22px;padding:0")}>
@@ -1877,7 +1878,11 @@ class Component extends React.Component {
                 <div style={css("display:flex;align-items:center;gap:clamp(16px,3vw,32px);text-align:left")}>
                   <ArtBg url={v.now.pic} role="img" aria-label="Album art" base={"flex:none;width:min(38vw,220px);aspect-ratio:1;background-size:cover;background-position:center;background-color:#33302f;border:2px solid #f3f2f2"} />
                   <div style={css("min-width:0;flex:1")}>
-                    <h1 style={css("font:800 clamp(20px,3.4vw,34px)/1.15 'Archivo',sans-serif;margin:0;max-width:22ch")}>{v.now.name}</h1>
+                    <div style={css("display:flex;align-items:center;gap:8px;margin-bottom:14px")}>
+                      <span style={css("width:7px;height:7px;border-radius:50%;background:#ec3013;flex:none;box-shadow:0 0 0 3px rgba(236,48,19,.28)")}></span>
+                      <span style={css("font:700 10px 'Archivo',sans-serif;letter-spacing:.24em;text-transform:uppercase;color:#f3f2f2;text-shadow:0 1px 10px rgba(0,0,0,.35)")}>Monkey Radio India · On Air</span>
+                    </div>
+                    <h1 style={css("font:800 clamp(20px,3.4vw,34px)/1.15 'Archivo',sans-serif;margin:0;max-width:22ch;text-shadow:0 2px 18px rgba(0,0,0,.28)")}>{v.now.name}</h1>
                     <div style={css("font:600 11px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#e6e3e2;margin-top:12px")}>Selected by {v.now.dj}</div>
                   </div>
                 </div>

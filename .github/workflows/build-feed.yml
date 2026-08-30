@@ -1,0 +1,49 @@
+# Regenerates feed.xml from the Mixcloud archive on a schedule, commits it
+# if it changed, and pushes to Firebase Hosting so the feed goes live.
+#
+# A push made with GITHUB_TOKEN does not trigger the on:push deploy in
+# firebase-hosting-merge.yml, so this job deploys directly (same secret,
+# FIREBASE_SERVICE_ACCOUNT). Drop the last step if you would rather the
+# feed ride along with the next manual deploy.
+name: Build RSS feed
+
+on:
+  schedule:
+    - cron: '17 */6 * * *'   # every 6 hours
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-feed:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Generate feed.xml
+        run: node scripts/build-feed.mjs
+      - name: Commit if changed
+        id: commit
+        run: |
+          if git diff --quiet -- feed.xml; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "feed.xml unchanged."
+          else
+            git config user.name  "monkey-radio-bot"
+            git config user.email "bot@users.noreply.github.com"
+            git add feed.xml
+            git commit -m "chore: refresh feed.xml"
+            git push
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Deploy to Firebase Hosting
+        if: steps.commit.outputs.changed == 'true'
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          channelId: live
+          projectId: monkeyradioindia

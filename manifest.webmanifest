@@ -1,0 +1,20 @@
+{
+  "name": "Monkey Radio India",
+  "short_name": "Monkey Radio",
+  "description": "Independent and colourful radio out of Hyderabad. The live Mixcloud archive, browsable by genre, mood and selector, with an in-page player and radio mode.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f3f2f2",
+  "theme_color": "#f3f2f2",
+  "lang": "en-IN",
+  "categories": ["music", "entertainment"],
+  "icons": [
+    { "src": "/assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

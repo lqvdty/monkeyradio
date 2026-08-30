@@ -10,12 +10,20 @@
       "**/*.zip",
       "_archive/**",
       ".github/**",
+      "scripts/**",
+      "package.json",
+      "package-lock.json",
       "serve.py",
       "vercel.json",
       "README.md"
     ],
     "rewrites": [
-      { "source": "**", "destination": "/index.html" }
+      { "source": "/", "destination": "/index.html" },
+      { "source": "/archive", "destination": "/index.html" },
+      { "source": "/selectors", "destination": "/index.html" },
+      { "source": "/saved", "destination": "/index.html" },
+      { "source": "/about", "destination": "/index.html" },
+      { "source": "/show/**", "destination": "/index.html" }
     ]
   }
 }

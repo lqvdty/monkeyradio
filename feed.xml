@@ -1,0 +1,738 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/">
+  <channel>
+    <title>Monkey Radio India</title>
+    <link>https://www.monkeyradio.in/</link>
+    <atom:link href="https://www.monkeyradio.in/feed.xml" rel="self" type="application/rss+xml"/>
+    <description>Independent and colourful radio out of Hyderabad. New shows from the Monkey Radio India Mixcloud archive.</description>
+    <language>en-in</language>
+    <lastBuildDate>Sun, 30 Aug 2026 12:08:09 GMT</lastBuildDate>
+    <generator>scripts/build-feed.mjs</generator>
+    <image>
+      <url>https://www.monkeyradio.in/assets/icon-512.png</url>
+      <title>Monkey Radio India</title>
+      <link>https://www.monkeyradio.in/</link>
+    </image>
+    <item>
+      <title>Dj Makarun - Afro summer guest mix</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/dj-makarun-afro-summer-guest-mix/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/dj-makarun-afro-summer-guest-mix/</guid>
+      <pubDate>Sat, 01 Aug 2026 14:16:32 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 1 hr 38 min - Afrobeat, Funk - Listen on Mixcloud.</description>
+      <category>Afrobeat</category>
+      <category>Funk</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/7/b/2/2/a734-97a4-45e0-b668-d8a2a2be4939"/>
+    </item>
+    <item>
+      <title>Dj Def Hawk - Live &amp; Uncut Vinyl Hip Hop Mix</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/dj-def-hawk-live-uncut-vinyl-hip-hop-mix/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/dj-def-hawk-live-uncut-vinyl-hip-hop-mix/</guid>
+      <pubDate>Sat, 20 Jun 2026 14:23:00 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 43 min - Hip Hop, Old school hip hop, Underground hip hop, Rap, Vinyl Only - Listen on Mixcloud.</description>
+      <category>Hip Hop</category>
+      <category>Old school hip hop</category>
+      <category>Underground hip hop</category>
+      <category>Rap</category>
+      <category>Vinyl Only</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/8/a/a/8/efee-91a7-4037-aa3e-53e822142d6e"/>
+    </item>
+    <item>
+      <title>Dj Def Hawk - 70s Funk Soul Vinyl Mix</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/dj-def-hawk-70s-funk-soul-vinyl-mix/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/dj-def-hawk-70s-funk-soul-vinyl-mix/</guid>
+      <pubDate>Wed, 06 May 2026 17:31:18 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 53 min - Funk, Soul, R&amp;B, 1970s, Vinyl Only - Listen on Mixcloud.</description>
+      <category>Funk</category>
+      <category>Soul</category>
+      <category>R&amp;B</category>
+      <category>1970s</category>
+      <category>Vinyl Only</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/e/4/5/a/9884-59d4-40a9-ac51-0b6538011bce"/>
+    </item>
+    <item>
+      <title>Dj Def Hawk - Timeless Hip Hop Mix</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/dj-def-hawk-timeless-hip-hop-mix/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/dj-def-hawk-timeless-hip-hop-mix/</guid>
+      <pubDate>Mon, 22 Dec 2025 22:42:38 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 59 min - Hip Hop, Old school hip hop, Rap, Boom bap, G-funk - Listen on Mixcloud.</description>
+      <category>Hip Hop</category>
+      <category>Old school hip hop</category>
+      <category>Rap</category>
+      <category>Boom bap</category>
+      <category>G-funk</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/9/1/b/2/ce7a-fbad-4f1d-a0bb-ccf4e7e49258"/>
+    </item>
+    <item>
+      <title>CALIFORNIA Knows How To Party</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/california-knows-how-to-party/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/california-knows-how-to-party/</guid>
+      <pubDate>Wed, 20 Aug 2025 14:02:46 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 40 min - Hip Hop, Rap, West Coast Hip Hop, Surf rock, California - Listen on Mixcloud.</description>
+      <category>Hip Hop</category>
+      <category>Rap</category>
+      <category>West Coast Hip Hop</category>
+      <category>Surf rock</category>
+      <category>California</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/3/e/f/c/c968-60ae-43fe-9cb2-13d7672e25d2"/>
+    </item>
+    <item>
+      <title>Berencz Balazs - 90s RnB Hip Hop Exclusive Vinyl Only Guest Mix</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/berecz-balazs-90s-rnb-hip-hop-exclusive-vinyl-only-guest-mix/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/berecz-balazs-90s-rnb-hip-hop-exclusive-vinyl-only-guest-mix/</guid>
+      <pubDate>Fri, 01 Aug 2025 13:20:29 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 1 hr 17 min - R&amp;B, Hip Hop, Old school hip hop, Funk, Rap - Listen on Mixcloud.</description>
+      <category>R&amp;B</category>
+      <category>Hip Hop</category>
+      <category>Old school hip hop</category>
+      <category>Funk</category>
+      <category>Rap</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/e/0/6/8/1fbf-8af4-418e-a125-5efc6f54b369"/>
+    </item>
+    <item>
+      <title>Summer Hip Hop &amp; RnB Mix</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/summer-hip-hop-rnb-mix/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/summer-hip-hop-rnb-mix/</guid>
+      <pubDate>Sun, 22 Jun 2025 06:45:04 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 1 hr 0 min - Hip Hop, Old school hip hop, Rap, West Coast Hip Hop, R&amp;B - Listen on Mixcloud.</description>
+      <category>Hip Hop</category>
+      <category>Old school hip hop</category>
+      <category>Rap</category>
+      <category>West Coast Hip Hop</category>
+      <category>R&amp;B</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/8/a/8/8/cb56-a0f7-4f73-b99f-d7624046d067"/>
+    </item>
+    <item>
+      <title>Strictly hip hop mix</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/strictly-hip-hop-mix/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/strictly-hip-hop-mix/</guid>
+      <pubDate>Tue, 18 Feb 2025 09:25:15 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 55 min - Hip Hop, Underground hip hop, Old school hip hop, Rap, DJ DEF HAWK - Listen on Mixcloud.</description>
+      <category>Hip Hop</category>
+      <category>Underground hip hop</category>
+      <category>Old school hip hop</category>
+      <category>Rap</category>
+      <category>DJ DEF HAWK</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/0/b/5/9/2724-6199-48c7-9c91-ec9d11f956d9"/>
+    </item>
+    <item>
+      <title>Slow beats &amp; smoky tunes hip hop mix</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/slow-beats-smoky-tunes-hip-hop-mix/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/slow-beats-smoky-tunes-hip-hop-mix/</guid>
+      <pubDate>Wed, 22 Jan 2025 09:34:20 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 1 hr 23 min - Hip Hop, Underground hip hop, Old school hip hop, Rap - Listen on Mixcloud.</description>
+      <category>Hip Hop</category>
+      <category>Underground hip hop</category>
+      <category>Old school hip hop</category>
+      <category>Rap</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/e/3/f/d/3ecc-0135-4cfb-b668-a42050d12f91"/>
+    </item>
+    <item>
+      <title>Dj Def Hawk - Hip hop warm up mix for 2025</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/dj-def-hawk-year-end-hip-hop-mix-live-from-rijeka-20241231-083614/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/dj-def-hawk-year-end-hip-hop-mix-live-from-rijeka-20241231-083614/</guid>
+      <pubDate>Tue, 31 Dec 2024 13:18:09 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 2 hr 10 min - Rap, Old school hip hop, Underground hip hop, Hip Hop, Instrumental hip hop - Listen on Mixcloud.</description>
+      <category>Rap</category>
+      <category>Old school hip hop</category>
+      <category>Underground hip hop</category>
+      <category>Hip Hop</category>
+      <category>Instrumental hip hop</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/1/f/0/9/167b-87c1-45ee-b2db-e60585bb6e26"/>
+    </item>
+    <item>
+      <title>Dj Def Hawk - Hip hop mix live from Rijeka</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/dj-def-hawk-year-end-hip-hop-live-stream-20241228-160939/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/dj-def-hawk-year-end-hip-hop-live-stream-20241228-160939/</guid>
+      <pubDate>Sun, 29 Dec 2024 10:44:50 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 1 hr 47 min - Rap, Old school hip hop, Underground hip hop, Hip Hop - Listen on Mixcloud.</description>
+      <category>Rap</category>
+      <category>Old school hip hop</category>
+      <category>Underground hip hop</category>
+      <category>Hip Hop</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/2/e/c/0/defa-70ee-41f3-8b46-d3ad1e15e860"/>
+    </item>
+    <item>
+      <title>Monkey Sound System Ft Raayal Dub &amp; Bagwaan 20.04.2024</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/monkey-sound-system-ft-raayal-dub-bagwaan-20042024/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/monkey-sound-system-ft-raayal-dub-bagwaan-20042024/</guid>
+      <pubDate>Thu, 31 Oct 2024 05:16:29 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 49 min - Reggae, Dub, Steppers, Roots reggae, UK bass - Listen on Mixcloud.</description>
+      <category>Reggae</category>
+      <category>Dub</category>
+      <category>Steppers</category>
+      <category>Roots reggae</category>
+      <category>UK bass</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/3/7/4/8/e64e-110e-4005-85c8-b1c8b2b2afa6"/>
+    </item>
+    <item>
+      <title>Monkey Sound System ft Mam Dem Up</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/monkey-sound-system-ft-mam-dem-up-26012024/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/monkey-sound-system-ft-mam-dem-up-26012024/</guid>
+      <pubDate>Sat, 12 Oct 2024 05:41:05 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 57 min - Roots, Roots reggae, Jamaica, Reggae, Dub - Listen on Mixcloud.</description>
+      <category>Roots</category>
+      <category>Roots reggae</category>
+      <category>Jamaica</category>
+      <category>Reggae</category>
+      <category>Dub</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/1/e/2/3/b7f7-97c1-4b1a-9880-7f64b2f7702b"/>
+    </item>
+    <item>
+      <title>Dj Def Hawk│Pray for Rain August 2024</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/dj-def-hawkpray-for-rain-august-2024/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/dj-def-hawkpray-for-rain-august-2024/</guid>
+      <pubDate>Sun, 25 Aug 2024 06:31:32 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 1 hr 41 min - Hip Hop, Rap, R&amp;B, Breakbeat, Big beat - Listen on Mixcloud.</description>
+      <category>Hip Hop</category>
+      <category>Rap</category>
+      <category>R&amp;B</category>
+      <category>Breakbeat</category>
+      <category>Big beat</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/e/a/4/0/1c09-5cc4-477f-9303-827baebaa402"/>
+    </item>
+    <item>
+      <title>Dj Def Hawk│Summer Special July 2024</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/dj-def-hawksummer-special-july-2024/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/dj-def-hawksummer-special-july-2024/</guid>
+      <pubDate>Sun, 07 Jul 2024 12:27:42 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 1 hr 12 min - Hip Hop, Funk, Soul, R&amp;B, Drum and bass - Listen on Mixcloud.</description>
+      <category>Hip Hop</category>
+      <category>Funk</category>
+      <category>Soul</category>
+      <category>R&amp;B</category>
+      <category>Drum and bass</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/8/1/4/1/1441-8e23-4798-ad4d-9c5d6c0c437e"/>
+    </item>
+    <item>
+      <title>Dj Def Hawk│RnB Hip Hop Live Mix May 2024</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/dj-def-hawkrnb-hip-hop-live-mix-may-2024/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/dj-def-hawkrnb-hip-hop-live-mix-may-2024/</guid>
+      <pubDate>Fri, 24 May 2024 09:27:35 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 1 hr 26 min - R&amp;B, Hip Hop, Old school hip hop, Rap - Listen on Mixcloud.</description>
+      <category>R&amp;B</category>
+      <category>Hip Hop</category>
+      <category>Old school hip hop</category>
+      <category>Rap</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/7/4/4/f/09eb-1b54-44a1-843a-d49e5e493b23"/>
+    </item>
+    <item>
+      <title>Dj Def Hawk│Live @ MiAKavics 05.04.2024. Part-1</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/dj-def-hawklive-miakavics-05042024-part-1/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/dj-def-hawklive-miakavics-05042024-part-1/</guid>
+      <pubDate>Sat, 13 Apr 2024 20:14:01 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 1 hr 22 min - Hip Hop, Rap, R&amp;B, Old school hip hop - Listen on Mixcloud.</description>
+      <category>Hip Hop</category>
+      <category>Rap</category>
+      <category>R&amp;B</category>
+      <category>Old school hip hop</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/3/a/a/2/8b92-8207-4f04-9878-9449b7344707"/>
+    </item>
+    <item>
+      <title>Sunday Live with Dj Def Hawk│Amerigo Gazaway interview 07.04.2023.</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/sunday-live-with-dj-def-hawkamerigo-gazaway-interview-07042023-20230407-150044/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/sunday-live-with-dj-def-hawkamerigo-gazaway-interview-07042023-20230407-150044/</guid>
+      <pubDate>Fri, 07 Apr 2023 18:12:44 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 1 hr 12 min - Funk, Soul, Hip Hop, Underground hip hop, Sampling - Listen on Mixcloud.</description>
+      <category>Funk</category>
+      <category>Soul</category>
+      <category>Hip Hop</category>
+      <category>Underground hip hop</category>
+      <category>Sampling</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/a/7/3/f/702d-de1c-4295-aee3-7b377236272b"/>
+    </item>
+    <item>
+      <title>Sunday Live with Dj Def Hawk│MC Ponza interview 19.03.2023.</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/sunday-live-with-dj-def-hawk-20230319-091940/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/sunday-live-with-dj-def-hawk-20230319-091940/</guid>
+      <pubDate>Sun, 19 Mar 2023 19:03:33 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 1 hr 18 min - Jazz rap, Underground hip hop, Hip Hop - Listen on Mixcloud.</description>
+      <category>Jazz rap</category>
+      <category>Underground hip hop</category>
+      <category>Hip Hop</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/c/c/8/e/b501-0b6e-483d-9f57-2513a7bebab4"/>
+    </item>
+    <item>
+      <title>Sunday Live with Dj Def Hawk│05.03.2023.</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/monkey-radio-india-sunday-live-with-dj-def-hawk-20230305-175717/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/monkey-radio-india-sunday-live-with-dj-def-hawk-20230305-175717/</guid>
+      <pubDate>Fri, 10 Mar 2023 21:28:39 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 1 hr 7 min - Jazz rap, Old school hip hop, Underground hip hop, Hip Hop - Listen on Mixcloud.</description>
+      <category>Jazz rap</category>
+      <category>Old school hip hop</category>
+      <category>Underground hip hop</category>
+      <category>Hip Hop</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/8/0/2/d/dd46-90ae-463e-a9ed-03d2b50f134c"/>
+    </item>
+    <item>
+      <title>Sunday Live with Dj Def Hawk│26.02.2023.</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/monkey-radio-india-sunday-live-with-dj-def-hawk-20230226-091253/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/monkey-radio-india-sunday-live-with-dj-def-hawk-20230226-091253/</guid>
+      <pubDate>Sun, 26 Feb 2023 20:50:37 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 1 hr 5 min - Jazz rap, Old school hip hop, Underground hip hop, Hip Hop - Listen on Mixcloud.</description>
+      <category>Jazz rap</category>
+      <category>Old school hip hop</category>
+      <category>Underground hip hop</category>
+      <category>Hip Hop</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/1/9/2/c/13aa-3008-48a9-bc9a-ed8eaa89d789"/>
+    </item>
+    <item>
+      <title>Sunday Live with Dj Def Hawk │ DJ GYöReMiX! interview 19.02.2023.</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/monkey-radio-india-sunday-live-with-dj-def-hawk-20230219-085659/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/monkey-radio-india-sunday-live-with-dj-def-hawk-20230219-085659/</guid>
+      <pubDate>Sun, 19 Feb 2023 16:58:50 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 1 hr 29 min - Jazz rap, Old school hip hop, Underground hip hop, Hip Hop, Vinyl Only - Listen on Mixcloud.</description>
+      <category>Jazz rap</category>
+      <category>Old school hip hop</category>
+      <category>Underground hip hop</category>
+      <category>Hip Hop</category>
+      <category>Vinyl Only</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/7/2/d/d/a4f8-edf7-47fa-87f3-bf0aaf50edd0"/>
+    </item>
+    <item>
+      <title>Sunday Live with Dj Def Hawk│05 02 2023</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/monkey-radio-india-sunday-live-with-dj-def-hawk-20230205-095336/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/monkey-radio-india-sunday-live-with-dj-def-hawk-20230205-095336/</guid>
+      <pubDate>Tue, 07 Feb 2023 09:47:35 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 1 hr 38 min - Underground hip hop, Jazz-hop, Hip Hop, Oldschool Rap - Listen on Mixcloud.</description>
+      <category>Underground hip hop</category>
+      <category>Jazz-hop</category>
+      <category>Hip Hop</category>
+      <category>Oldschool Rap</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/b/f/e/6/4937-8492-4ac1-9cef-2e22209570a7"/>
+    </item>
+    <item>
+      <title>Sunday Live with Dj Def Hawk│29 01 2023</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/monkey-radio-india-sunday-live-with-dj-def-hawk-20230129-084303/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/monkey-radio-india-sunday-live-with-dj-def-hawk-20230129-084303/</guid>
+      <pubDate>Sun, 29 Jan 2023 14:24:15 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 1 hr 28 min - Rap, Underground hip hop, Jazz-hop, Hip Hop, Old school hip hop - Listen on Mixcloud.</description>
+      <category>Rap</category>
+      <category>Underground hip hop</category>
+      <category>Jazz-hop</category>
+      <category>Hip Hop</category>
+      <category>Old school hip hop</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/5/1/2/5/95c8-f852-4785-a10a-3df3ee517985"/>
+    </item>
+    <item>
+      <title>Dj Def Hawk Sunday Live</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/monkey-radio-india-live-stream-beta-with-dj-def-hawk-20230122-091244/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/monkey-radio-india-live-stream-beta-with-dj-def-hawk-20230122-091244/</guid>
+      <pubDate>Tue, 24 Jan 2023 12:20:38 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 1 hr 36 min - Old school hip hop, Underground hip hop, Hip Hop, Jazz-hop, Freestyle rap - Listen on Mixcloud.</description>
+      <category>Old school hip hop</category>
+      <category>Underground hip hop</category>
+      <category>Hip Hop</category>
+      <category>Jazz-hop</category>
+      <category>Freestyle rap</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/6/8/a/3/4878-2d71-492a-a2f0-14f7bc075101"/>
+    </item>
+    <item>
+      <title>Live stream beta with Dj Def Hawk</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/monkey-radio-india-live-stream-beta-with-dj-def-hawk-20230115-095220/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/monkey-radio-india-live-stream-beta-with-dj-def-hawk-20230115-095220/</guid>
+      <pubDate>Mon, 16 Jan 2023 11:16:20 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 1 hr 47 min - Underground hip hop, Jazz-hop, Hip Hop - Listen on Mixcloud.</description>
+      <category>Underground hip hop</category>
+      <category>Jazz-hop</category>
+      <category>Hip Hop</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/4/9/7/4/4686-fdeb-411e-ad47-17aca329f554"/>
+    </item>
+    <item>
+      <title>Dj Def Hawk - Live in Dunakeszi Hip Hop Mix Part-2</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/dj-def-hawk-live-in-dunakeszi-hip-hop-mix-part-2/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/dj-def-hawk-live-in-dunakeszi-hip-hop-mix-part-2/</guid>
+      <pubDate>Mon, 09 Jan 2023 13:28:40 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 1 hr 17 min - Hip Hop, Old school hip hop, Rap, 90&apos;s Hip Hop - Listen on Mixcloud.</description>
+      <category>Hip Hop</category>
+      <category>Old school hip hop</category>
+      <category>Rap</category>
+      <category>90&apos;s Hip Hop</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/7/f/a/3/08f9-0051-4365-8455-74067f0e0797"/>
+    </item>
+    <item>
+      <title>Dj Def Hawk - Live in Dunakeszi Hip Hop Mix Part-1</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/dj-def-hawk-live-in-dunakeszi-hip-hop-mix-part-1/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/dj-def-hawk-live-in-dunakeszi-hip-hop-mix-part-1/</guid>
+      <pubDate>Wed, 28 Dec 2022 21:09:29 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 1 hr 3 min - Hip Hop, Rap, Old school hip hop - Listen on Mixcloud.</description>
+      <category>Hip Hop</category>
+      <category>Rap</category>
+      <category>Old school hip hop</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/e/d/f/a/018d-6e91-4a01-8180-1193e7508814"/>
+    </item>
+    <item>
+      <title>Souls of Sound - World Music Day 21.06.22</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/souls-of-sound-world-music-day-21622/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/souls-of-sound-world-music-day-21622/</guid>
+      <pubDate>Wed, 22 Jun 2022 11:32:37 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 1 hr 2 min - Selecta psylenz, Monkey Radio India, Souls of Sound, World music - Listen on Mixcloud.</description>
+      <category>Selecta psylenz</category>
+      <category>Monkey Radio India</category>
+      <category>Souls of Sound</category>
+      <category>World music</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/0/5/2/0/9957-25eb-4d7d-a2bc-3df1521e7223"/>
+    </item>
+    <item>
+      <title>Dj Def Hawk - Instrumental Hip Hop Mix</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/dj-def-hawk-instrumental-hip-hop-mix/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/dj-def-hawk-instrumental-hip-hop-mix/</guid>
+      <pubDate>Thu, 26 May 2022 07:43:17 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 1 hr 16 min - Hip Hop, Instrumental hip hop, Old school hip hop, Freestyle - Listen on Mixcloud.</description>
+      <category>Hip Hop</category>
+      <category>Instrumental hip hop</category>
+      <category>Old school hip hop</category>
+      <category>Freestyle</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/d/6/4/d/270a-d8b6-47c9-83b5-e2a54116e871"/>
+    </item>
+    <item>
+      <title>Dj Def Hawk - Break Dance Mix</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/dj-def-hawk-break-dance-mix/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/dj-def-hawk-break-dance-mix/</guid>
+      <pubDate>Tue, 12 Apr 2022 08:48:13 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 56 min - Hip Hop, Break, Break dance, SCRATCH, Rap - Listen on Mixcloud.</description>
+      <category>Hip Hop</category>
+      <category>Break</category>
+      <category>Break dance</category>
+      <category>SCRATCH</category>
+      <category>Rap</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/3/0/6/1/c583-c74f-4998-a2ba-18e5d2e07313"/>
+    </item>
+    <item>
+      <title>Dj Def Hawk - A Journey Into Sound - Hip Hop Mix February 2022</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/dj-def-hawk-a-journey-into-sound-hip-hop-mix-february-2022/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/dj-def-hawk-a-journey-into-sound-hip-hop-mix-february-2022/</guid>
+      <pubDate>Sat, 12 Feb 2022 10:30:30 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 1 hr 14 min - Hip Hop, Old school hip hop, Rap - Listen on Mixcloud.</description>
+      <category>Hip Hop</category>
+      <category>Old school hip hop</category>
+      <category>Rap</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/4/6/e/e/7a5f-eb28-47e2-a8e3-953c018eeaac"/>
+    </item>
+    <item>
+      <title>Dj Def Hawk - Respect New Jersey - Hip hop mix January 2022</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/dj-def-hawk-respect-new-jersey-hip-hop-mix-january-2022/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/dj-def-hawk-respect-new-jersey-hip-hop-mix-january-2022/</guid>
+      <pubDate>Wed, 05 Jan 2022 21:48:36 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 1 hr 10 min - Hip Hop, Oldschool Hip Hop, Rap, Soul, Funk - Listen on Mixcloud.</description>
+      <category>Hip Hop</category>
+      <category>Oldschool Hip Hop</category>
+      <category>Rap</category>
+      <category>Soul</category>
+      <category>Funk</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/6/3/d/f/29fb-2235-44fc-92bc-3875bf612e2d"/>
+    </item>
+    <item>
+      <title>Dj Def Hawk - B-sides &amp; forgotten melodies - Hip hop mix December 2021</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/dj-def-hawk-b-sides-forgotten-melodies-hip-hop-mix-december-2021/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/dj-def-hawk-b-sides-forgotten-melodies-hip-hop-mix-december-2021/</guid>
+      <pubDate>Tue, 07 Dec 2021 22:50:46 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 1 hr 20 min - Hip Hop, Oldschool Hip Hop, Rap - Listen on Mixcloud.</description>
+      <category>Hip Hop</category>
+      <category>Oldschool Hip Hop</category>
+      <category>Rap</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/8/f/c/c/8b16-6c2d-4b29-bff0-e112b521c031"/>
+    </item>
+    <item>
+      <title>DJ DEF HAWK November Hip Hop Mix - Respect your city</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/dj-def-hawk-november-hip-hop-mix-respect-your-city/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/dj-def-hawk-november-hip-hop-mix-respect-your-city/</guid>
+      <pubDate>Wed, 03 Nov 2021 09:22:30 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 1 hr 22 min - Hip Hop, DJ DEF HAWK, Movie bits - Listen on Mixcloud.</description>
+      <category>Hip Hop</category>
+      <category>DJ DEF HAWK</category>
+      <category>Movie bits</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/8/3/9/7/68b5-c3ef-409b-aafe-13dee4dfea66"/>
+    </item>
+    <item>
+      <title>October Hip Hop Mix feat Lady Rappers</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/october-hip-hop-mix-feat-lady-rappers/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/october-hip-hop-mix-feat-lady-rappers/</guid>
+      <pubDate>Sat, 02 Oct 2021 07:47:48 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 1 hr 24 min - Hip Hop, Oldschool Hip Hop, Rap, Lady Rappers - Listen on Mixcloud.</description>
+      <category>Hip Hop</category>
+      <category>Oldschool Hip Hop</category>
+      <category>Rap</category>
+      <category>Lady Rappers</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/1/f/e/a/fca0-160e-4f6d-81aa-5e618a34fe66"/>
+    </item>
+    <item>
+      <title>DjDefHawk HipHopMix Sept2021</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/djdefhawk-hiphopmix-sept2021/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/djdefhawk-hiphopmix-sept2021/</guid>
+      <pubDate>Tue, 28 Sep 2021 09:00:05 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 51 min - Hip Hop, Hip-Hop/Rap - Listen on Mixcloud.</description>
+      <category>Hip Hop</category>
+      <category>Hip-Hop/Rap</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/3/5/c/6/8208-9f44-4f5b-9741-5f72b50a93f3"/>
+    </item>
+    <item>
+      <title>Hip Hop Mix by DJ Def Hawk World Music Day Special 21.06.2020</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/hip-hop-mix-by-dj-def-hawk-world-music-day-special-21062020/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/hip-hop-mix-by-dj-def-hawk-world-music-day-special-21062020/</guid>
+      <pubDate>Sat, 20 Jun 2020 18:55:58 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 1 hr 10 min - Hip Hop, DJDefHawk, WorldMusicDay - Listen on Mixcloud.</description>
+      <category>Hip Hop</category>
+      <category>DJDefHawk</category>
+      <category>WorldMusicDay</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/d/8/5/8/7e71-2b30-4c57-bc7e-1ee7c0f85262"/>
+    </item>
+    <item>
+      <title>Dub Vibration Eid Special - irieye</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/dub-vibration-eid-special-ft-irieye/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/dub-vibration-eid-special-ft-irieye/</guid>
+      <pubDate>Sun, 24 May 2020 05:11:29 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 59 min - Dub - Listen on Mixcloud.</description>
+      <category>Dub</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/c/d/6/d/b0f1-f778-4cec-bfb3-3d3d20c3391b"/>
+    </item>
+    <item>
+      <title>Hip Hop mix by DJ Def Hawk - 06.05.2020</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/hip-hop-mix-by-dj-def-hawk-06052020/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/hip-hop-mix-by-dj-def-hawk-06052020/</guid>
+      <pubDate>Wed, 06 May 2020 05:05:31 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 1 hr 14 min - Listen on Mixcloud.</description>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/2/d/9/b/66ca-8ab2-41e6-a216-e843b6096d84"/>
+    </item>
+    <item>
+      <title>Hip Hop mix by DJ Def Hawk</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/hip-hop-mix-by-dj-def-hawk/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/hip-hop-mix-by-dj-def-hawk/</guid>
+      <pubDate>Wed, 15 Apr 2020 05:39:45 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 1 hr 26 min - Listen on Mixcloud.</description>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/5/3/f/6/33ad-0562-433d-a448-4e9c17322ba5"/>
+    </item>
+    <item>
+      <title>Malz Presents 30.12.2019 (New year special)</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/malz-presents-30122019-new-year-special/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/malz-presents-30122019-new-year-special/</guid>
+      <pubDate>Mon, 30 Dec 2019 09:02:23 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 1 hr 0 min - Dubstep, Dnb, Jungle/D&apos;n&apos;B - Listen on Mixcloud.</description>
+      <category>Dubstep</category>
+      <category>Dnb</category>
+      <category>Jungle/D&apos;n&apos;B</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/5/a/6/3/c6fa-e930-4442-aa9f-a62056572f19"/>
+    </item>
+    <item>
+      <title>Malz Presents 22.11.2019</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/malz-presents-22112019/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/malz-presents-22112019/</guid>
+      <pubDate>Fri, 22 Nov 2019 15:51:31 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 59 min - Dubstep, Drum &amp; Bass, Jungle/D&apos;n&apos;B - Listen on Mixcloud.</description>
+      <category>Dubstep</category>
+      <category>Drum &amp; Bass</category>
+      <category>Jungle/D&apos;n&apos;B</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/7/f/9/b/58d9-8ebb-4c8b-bb84-fb067b83000f"/>
+    </item>
+    <item>
+      <title>Roots Unwired 16.11.2019</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/roots-unwired-16112019/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/roots-unwired-16112019/</guid>
+      <pubDate>Sun, 17 Nov 2019 07:14:34 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 49 min - Reggae, Dub, Mrnobody, Soundsystem - Listen on Mixcloud.</description>
+      <category>Reggae</category>
+      <category>Dub</category>
+      <category>Mrnobody</category>
+      <category>Soundsystem</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/0/3/6/e/b172-1530-45c4-8b4b-03eb3d83271d"/>
+    </item>
+    <item>
+      <title>Souls Of Sound - Kartik Purnima Mix</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/souls-of-sound-kartik-purnima-mix/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/souls-of-sound-kartik-purnima-mix/</guid>
+      <pubDate>Tue, 12 Nov 2019 17:37:57 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 56 min - World, Psychill, Selectapsylenz, Soulsofsound, Monkeyradioindia - Listen on Mixcloud.</description>
+      <category>World</category>
+      <category>Psychill</category>
+      <category>Selectapsylenz</category>
+      <category>Soulsofsound</category>
+      <category>Monkeyradioindia</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/5/a/8/c/9287-c577-4957-a60b-cd3135af5ba7"/>
+    </item>
+    <item>
+      <title>Roots unwired 27.10.2019</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/roots-unwired-27102019/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/roots-unwired-27102019/</guid>
+      <pubDate>Sun, 27 Oct 2019 17:19:34 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 1 hr 8 min - Dub, Reggae, World music, Mrnobody, Diwalispecial - Listen on Mixcloud.</description>
+      <category>Dub</category>
+      <category>Reggae</category>
+      <category>World music</category>
+      <category>Mrnobody</category>
+      <category>Diwalispecial</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/6/e/b/9/88aa-f687-4874-923f-ce1decc51a7d"/>
+    </item>
+    <item>
+      <title>Malz Presents 25.10.2019</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/malz-presents-25102019/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/malz-presents-25102019/</guid>
+      <pubDate>Fri, 25 Oct 2019 09:02:55 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 1 hr 0 min - Dubstep, Drum and bass, Soundsystem, Dub - Listen on Mixcloud.</description>
+      <category>Dubstep</category>
+      <category>Drum and bass</category>
+      <category>Soundsystem</category>
+      <category>Dub</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/b/4/7/1/3def-61b0-407c-9c8f-1828d0aeaca0"/>
+    </item>
+    <item>
+      <title>Roots Unwired 12.10.2019</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/roots-unwired-12102019/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/roots-unwired-12102019/</guid>
+      <pubDate>Sat, 12 Oct 2019 13:19:26 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 58 min - Reggae, Dub, Roots reggae, Mrnobody - Listen on Mixcloud.</description>
+      <category>Reggae</category>
+      <category>Dub</category>
+      <category>Roots reggae</category>
+      <category>Mrnobody</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/4/1/2/7/2dff-c703-488a-bf95-89dd49d790df"/>
+    </item>
+    <item>
+      <title>Hydrabad Dub Session ft MAM DEM UP, DAKTA DUB, RAAYAL DUB, K &quot;LEE&quot; T &amp; DEEJAY SANYAS I</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/hydra-dub-session-ft-mam-dem-up-dakta-dub-raayal-dub-k-lee-t-deejay-sanyas-i/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/hydra-dub-session-ft-mam-dem-up-dakta-dub-raayal-dub-k-lee-t-deejay-sanyas-i/</guid>
+      <pubDate>Fri, 27 Sep 2019 07:21:07 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 1 hr 31 min - Reggae, Dub, Roots, Jamaica - Listen on Mixcloud.</description>
+      <category>Reggae</category>
+      <category>Dub</category>
+      <category>Roots</category>
+      <category>Jamaica</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/a/3/2/8/ad15-4db4-4e13-a9e6-3ba7ba2f3031"/>
+    </item>
+    <item>
+      <title>Roots Unwired 21.9.2019</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/roots-unwired-2192019/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/roots-unwired-2192019/</guid>
+      <pubDate>Sat, 21 Sep 2019 12:58:18 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 57 min - Reggae, Dub, World music, Digital, Mrnobody - Listen on Mixcloud.</description>
+      <category>Reggae</category>
+      <category>Dub</category>
+      <category>World music</category>
+      <category>Digital</category>
+      <category>Mrnobody</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/f/6/6/d/3845-f8bc-4151-bf91-271f9634b7f2"/>
+    </item>
+    <item>
+      <title>Roots Unwired 14.09.2019</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/roots-unwired-14092019/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/roots-unwired-14092019/</guid>
+      <pubDate>Sat, 14 Sep 2019 17:20:24 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 1 hr 1 min - Reggae, Roots reggae, Dub, Power to people, Mrnobody - Listen on Mixcloud.</description>
+      <category>Reggae</category>
+      <category>Roots reggae</category>
+      <category>Dub</category>
+      <category>Power to people</category>
+      <category>Mrnobody</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/f/a/b/a/7697-193c-4292-bca6-2ef28fe84360"/>
+    </item>
+    <item>
+      <title>Roots Unwired 31.08.2019</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/roots-unwired-31082019/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/roots-unwired-31082019/</guid>
+      <pubDate>Sun, 01 Sep 2019 06:43:09 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 1 hr 7 min - Reggae, Roots reggae, Dub, Dancehall, Community Radio - Listen on Mixcloud.</description>
+      <category>Reggae</category>
+      <category>Roots reggae</category>
+      <category>Dub</category>
+      <category>Dancehall</category>
+      <category>Community Radio</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/d/0/5/d/39a1-705d-42f6-8b49-dd2425fd67b1"/>
+    </item>
+    <item>
+      <title>Roots unwired 27.07.2019</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/ots-unwired-27072019/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/ots-unwired-27072019/</guid>
+      <pubDate>Sun, 28 Jul 2019 07:10:14 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 1 hr 5 min - Dub, Roots reggae, Roots &amp; Culture, Reggae - Listen on Mixcloud.</description>
+      <category>Dub</category>
+      <category>Roots reggae</category>
+      <category>Roots &amp; Culture</category>
+      <category>Reggae</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/b/5/7/a/ab2b-9257-4933-8a53-c1c21841fd70"/>
+    </item>
+    <item>
+      <title>Malz Presents 15.07.2019</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/malz-presents-15072019/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/malz-presents-15072019/</guid>
+      <pubDate>Mon, 15 Jul 2019 20:05:21 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 59 min - Dubstep, Dnb, Soundsystem, Drum &amp; Bass, Dub - Listen on Mixcloud.</description>
+      <category>Dubstep</category>
+      <category>Dnb</category>
+      <category>Soundsystem</category>
+      <category>Drum &amp; Bass</category>
+      <category>Dub</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/9/d/0/1/d7d3-38a6-41b3-9afc-64c881540557"/>
+    </item>
+    <item>
+      <title>Roots unwired 13.07.2019</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/roots-unwired-13072019/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/roots-unwired-13072019/</guid>
+      <pubDate>Sat, 13 Jul 2019 21:02:39 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 59 min - Reggae, Roots reggae, Dub, Rub A Dub, Mrnobody - Listen on Mixcloud.</description>
+      <category>Reggae</category>
+      <category>Roots reggae</category>
+      <category>Dub</category>
+      <category>Rub A Dub</category>
+      <category>Mrnobody</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/6/e/e/b/9894-7f48-43a5-a4f1-6bcebf42b8e1"/>
+    </item>
+    <item>
+      <title>Roots unwired 29.06.2019</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/roots-unwired-29062019/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/roots-unwired-29062019/</guid>
+      <pubDate>Sat, 29 Jun 2019 17:12:17 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 1 hr 5 min - Reggae, Roots reggae, Dub, Dubwise, Mrnobody - Listen on Mixcloud.</description>
+      <category>Reggae</category>
+      <category>Roots reggae</category>
+      <category>Dub</category>
+      <category>Dubwise</category>
+      <category>Mrnobody</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/3/2/5/4/b521-ccfa-41e4-9d2f-a378eb298f3c"/>
+    </item>
+    <item>
+      <title>Malz Presents 26.06.2019</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/malz-presents-26062019/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/malz-presents-26062019/</guid>
+      <pubDate>Wed, 26 Jun 2019 06:06:09 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 1 hr 0 min - Dubstep, Dnb - Listen on Mixcloud.</description>
+      <category>Dubstep</category>
+      <category>Dnb</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/2/b/2/a/387d-c549-43a2-a4d5-735393c8075e"/>
+    </item>
+    <item>
+      <title>Malz Presents 15.05.2019</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/malz-presents-15052019/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/malz-presents-15052019/</guid>
+      <pubDate>Wed, 15 May 2019 03:42:52 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 1 hr 0 min - Dubstep, Dark, Budapest, Dnb - Listen on Mixcloud.</description>
+      <category>Dubstep</category>
+      <category>Dark</category>
+      <category>Budapest</category>
+      <category>Dnb</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/7/e/0/6/1643-7a24-47af-b536-e5c4ee68376f"/>
+    </item>
+    <item>
+      <title>Roots Unwired 11.05.2019</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/roots-unwired-11052019/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/roots-unwired-11052019/</guid>
+      <pubDate>Sat, 11 May 2019 18:06:11 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 51 min - Reggae, Roots reggae, Dub, Roots &amp; Culture, Mrnobody - Listen on Mixcloud.</description>
+      <category>Reggae</category>
+      <category>Roots reggae</category>
+      <category>Dub</category>
+      <category>Roots &amp; Culture</category>
+      <category>Mrnobody</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/c/9/5/8/b710-524f-4857-a464-23f205eca39c"/>
+    </item>
+    <item>
+      <title>Malz presents 14.04.2019 (Happy Tamil New Year mix)</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/malz-presents-14042019-happy-tamil-new-year-mix/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/malz-presents-14042019-happy-tamil-new-year-mix/</guid>
+      <pubDate>Sun, 14 Apr 2019 17:30:15 GMT</pubDate>
+      <description>Selector: Monkey Radio India - 1 hr 0 min - Dubstep, Dnb, Sound system, Budapest - Listen on Mixcloud.</description>
+      <category>Dubstep</category>
+      <category>Dnb</category>
+      <category>Sound system</category>
+      <category>Budapest</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/c/6/5/4/ee0f-8cd0-4926-bd9d-46f32940660d"/>
+    </item>
+  </channel>
+</rss>

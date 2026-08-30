@@ -9,6 +9,7 @@
 <title>Monkey Radio India · Independent and colourful radio out of Hyderabad</title>
 <meta name="description" content="Independent and colourful radio out of Hyderabad. The live Mixcloud archive for Monkey Radio India, browsable by genre, mood and selector, with an in-page player and radio mode.">
 <link rel="canonical" href="https://www.monkeyradio.in/">
+<link rel="alternate" type="application/rss+xml" title="Monkey Radio India, new shows" href="/feed.xml">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Monkey Radio India">
 <meta property="og:locale" content="en_IN">
@@ -25,7 +26,39 @@
 <meta name="twitter:description" content="Independent and colourful radio out of Hyderabad. Browse the live Mixcloud archive by genre, mood and selector, with an in-page player and radio mode.">
 <meta name="twitter:image" content="https://www.monkeyradio.in/assets/og-image.png">
 <meta name="twitter:image:alt" content="Monkey Radio India: community radio and sound system culture, beside the hand-built Monkey Sound System speaker stack.">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "RadioStation",
+  "name": "Monkey Radio India",
+  "alternateName": "Monkey Radio",
+  "url": "https://www.monkeyradio.in/",
+  "logo": "https://www.monkeyradio.in/assets/icon-512.png",
+  "image": "https://www.monkeyradio.in/assets/og-image.png",
+  "description": "Independent and colourful radio out of Hyderabad. Community radio and sound system culture, public and non-profit since 25 October 2011, run by the Monkey Foundation.",
+  "foundingDate": "2011-10-25",
+  "email": "monkeyradio.in@gmail.com",
+  "areaServed": "IN",
+  "location": {
+    "@type": "Place",
+    "address": { "@type": "PostalAddress", "addressLocality": "Hyderabad", "addressCountry": "IN" }
+  },
+  "parentOrganization": { "@type": "Organization", "name": "Monkey Foundation" },
+  "sameAs": [
+    "https://www.mixcloud.com/monkeyradioindia/",
+    "https://www.instagram.com/monkeyradioindia",
+    "https://www.facebook.com/monkeyradioindia"
+  ]
+}
+</script>
 <link rel="icon" href="assets/logo.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#f3f2f2">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Monkey Radio">
+<link rel="apple-touch-icon" href="/assets/icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -205,8 +238,8 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #ec30
 .mp-scrub{border-top:2px solid #201e1d;padding-top:16px}
 .mp-radio{display:flex;align-items:center;gap:10px;width:100%;border:1px solid #201e1d;background:none;color:#201e1d;padding:14px 16px;font-weight:600;font-size:11px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
 .mp-radio[data-on="1"]{background:#201e1d;color:#f3f2f2}
-.mp-row3{display:flex;gap:8px}
-.mp-abtn{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid #201e1d;background:none;color:#201e1d;padding:13px 6px;font-weight:600;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+.mp-row3{display:flex;gap:8px;flex-wrap:wrap}
+.mp-abtn{flex:1 1 72px;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid #201e1d;background:none;color:#201e1d;padding:13px 6px;font-weight:600;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
 .mp-abtn:active{background:#201e1d;color:#f3f2f2}
 
 /* ---- Small phone ( <= 480px ): collapse the wordmark to the
@@ -266,7 +299,7 @@ class Component extends React.Component {
   ];
   MOODS = [
     {id:'latenight', label:'Late night', tags:['deep house','techno','downtempo','ambient','dub','trip hop','triphop','minimal','lofi','psydub','dub techno','underground hip hop','melodic techno']},
-    {id:'monsoon', label:'Monsoon', tags:['lofi','lo-fi','ambient','downtempo','dub','trip hop','chillout','psychill','psydub','ambient dub','bossa nova','soul','jazz']},
+    {id:'monsoon', label:'Monsoon', tags:['lofi','lo-fi','ambient','downtempo','dub','trip hop','chillout','psychill','psydub','ambient dub','bossa nova','soul','jazz','indian classical','hindustani','carnatic']},
     {id:'sunday', label:'Sunday morning', tags:['soul','jazz','bossa nova','blues','chillout','r&b','lounge','funk','balearic','nu jazz']},
     {id:'party', label:'Party', tags:['funk','disco','house','afrobeat','afrobeats','dancehall','party','hip hop','pop','mashup','edm','tech house','breakbeat']},
     {id:'cratedig', label:'Crate digger', tags:['vinyl only','vinyl','old school hip hop','rare groove','45s','oldies','soul jazz','1970s','boogie','northern soul']},
@@ -274,6 +307,7 @@ class Component extends React.Component {
   ];
   CACHE_KEY = 'mri.cloudcasts.v7';
   PREF_KEY = 'mri.prefs.v1';
+  RESUME_KEY = 'mri.resume.v1';
 
   _measure = (w) => {
     const width = w || (this._root && this._root.clientWidth) || document.documentElement.clientWidth;
@@ -300,9 +334,11 @@ class Component extends React.Component {
 
   state = {
     items: [], indexing: false, view: 'home', query: '', genre: null, mood: null, dj: null,
-    sort: 'latest', limit: 48, detailKey: null, descs: {}, nowKey: null, radio: true, tab: 'favs',
+    sort: 'latest', limit: 48, detailKey: null, descs: {}, secs: {}, nowKey: null, tab: 'favs',
     favs: [], queue: [], history: [], shared: false, bp: 'lg', menuOpen: false,
     paused: false, playerExpanded: false, toast: '', heroIdx: 0,
+    // Sleep timer, ephemeral: null | {type:'show'} | {type:'time', mins, at}.
+    sleep: null,
     // Auto-generated station lineup, kept topped up to 3 at all times.
     // Ephemeral: never written to prefs, unlike the user's `queue`.
     upNext: []
@@ -320,11 +356,14 @@ class Component extends React.Component {
 
   // ---- URL routing -------------------------------------------------
   // The bits of state that name a "page" get mirrored into a real path
-  // (/about, /djs, /library, /browse?genre=house, /show/<slug>) so pages
-  // are linkable, bookmarkable and back/forward works. Every handler
+  // (/about, /selectors, /saved, /archive?genre=house, /show/<slug>) so
+  // pages are linkable, bookmarkable and back/forward works. Every handler
   // still just calls setState; componentDidUpdate pushes the URL after.
+  // Internal view ids stay short; the URL slug matches the menu label.
   // Disabled under file:// (History API needs http[s]).
   ROUTE_VIEWS = ['home', 'browse', 'djs', 'library', 'about'];
+  VIEW_TO_SLUG = {browse: 'archive', djs: 'selectors', library: 'saved', about: 'about'};
+  SLUG_TO_VIEW = {archive: 'browse', selectors: 'djs', saved: 'library', about: 'about'};
   _routing = typeof location !== 'undefined' && /^https?:$/.test(location.protocol);
 
   slugOf(key) { return (key || '').replace(/^\/+|\/+$/g, '').split('/').pop(); }
@@ -336,7 +375,7 @@ class Component extends React.Component {
     if (s.mood) qs.set('mood', s.mood);
     if (s.dj) qs.set('dj', s.dj);
     if (s.query) qs.set('q', s.query);
-    const base = s.view === 'home' ? '/' : '/' + s.view;
+    const base = s.view === 'home' ? '/' : '/' + (this.VIEW_TO_SLUG[s.view] || s.view);
     const q = qs.toString();
     return q ? base + '?' + q : base;
   }
@@ -345,7 +384,7 @@ class Component extends React.Component {
     const parts = location.pathname.replace(/^\/+|\/+$/g, '').split('/').filter(Boolean);
     const q = new URLSearchParams(location.search);
     if (parts[0] === 'show' && parts[1]) return {_showSlug: decodeURIComponent(parts[1])};
-    const view = this.ROUTE_VIEWS.indexOf(parts[0]) >= 0 ? parts[0] : 'home';
+    const view = this.SLUG_TO_VIEW[parts[0]] || (this.ROUTE_VIEWS.indexOf(parts[0]) >= 0 ? parts[0] : 'home');
     return {view, detailKey: null, genre: q.get('genre'), mood: q.get('mood'), dj: q.get('dj'), query: q.get('q') || ''};
   }
 
@@ -382,14 +421,25 @@ class Component extends React.Component {
   componentDidMount() {
     try {
       const p = JSON.parse(localStorage.getItem(this.PREF_KEY) || '{}');
-      this.setState({favs: p.favs || [], queue: p.queue || [], history: p.history || [], radio: p.radio !== false});
+      this.setState({favs: p.favs || [], queue: p.queue || [], history: p.history || []});
     } catch (e) {}
     let cached = null;
     try { cached = JSON.parse(localStorage.getItem(this.CACHE_KEY) || 'null'); } catch (e) {}
     if (cached && cached.items && cached.items.length) this.setState({items: cached.items});
     this.sync(cached);
+    // A show that was playing before a reload: queue it to be restored on
+    // the dock (paused, at its saved position) once the archive is loaded.
+    try {
+      const r = JSON.parse(localStorage.getItem(this.RESUME_KEY) || 'null');
+      if (r && r.key && r.pos > 5) this._pendingResume = r;
+    } catch (e) {}
     this._onKey = (e) => { if (e.key === 'Escape') this.setState({detailKey: null, playerExpanded: false}); };
     window.addEventListener('keydown', this._onKey);
+    // Persist the playhead when the tab is hidden or closed, not just on
+    // the throttled progress tick.
+    this._onHide = () => { if (this.state.nowKey && this._wpos > 5) this.saveResume(this.state.nowKey, this._wpos); };
+    window.addEventListener('pagehide', this._onHide);
+    document.addEventListener('visibilitychange', () => { if (document.hidden) this._onHide(); });
     this._onPop = () => this.applyRoute();
     window.addEventListener('popstate', this._onPop);
     this.applyRoute();
@@ -410,16 +460,32 @@ class Component extends React.Component {
     window.removeEventListener('keydown', this._onKey);
     window.removeEventListener('popstate', this._onPop);
     window.removeEventListener('resize', this._onResize);
+    window.removeEventListener('pagehide', this._onHide);
     if (this._ro) this._ro.disconnect();
     if (this._heroRotate) clearInterval(this._heroRotate);
     clearTimeout(this._toastT);
+    clearTimeout(this._sleepT);
     (this._timers || []).forEach(t => { clearTimeout(t); });
+    document.body.style.overflow = '';
   }
 
   savePrefs(patch) {
-    const next = {favs: this.state.favs, queue: this.state.queue, history: this.state.history, radio: this.state.radio, ...patch};
+    const next = {favs: this.state.favs, queue: this.state.queue, history: this.state.history, ...patch};
     this.setState(patch);
     try { localStorage.setItem(this.PREF_KEY, JSON.stringify(next)); } catch (e) {}
+  }
+
+  // Remember what's on the dock and how far in, so a refresh can pick the
+  // same show back up from the same spot. Kept in its own key (written a
+  // few times a minute) rather than churning the main prefs blob.
+  saveResume(key, pos) {
+    if (!key || !(pos > 5)) return;
+    this._lastResumeSave = Date.now();
+    try { localStorage.setItem(this.RESUME_KEY, JSON.stringify({key, pos: Math.floor(pos), ts: Date.now()})); } catch (e) {}
+  }
+  clearResume() {
+    this._resumeSeek = null;
+    try { localStorage.removeItem(this.RESUME_KEY); } catch (e) {}
   }
 
   NOT_A_DJ = ['indiearth','monkey radio','monkeyradio','monkey sound','tune inn','souls of sound','music manthan','disco freak','bass sanskriti','dub vibration','roots unwired','daktadub','dakta dub','hyderabad underground movement','hyderabad hi fi','hi fi hyderabad','sunday special','sunday live','excursions in','guest mix','radio show','podcast'];
@@ -539,18 +605,72 @@ class Component extends React.Component {
       len: this.fmtLen(m.len), when: this.fmtWhen(m.created), plays: this.fmtNum(m.plays)};
   }
 
-  // Show descriptions are not in the list feed, so pull the single cloudcast
-  // on demand when a detail view opens. '' is stored first as a "fetched" flag.
+  // Show descriptions and tracklists are not in the list feed, so pull the
+  // single cloudcast on demand when a detail view opens. '' is stored first
+  // as a "fetched" flag for the description.
   fetchDesc(key) {
     if (!key || this.state.descs[key] !== undefined) return;
     this.setState({descs: Object.assign({}, this.state.descs, {[key]: ''})});
     fetch('https://api.mixcloud.com' + key)
       .then(r => r.json())
       .then(c => {
+        const patch = {};
         const d = (c && c.description ? String(c.description) : '').trim();
-        if (d) this.setState({descs: Object.assign({}, this.state.descs, {[key]: d})});
+        if (d) patch.descs = Object.assign({}, this.state.descs, {[key]: d});
+        // Mixcloud's public API dropped tracklists years ago (`sections` is
+        // almost always []), but honour it if a show ever carries one.
+        const secs = (c && Array.isArray(c.sections) ? c.sections : []).map(x => {
+          const t = x && x.track;
+          const title = t
+            ? [t.artist && t.artist.name, t.name].filter(Boolean).join(' - ')
+            : (x && x.chapter) || '';
+          return title ? {t: typeof x.start_time === 'number' ? x.start_time : null, title} : null;
+        }).filter(Boolean);
+        if (secs.length) patch.secs = Object.assign({}, this.state.secs, {[key]: secs});
+        if (Object.keys(patch).length) this.setState(patch);
       })
       .catch(() => {});
+  }
+
+  // Fallback tracklist: some selectors paste a numbered or timestamped list
+  // into the show notes. Only fires on an unambiguous run (4+ lines each
+  // opening with "1." / "1)" / "12:34"), so prose is never mistaken for it.
+  parseTrackText(desc) {
+    if (!desc) return null;
+    const rx = /^(?:\d{1,3}[.)]|\[?\d{1,2}:\d{2}(?::\d{2})?\]?)[\s.\-\u2013\u2014)]+(.{2,})$/;
+    const tracks = [], intro = [];
+    let started = false;
+    desc.split(/\r?\n/).map(l => l.trim()).forEach(l => {
+      const m = l.match(rx);
+      if (m) { started = true; tracks.push({t: null, title: m[1].trim()}); }
+      else if (!started && l) intro.push(l);
+    });
+    return tracks.length >= 4 ? {intro: intro.join('\n'), tracks} : null;
+  }
+
+  // Description + tracklist block, shared by the mobile and desktop detail
+  // views. `big` = the roomier mobile-page type scale.
+  notesBlock(d, big) {
+    if (!d) return null;
+    const tl = d.tracklist;
+    const proseText = tl ? tl.intro : d.desc;
+    const prose = proseText ? (
+      <p style={css("font:400 " + (big ? "14.5px/1.65" : "14px/1.6") + " 'Archivo',sans-serif;color:#444141;margin:0 0 20px;text-wrap:pretty;white-space:pre-line")}>{proseText}</p>
+    ) : null;
+    const list = tl ? (
+      <div style={css("margin:0 0 22px")}>
+        <div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#7d7979;margin-bottom:10px")}>Tracklist</div>
+        <ol style={css("margin:0;padding:0;list-style:none")}>
+          {tl.tracks.map((t, i) => (
+            <li key={i} style={css("display:flex;gap:12px;padding:8px 0;border-top:1px solid #e4e1e1;font:500 13px/1.45 'Archivo',sans-serif;color:#2c2a29")}>
+              <span style={css("flex:none;width:26px;color:#a8a4a4;font-variant-numeric:tabular-nums")}>{t.t != null ? this.fmtLen(t.t) : String(i + 1).padStart(2, '0')}</span>
+              <span style={css("min-width:0;overflow-wrap:anywhere")}>{t.title}</span>
+            </li>
+          ))}
+        </ol>
+      </div>
+    ) : null;
+    return <React.Fragment>{prose}{list}</React.Fragment>;
   }
 
   // A stable per-day integer, so day-seeded hero picks don't flicker between renders.
@@ -569,6 +689,42 @@ class Component extends React.Component {
     if (h < 16) return 'Afternoon rinse';
     if (h < 20) return 'Evening set';
     return 'After dark';
+  }
+
+  // Which listening mood the current local time leans toward. Weights the
+  // shuffle so "Tune in" / "Shuffle" match the hour instead of firing blind.
+  timeMoodId() {
+    const d = new Date(), h = d.getHours(), day = d.getDay();
+    if (day === 0) return 'sunday';
+    if (day === 6) return 'party';
+    if (h < 5) return 'latenight';
+    if (h < 11) return 'focus';
+    if (h < 16) return 'cratedig';
+    if (h < 20) return 'party';
+    return 'latenight';
+  }
+
+  // A deep shuffle: shows that fit the hour's mood, and shows that aren't
+  // already near the top of every pile, surface more often. Skips whatever
+  // just played so it never repeats itself.
+  smartPick(pool) {
+    pool = (pool || this.state.items).filter(Boolean);
+    if (!pool.length) return null;
+    const s = this.state;
+    const skip = {};
+    [s.nowKey].concat((s.history || []).slice(0, 6)).forEach(k => { if (k) skip[k] = 1; });
+    let cand = pool.filter(m => !skip[m.key]);
+    if (cand.length < 5) cand = pool;
+    const moodId = this.timeMoodId();
+    let bestKey = null, bestW = -1;
+    cand.forEach(m => {
+      let w = 1;
+      if (this.inMood(m, moodId)) w += 1.6;
+      if ((m.plays || 0) < 400) w += 0.5;
+      w *= 0.4 + Math.random();
+      if (w > bestW) { bestW = w; bestKey = m.key; }
+    });
+    return bestKey;
   }
 
   // A small palette nudge: the pulse dot runs brighter by day, deeper after dark.
@@ -686,36 +842,184 @@ class Component extends React.Component {
   inGenre(m, id) { return this.primaryGenre(m) === id; }
   inMood(m, id) { const g = this.MOODS.find(x => x.id === id); return g ? this.matchTags(m, g.tags) : true; }
 
-  filtered() {
+  // With no argument, filters against the live browse state (the visible
+  // results). Pass a context snapshot ({genre, mood, dj, query, sort}) to
+  // filter the archive the same way the station lineup was pinned at play
+  // time, so auto-advance stays inside the list the show was picked from.
+  filtered(ctx) {
     const s = this.state;
-    const q = s.query.trim().toLowerCase();
+    const f = ctx || s;
+    const q = (f.query || '').trim().toLowerCase();
     let out = s.items.filter(m => {
-      if (s.genre && !this.inGenre(m, s.genre)) return false;
-      if (s.mood && !this.inMood(m, s.mood)) return false;
-      if (s.dj && this.djKey(m.dj) !== this.djKey(s.dj)) return false;
+      if (f.genre && !this.inGenre(m, f.genre)) return false;
+      if (f.mood && !this.inMood(m, f.mood)) return false;
+      if (f.dj && this.djKey(m.dj) !== this.djKey(f.dj)) return false;
       if (q && !(m.name.toLowerCase().includes(q) || m.dj.toLowerCase().includes(q) || m.tags.some(t => t.includes(q)))) return false;
       return true;
     });
-    if (s.sort === 'plays') out = out.slice().sort((a, b) => b.plays - a.plays);
-    else if (s.sort === 'longest') out = out.slice().sort((a, b) => b.len - a.len);
-    else if (s.sort === 'oldest') out = out.slice().reverse();
+    const sort = f.sort || s.sort;
+    if (sort === 'plays') out = out.slice().sort((a, b) => b.plays - a.plays);
+    else if (sort === 'longest') out = out.slice().sort((a, b) => b.len - a.len);
+    else if (sort === 'oldest') out = out.slice().reverse();
     return out;
   }
 
   byKey(k) { return this.state.items.find(m => m.key === k); }
 
-  play(key) {
+  play(key, opts) {
     const m = this.byKey(key);
     if (!m) return;
+    opts = opts || {};
+    // A deliberate play starts a fresh show: no cold-resume, and the new
+    // playhead should be saved on the very next tick.
+    this._cold = false;
+    this._resumeSeek = null;
+    this._lastResumeSave = 0;
+    if (key !== this.state.nowKey) this.clearResume();
     const hist = [key].concat(this.state.history.filter(h => h !== key)).slice(0, 40);
+    // Back/forward nav stack, oldest -> newest. A normal play (user pick or
+    // auto-advance) drops any "forward" entries and appends; stepping back
+    // with playPrev() only moves the pointer, leaving the stack intact.
+    if (!opts.nav) {
+      const at = this._navPos == null ? -1 : this._navPos;
+      const nav = (this._nav || []).slice(0, at + 1);
+      if (nav[nav.length - 1] !== key) nav.push(key);
+      this._nav = nav.slice(-50);
+      this._navPos = this._nav.length - 1;
+    }
+    // A deliberate pick pins the station lineup to the list it came from:
+    // the browse filter active right now. Auto-advance and Prev/Next keep
+    // whatever context the run started with.
+    if (!opts.nav && !opts.auto) {
+      const s = this.state;
+      this._ctx = opts.ctx || {genre: s.genre, mood: s.mood, dj: s.dj, query: s.query, sort: s.sort};
+    }
     this.setState({nowKey: key, detailKey: null, paused: false, upNext: this.buildUpNext(key, 3)});
     this.savePrefs({history: hist});
+    this.updateMediaSession(m);
   }
 
-  // The pool the station plays through: the active browse result when a
-  // filter narrows things, otherwise the whole archive in the current sort.
+  canPrev() { return !!(this._nav && this._navPos > 0); }
+  canFwd() { return !!(this._nav && this._navPos < this._nav.length - 1); }
+
+  playPrev() {
+    if (!this.canPrev()) return;
+    this._navPos -= 1;
+    this.play(this._nav[this._navPos], {nav: true});
+  }
+
+  // Step forward through shows already visited via Prev, before falling
+  // back to a fresh station pick.
+  playFwd() {
+    if (!this.canFwd()) return;
+    this._navPos += 1;
+    this.play(this._nav[this._navPos], {nav: true});
+  }
+
+  // Shared "advance to the next show" path: retrace the forward history if
+  // Prev was used, else the manual queue, else the station lineup / pool.
+  advance() {
+    if (this.canFwd()) { this.playFwd(); return; }
+    const s = this.state;
+    const q = s.queue.slice();
+    let k;
+    if (q.length) { k = q.shift(); this.savePrefs({queue: q}); }
+    else k = this.nextKey();
+    if (k) this.play(k, {auto: true});
+  }
+
+  // Sleep timer. One button cycles: off -> end of show -> 15 / 30 / 45 / 60
+  // min -> off. A timed sleep pauses (keeps the show loaded); "end of show"
+  // is handled in the widget's `ended` handler.
+  SLEEP_STEPS = [null, 'show', 15, 30, 45, 60];
+  cycleSleep() {
+    const cur = this.state.sleep;
+    const curVal = !cur ? null : cur.type === 'show' ? 'show' : cur.mins;
+    const i = this.SLEEP_STEPS.indexOf(curVal);
+    this.setSleep(this.SLEEP_STEPS[(i + 1) % this.SLEEP_STEPS.length]);
+  }
+  setSleep(v) {
+    clearTimeout(this._sleepT);
+    if (v == null) { this.setState({sleep: null}); return; }
+    if (v === 'show') { this.setState({sleep: {type: 'show'}}); this.flash('Sleep, stops after this show'); return; }
+    this.setState({sleep: {type: 'time', mins: v, at: Date.now() + v * 60000}});
+    this.flash('Sleep, ' + v + ' min');
+    this._sleepT = setTimeout(() => {
+      try { this._widget && this._widget.pause(); } catch (e) {}
+      this.setState({sleep: null, paused: true});
+      this.setMSState('paused');
+      this.flash('Sleep timer, paused');
+    }, v * 60000);
+  }
+
+  stopPlayback() {
+    clearTimeout(this._sleepT);
+    this.clearResume();
+    this.setState({nowKey: null, playerExpanded: false, sleep: null});
+    if (typeof navigator !== 'undefined' && 'mediaSession' in navigator) {
+      try { navigator.mediaSession.metadata = null; } catch (e) {}
+      try { navigator.mediaSession.playbackState = 'none'; } catch (e) {}
+    }
+  }
+
+  setMSState(x) {
+    if (typeof navigator !== 'undefined' && 'mediaSession' in navigator) {
+      try { navigator.mediaSession.playbackState = x; } catch (e) {}
+    }
+  }
+
+  // Lock-screen / notification / headset-button integration. Safe to call
+  // anywhere: it no-ops where the API is missing.
+  updateMediaSession(m) {
+    if (typeof navigator === 'undefined' || !('mediaSession' in navigator)) return;
+    const ms = navigator.mediaSession;
+    m = m || this.byKey(this.state.nowKey);
+    if (!m) { try { ms.metadata = null; } catch (e) {} return; }
+    const artist = m.dj && !/^monkey radio india$/i.test(m.dj) ? m.dj : 'Monkey Radio India';
+    if (window.MediaMetadata) {
+      try {
+        ms.metadata = new window.MediaMetadata({
+          title: m.name || 'Monkey Radio India',
+          artist: artist,
+          album: 'Monkey Radio India',
+          artwork: [96, 128, 192, 256, 384, 512].map(s => ({src: m.pic, sizes: s + 'x' + s, type: 'image/jpeg'}))
+        });
+      } catch (e) {}
+    }
+    const set = (action, fn) => { try { ms.setActionHandler(action, fn); } catch (e) {} };
+    set('play', () => { try { this._widget && this._widget.play(); } catch (e) {} this.setState({paused: false}); this.setMSState('playing'); });
+    set('pause', () => { try { this._widget && this._widget.pause(); } catch (e) {} this.setState({paused: true}); this.setMSState('paused'); });
+    set('stop', () => this.stopPlayback());
+    set('nexttrack', () => this.advance());
+    set('previoustrack', this.canPrev() ? () => this.playPrev() : null);
+    try { ms.playbackState = this.state.paused ? 'paused' : 'playing'; } catch (e) {}
+  }
+
+  // Turn a home-shelf id into the play context that pins auto-advance to
+  // that shelf's list: genres and the sort-based shelves map to a filter
+  // context; the history / favourites shelves carry an explicit key list.
+  shelfCtx(id) {
+    if (!id) return null;
+    if (this.GENRES.find(g => g.id === id)) return {genre: id, mood: null, dj: null, query: '', sort: 'plays'};
+    if (id === 'popular') return {sort: 'plays'};
+    if (id === 'latest') return {sort: 'latest'};
+    if (id === 'long') return {sort: 'longest'};
+    if (id === 'onair') return {keys: (this.state.history || []).slice()};
+    if (id === 'favs') return {keys: (this.state.favs || []).slice()};
+    return null;
+  }
+
+  // The pool the station plays through: the list the current show was
+  // picked from (pinned in this._ctx at play time) — an explicit key list,
+  // or the archive narrowed by that context's filter — otherwise the whole
+  // archive in the current sort.
   stationPool() {
-    const f = this.filtered();
+    const c = this._ctx;
+    if (c && c.keys) {
+      const pool = c.keys.map(k => this.byKey(k)).filter(Boolean);
+      return pool.length > 3 ? pool : this.state.items;
+    }
+    const f = this.filtered(c);
     return f.length > 3 ? f : this.state.items;
   }
 
@@ -758,41 +1062,85 @@ class Component extends React.Component {
       this._widget = w;
       w.ready.then(() => {
         try {
-          w.events.pause.on(() => this.setState({ paused: true }));
-          w.events.play.on(() => this.setState({ paused: false }));
+          w.events.pause.on(() => {
+            this.setState({ paused: true }); this.setMSState('paused');
+            if (this.state.nowKey && this._wpos > 5) this.saveResume(this.state.nowKey, this._wpos);
+          });
+          w.events.play.on(() => {
+            this.setState({ paused: false }); this.setMSState('playing');
+            this._cold = false;
+            // First play after a reload: jump to where we left off. Done
+            // here (not in `ready`) because seeking only sticks once the
+            // stream has actually started buffering.
+            if (this._resumeSeek != null) {
+              const p = this._resumeSeek; this._resumeSeek = null;
+              try { w.seek(p); } catch (e) {}
+            }
+          });
           // Real playback position, straight from the widget. Drives the
-          // hero "on air" bar, but only while that show is the featured
-          // one on the home screen.
+          // hero "on air" bar (while that show is the featured one on the
+          // home screen) and the lock-screen scrubber.
           w.events.progress.on((position) => {
             this._wpos = position;
             const s = this.state;
+            if (s.nowKey && !s.paused && position > 5 && Date.now() - (this._lastResumeSave || 0) > 5000) {
+              this.saveResume(s.nowKey, position);
+            }
+            const m = s.nowKey && this.byKey(s.nowKey);
+            if (m && m.len > 0 && typeof navigator !== 'undefined' && 'mediaSession' in navigator && navigator.mediaSession.setPositionState) {
+              try {
+                navigator.mediaSession.setPositionState({
+                  duration: m.len,
+                  position: Math.max(0, Math.min(position, m.len)),
+                  playbackRate: 1
+                });
+              } catch (e) {}
+            }
             if (s.view === 'home' && !document.hidden && s.nowKey) this.forceUpdate();
           });
         } catch (e) {}
         w.events.ended.on(() => {
-          if (!this.state.radio) return;
-          const s = this.state;
-          let k = null;
-          if (s.queue.length) {
-            const q = s.queue.slice(); k = q.shift();
-            this.savePrefs({queue: q});
-          } else if (s.upNext && s.upNext.length) {
-            k = s.upNext[0];
-          } else {
-            k = this.nextKey();
+          this.clearResume();   // a finished show shouldn't be "resumed"
+          if (this.state.sleep && this.state.sleep.type === 'show') {
+            this.setState({sleep: null});
+            this.flash('Sleep timer, stopped');
+            return;
           }
-          if (k) this.play(k);   // play() tops the lineup back up to 3
+          this.advance();   // play() tops the lineup back up to 3
         });
       });
     } catch (e) {}
   }
   componentDidUpdate() {
     this.bindWidget();
+    // Lock the page behind the full-screen show detail so the body's
+    // scrollbar disappears while it's open.
+    document.body.style.overflow =
+      (this.state.detailKey && this.state.bp !== 'sm') ? 'hidden' : '';
     if (this.state.detailKey) this.fetchDesc(this.state.detailKey);
     if (this._pendingShowSlug && this.state.items.length) {
       const key = this.resolveShowSlug(this._pendingShowSlug);
       this._pendingShowSlug = null;
       if (key) this.setState({detailKey: key});
+    }
+    // Restore the pre-reload show onto the dock, paused, at its saved
+    // position. Autoplay policies forbid resuming with sound on load, so
+    // it waits for the first play tap and seeks then (see bindWidget).
+    if (this._pendingResume && this.state.items.length && !this.state.nowKey) {
+      const r = this._pendingResume;
+      this._pendingResume = null;
+      const m = this.byKey(r.key);
+      if (m) {
+        this._resumeSeek = r.pos;
+        this._cold = true;
+        this._nav = [r.key];
+        this._navPos = 0;
+        this.setState({nowKey: r.key, paused: true, upNext: this.buildUpNext(r.key, 3)});
+        this.updateMediaSession(m);
+        this.flash('Resuming at ' + this.fmtLen(r.pos));
+      } else {
+        this.clearResume();
+      }
     }
     // Seed the station lineup as soon as the archive is available, so a
     // "next" show is lined up before the first play. Only sets state when
@@ -803,6 +1151,12 @@ class Component extends React.Component {
       if (seed.length) this.setState({upNext: seed});
     }
     this.syncUrl();
+    // Deferred scroll to a section (e.g. footer "Submit a show" -> the
+    // About page's submission block), once that view has rendered.
+    if (this._scrollTo) {
+      const el = document.getElementById(this._scrollTo);
+      if (el) { this._scrollTo = null; el.scrollIntoView({behavior: 'smooth', block: 'start'}); }
+    }
   }
 
   renderVals() {
@@ -833,12 +1187,16 @@ class Component extends React.Component {
     if (items.length) {
       shelves.push({id: 'latest', title: 'Latest shows', sub: 'Newest first', items: items.slice(0, 14).map(m => this.card(m))});
       shelves.push({id: 'popular', title: 'Most played', sub: 'All time', items: items.slice().sort((a, b) => b.plays - a.plays).slice(0, 14).map(m => this.card(m))});
+      const aired = (s.history || []).map(k => this.byKey(k)).filter(Boolean).slice(0, 14);
+      if (aired.length >= 3) shelves.push({id: 'onair', title: 'Recently on air', sub: 'Last played here', items: aired.map(m => this.card(m))});
       if (s.favs.length) shelves.push({id: 'favs', title: 'Saved by you', sub: s.favs.length + ' shows', items: s.favs.map(k => this.byKey(k)).filter(Boolean).slice(0, 14).map(m => this.card(m))});
       shelves.push({id: 'long', title: 'Long players', sub: 'Two hours and up', items: items.filter(m => m.len > 7000).slice(0, 14).map(m => this.card(m))});
-      this.GENRES.forEach(g => {
-        const list = items.filter(m => this.inGenre(m, g.id)).sort((a, b) => b.plays - a.plays);
-        if (list.length >= 4) shelves.push({id: g.id, title: g.label, sub: list.length + ' shows', items: list.slice(0, 14).map(m => this.card(m))});
-      });
+      this.GENRES.map(g => ({g, list: items.filter(m => this.inGenre(m, g.id)).sort((a, b) => b.plays - a.plays)}))
+        .filter(x => x.list.length >= 4)
+        .sort((a, b) => b.list.length - a.list.length)
+        .forEach(({g, list}) => {
+          shelves.push({id: g.id, title: g.label, sub: list.length + ' shows', items: list.slice(0, 14).map(m => this.card(m))});
+        });
     }
 
     const djMap = {};
@@ -889,7 +1247,7 @@ class Component extends React.Component {
       rootRef: this.attachRoot,
       isSm: s.bp === 'sm', navInline: s.bp !== 'sm', menuOpen: s.bp === 'sm' && s.menuOpen,
       searchOrder: s.bp === 'sm' ? 3 : 0,
-      tuneText: s.bp === 'sm' ? 'Tune in' : 'Tune me in',
+      tuneText: 'Tune in',
       tunePadX: s.bp === 'sm' ? '13px' : '16px',
       tuneGap: s.bp === 'sm' ? '7px' : '10px',
       tuneLS: s.bp === 'sm' ? '.1em' : '.14em',
@@ -903,6 +1261,7 @@ class Component extends React.Component {
       navAbout: navOn('about'), navAboutBar: navBar('about'),
       aboutLogo: 'assets/logos/monkey-' + this.aboutLogo + '.png',
       aboutLogo2x: 'assets/logos/monkey-' + this.aboutLogo + '@2x.png',
+      submitHref: 'mailto:monkeyradio.in@gmail.com?subject=' + encodeURIComponent('Show submission for Monkey Radio India') + '&body=' + encodeURIComponent('Name / selector:\nCity:\nLink to a mix (Mixcloud / SoundCloud / other):\nGenres / vibe:\nAnything else:\n'),
       query: s.query, moods: this.MOODS, shelves,
       searchHint: 'Search ' + (items.length || '974') + ' shows',
       heroGreeting: this.heroGreeting(),
@@ -936,13 +1295,17 @@ class Component extends React.Component {
       libEmptyMsg: s.tab === 'favs' ? 'Nothing saved yet. Use the save button on any show.' : s.tab === 'queue' ? 'The queue is empty. Add shows from a mix card.' : 'No listening history yet.',
       tabFavBg: tf.bg, tabFavFg: tf.fg, tabQueueBg: tq.bg, tabQueueFg: tq.fg, tabHistBg: th.bg, tabHistFg: th.fg,
       detailOpen: !!detail && s.bp !== 'sm',
+      detailBottom: now ? (s.bp === 'md' ? '170px' : '120px') : '0px',
       detail: detail ? Object.assign({}, this.card(detail), {
         tags: detail.tags.filter(t => this.STOP.indexOf(t) < 0).slice(0, 8), favs: this.fmtNum(detail.favs),
         favLabel: isFav(detail.key) ? 'Saved' : 'Save',
         favBg: isFav(detail.key) ? '#201e1d' : 'transparent',
         favFg: isFav(detail.key) ? '#f3f2f2' : '#201e1d',
         favFill: isFav(detail.key) ? 'currentColor' : 'none',
-        desc: s.descs[detail.key] || ''
+        desc: s.descs[detail.key] || '',
+        tracklist: (s.secs[detail.key] && s.secs[detail.key].length
+          ? {intro: '', tracks: s.secs[detail.key]}
+          : this.parseTrackText(s.descs[detail.key] || '')) || null
       }) : {tags: []},
       related, shareLabel: s.shared ? 'Link copied' : 'Share', shared: s.shared,
       toast: s.toast,
@@ -953,36 +1316,57 @@ class Component extends React.Component {
         favFg: isFav(now.key) ? '#ec3013' : '#201e1d',
         favFill: isFav(now.key) ? 'currentColor' : 'none'
       }) : {},
-      playerSrc: now ? 'https://player-widget.mixcloud.com/widget/iframe/?hide_cover=1&light=1&autoplay=1&feed=' + encodeURIComponent(now.url.replace('https://www.mixcloud.com', '')) : '',
+      playerSrc: now ? 'https://player-widget.mixcloud.com/widget/iframe/?hide_cover=1&light=1&autoplay=' + (this._cold ? '0' : '1') + '&feed=' + encodeURIComponent(now.url.replace('https://www.mixcloud.com', '')) : '',
       playerRef: (el) => { this._iframe = el; this.bindWidget(); },
       upNextName,
-      radioState: s.radio ? 'on' : 'off',
-      radioBg: s.radio ? '#201e1d' : 'transparent',
-      radioFg: s.radio ? '#f3f2f2' : '#201e1d',
 
       goHome: () => this.setState({view: 'home', genre: null, mood: null, dj: null, query: ''}),
-      nav: (e) => this.setState({view: e.currentTarget.dataset.view, limit: 48, menuOpen: false}),
+      goSubmit: () => { this._scrollTo = 'mri-submit'; this.setState({view: 'about', menuOpen: false, genre: null, mood: null, dj: null, query: '', detailKey: null}); },
+      nav: (e) => { const view = e.currentTarget.dataset.view; const clear = view === 'browse' ? {} : {genre: null, mood: null, dj: null, query: ''}; this.setState(Object.assign({view, limit: 48, menuOpen: false}, clear)); },
       onSearch: (e) => this.setState({query: e.target.value, view: 'browse', limit: 48}),
-      openMix: (e) => this.setState({detailKey: e.currentTarget.dataset.key, shared: false}),
+      // Opening a show remembers the shelf it was opened from (home shelves
+      // carry data-ctx), so playing it pins auto-advance to that shelf's
+      // list instead of the whole archive.
+      openMix: (e) => {
+        this._detailCtx = this.shelfCtx(e.currentTarget.dataset.ctx);
+        this.setState({detailKey: e.currentTarget.dataset.key, shared: false});
+      },
       closeDetail: () => this.setState({detailKey: null}),
       stop: (e) => e.stopPropagation(),
-      playDetail: () => this.play(s.detailKey),
+      playDetail: () => this.play(s.detailKey, this._detailCtx ? {ctx: this._detailCtx} : null),
       queueDetail: () => { this.savePrefs({queue: s.queue.concat([s.detailKey]).filter((v, i, a) => a.indexOf(v) === i)}); this.setState({detailKey: null, view: 'library', tab: 'queue'}); },
-      shareDetail: () => { try { navigator.clipboard.writeText(detail ? detail.url : ''); } catch (e) {} this.setState({shared: true}); this.flash('Link copied'); },
+      shareDetail: () => { const link = detail ? (location.origin + '/show/' + this.slugOf(detail.key)) : location.href; try { navigator.clipboard.writeText(link); } catch (e) {} this.setState({shared: true}); this.flash('Link copied'); },
       shareNow: () => { try { navigator.clipboard.writeText(now ? now.url : ''); } catch (e) {} this.setState({shared: true}); this.flash('Link copied'); },
       togglePlay: () => { try { this._widget && this._widget.togglePlay(); } catch (e) {} },
       expandPlayer: () => this.setState({playerExpanded: true}),
       collapsePlayer: () => this.setState({playerExpanded: false}),
       toggleFav: (e) => { e.stopPropagation(); const k = e.currentTarget.dataset.key; if (!k) return; this.savePrefs({favs: isFav(k) ? s.favs.filter(x => x !== k) : [k].concat(s.favs)}); },
-      toggleRadio: () => this.savePrefs({radio: !s.radio}),
-      heroPlay: () => { if (hero) this.play(hero.key); },
-      heroShuffle: () => { if (!items.length) return; if (!s.radio) this.savePrefs({radio: true}); this.play(items[Math.floor(Math.random() * items.length)].key); },
+      cycleSleep: () => this.cycleSleep(),
+      sleepOn: !!s.sleep,
+      sleepLabel: !s.sleep ? 'Sleep'
+        : s.sleep.type === 'show' ? 'Sleep · end of show'
+        : 'Sleep · ' + Math.max(1, Math.ceil((s.sleep.at - Date.now()) / 60000)) + 'm',
+      sleepShort: !s.sleep ? 'Off'
+        : s.sleep.type === 'show' ? 'Show'
+        : Math.max(1, Math.ceil((s.sleep.at - Date.now()) / 60000)) + 'm',
+      heroPlay: () => { if (!hero) return; this.play(hero.key); },
+      heroShuffle: () => { if (!items.length) return; const k = this.smartPick(items); if (k) this.play(k); },
       heroDot: (e) => this.setState({heroIdx: Number(e.currentTarget.dataset.i) || 0}),
       heroHold: () => { this._heroPaused = true; },
       heroRelease: () => { this._heroPaused = false; },
-      playNext: () => { const q = s.queue.slice(); const k = q.length ? q.shift() : this.nextKey(); if (q.length !== s.queue.length) this.savePrefs({queue: q}); if (k) this.play(k); },
-      stopPlaying: () => this.setState({nowKey: null, playerExpanded: false}),
-      tuneIn: () => { const pool = list.length ? list : items; if (pool.length) this.play(pool[Math.floor(Math.random() * pool.length)].key); },
+      playNext: () => this.advance(),
+      playPrev: () => this.playPrev(),
+      canPrev: this.canPrev(),
+      stopPlaying: () => this.stopPlayback(),
+      // The always-visible "Tune in" entry: either resumes what's loaded or
+      // drops the needle on a deep-shuffled pick from the current pool.
+      // Never stops it once running.
+      tuneIn: () => {
+        if (s.nowKey) { if (s.paused) { try { this._widget && this._widget.play(); } catch (e) {} } return; }
+        const pool = list.length ? list : items;
+        const k = this.smartPick(pool);
+        if (k) this.play(k);
+      },
       pickGenre: (e) => { const id = e.currentTarget.dataset.id; this.setState({genre: s.genre === id ? null : id, view: 'browse', dj: null, limit: 48}); },
       pickMood: (e) => { const id = e.currentTarget.dataset.id; this.setState({mood: s.mood === id ? null : id, view: 'browse', dj: null, limit: 48}); },
       pickDj: (e) => this.setState({dj: e.currentTarget.dataset.id, view: 'browse', genre: null, mood: null, limit: 48}),
@@ -1075,9 +1459,7 @@ class Component extends React.Component {
               <div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#ae1800;margin:18px 0 10px")}>{v.detail.when} / Monkey Radio India</div>
               <h1 style={css("font-weight:800;font-size:clamp(24px,7vw,32px);line-height:1.06;letter-spacing:-.03em;margin:0 0 12px;text-wrap:pretty")}>{v.detail.name}</h1>
               <div style={css("font:500 14px 'Archivo',sans-serif;color:#444141;margin-bottom:20px")}>Selected by <strong style={css("font-weight:700;color:#201e1d")}>{v.detail.dj}</strong></div>
-              {v.detail.desc ? (
-                <p style={css("font:400 14.5px/1.65 'Archivo',sans-serif;color:#444141;margin:0 0 22px;text-wrap:pretty;white-space:pre-line")}>{v.detail.desc}</p>
-              ) : null}
+              {this.notesBlock(v.detail, true)}
               <div className="mri-detailstats" style={css("display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid #d7d3d3;border-bottom:1px solid #d7d3d3;margin-bottom:20px")}>
                 <div style={css("padding:14px 0")}><div style={css("font-weight:800;font-size:19px;letter-spacing:-.02em")}>{v.detail.len}</div><div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#7d7979;margin-top:4px")}>Runtime</div></div>
                 <div style={css("padding:14px 0 14px 16px;border-left:1px solid #d7d3d3")}><div style={css("font-weight:800;font-size:19px;letter-spacing:-.02em")}>{v.detail.plays}</div><div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#7d7979;margin-top:4px")}>Plays</div></div>
@@ -1208,7 +1590,7 @@ class Component extends React.Component {
                   </div>
                   <div className="mri-row" id={"shelf-" + shelf.id} style={css("display:flex;gap:clamp(12px,2vw,22px);overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:4px")}>
                     {shelf.items.map((m, i) => (
-                      <div key={m.key + ':' + i} onClick={v.openMix} data-key={m.key} className="h-fade" style={css("flex:none;width:clamp(146px,40vw,198px);scroll-snap-align:start;cursor:pointer")}>
+                      <div key={m.key + ':' + i} onClick={v.openMix} data-key={m.key} data-ctx={shelf.id} className="h-fade" style={css("flex:none;width:clamp(146px,40vw,198px);scroll-snap-align:start;cursor:pointer")}>
                         <div style={css("position:relative;width:100%;aspect-ratio:1;background:#eae9e9;border:1px solid #d7d3d3;overflow:hidden")}>
                           <img src={m.pic} alt="" loading="lazy" style={css("width:100%;height:100%;object-fit:cover;display:block")} />
                           <span style={css("position:absolute;right:0;bottom:0;background:#201e1d;color:#f3f2f2;font:600 10px 'Archivo',sans-serif;letter-spacing:.08em;padding:4px 7px")}>{m.len}</span>
@@ -1323,7 +1705,11 @@ class Component extends React.Component {
                   <p style={css("font:400 17px/1.6 'Archivo',sans-serif;color:#444141;margin:0 0 18px;max-width:68ch")}>Monkey Radio India is a community radio station and streaming platform broadcasting from Hyderabad. Since 25 October 2011 it has been public, non-profit and free of commercials, with a civilian approach to broadcasting, and is run by the Monkey Foundation. It takes inspiration from <a href="https://tilos.hu" target="_blank" rel="noopener" style={css("text-decoration:underline")}>Tilos Rádió</a> in Hungary.</p>
                   <p style={css("font:400 17px/1.6 'Archivo',sans-serif;color:#444141;margin:0 0 18px;max-width:68ch")}>Founded by Dakta Dub, the station began as a meeting point for Hyderabad's underground and has grown into a platform that connects local crews with artists from across India and the world. The schedule runs live DJ sets, pre-recorded shows and conversations, with attention on artists and scenes working beyond the mainstream.</p>
                   <p style={css("font:400 17px/1.6 'Archivo',sans-serif;color:#444141;margin:0 0 18px;max-width:68ch")}>The programme moves between genres without rules. Dub, reggae and sound system music sit alongside jazz, electronic, hip hop, experimental and ambient, as well as literature and other art forms. The result is an archive of more than 900 shows, broadcast at international standards.</p>
-                  <p style={css("font:400 17px/1.6 'Archivo',sans-serif;color:#444141;margin:0;max-width:68ch")}>Beyond broadcasting, the Monkey Foundation runs events, workshops and projects that grow the community at home and abroad, working with a network of like-minded DJs, foundations and cultural spaces.</p>
+                  <p style={css("font:400 17px/1.6 'Archivo',sans-serif;color:#444141;margin:0 0 26px;max-width:68ch")}>Beyond broadcasting, the Monkey Foundation runs events, workshops and projects that grow the community at home and abroad, working with a network of like-minded DJs, foundations and cultural spaces.</p>
+                  <a href="https://www.mixcloud.com/monkeyradioindia/" target="_blank" rel="noopener" className="h-invert" style={css("display:inline-flex;align-items:center;gap:10px;border:2px solid #201e1d;color:#201e1d;padding:12px 18px;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase")}>
+                    Follow on Mixcloud
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none")}><path d="M7 17 17 7"></path><path d="M7 7h10v10"></path></svg>
+                  </a>
                 </div>
               </div>
               <div style={css("display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));border-top:1px solid #d7d3d3")}>
@@ -1343,6 +1729,16 @@ class Component extends React.Component {
                   <p style={css("font:400 17px/1.6 'Archivo',sans-serif;color:#444141;margin:0;max-width:68ch")}>We call the boxes “Balasub”, named for Dakta Dub and his long endeavour to build a sound system for Hyderabad, and to put the city on the global map of sound system culture.</p>
                 </div>
                 <div role="img" aria-label="The Monkey Sound System, a hand-built dub speaker stack" style={css("flex:none;aspect-ratio:460/421;pointer-events:none;user-select:none;background:center/contain no-repeat image-set(url(assets/monkey-sound-system.png) 1x, url(assets/monkey-sound-system@2x.png) 2x);width:" + (v.isSm ? "min(420px,100%);margin-top:32px" : "340px;margin-top:2px"))}></div>
+              </div>
+
+              <div id="mri-submit" style={css("margin-top:64px;border-top:1px solid #d7d3d3;padding-top:40px;scroll-margin-top:90px")}>
+                <div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#ae1800;margin-bottom:14px")}>Get on the station</div>
+                <h2 style={css("font-weight:800;font-size:clamp(22px,2.6vw,32px);line-height:1.05;letter-spacing:-.03em;margin:0 0 18px")}>Send a show</h2>
+                <p style={css("font:400 15px/1.65 'Archivo',sans-serif;color:#444141;margin:0 0 22px;max-width:64ch")}>Selectors and crews working beyond the mainstream are welcome. Send a link to a recorded mix (Mixcloud, SoundCloud or a plain file) with your city and what you play, and we'll sit with it end to end. If it carries the weight the station runs on, we'll get back to you about a slot in the rotation. Guest mixes run at any length.</p>
+                <a href={v.submitHref} className="h-invert" style={css("display:inline-flex;align-items:center;gap:10px;border:2px solid #201e1d;color:#201e1d;padding:12px 18px;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase")}>
+                  Submit a show
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none")}><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="m22 7-10 6L2 7"></path></svg>
+                </a>
               </div>
             </section>
           )}
@@ -1370,11 +1766,12 @@ class Component extends React.Component {
                     <div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#7d7979;margin-bottom:11px")}>Follow</div>
                     <a href="https://www.instagram.com/monkeyradioindia" target="_blank" rel="noopener" style={css("display:block;font:600 14px 'Archivo',sans-serif;margin-bottom:8px")}>Instagram</a>
                     <a href="https://www.facebook.com/monkeyradioindia" target="_blank" rel="noopener" style={css("display:block;font:600 14px 'Archivo',sans-serif;margin-bottom:8px")}>Facebook</a>
-                    <a href="https://www.mixcloud.com/monkeyradioindia/" target="_blank" rel="noopener" style={css("display:block;font:600 14px 'Archivo',sans-serif")}>Mixcloud archive</a>
+                    <a href="https://www.mixcloud.com/monkeyradioindia/" target="_blank" rel="noopener" style={css("display:block;font:600 14px 'Archivo',sans-serif")}>Follow on Mixcloud</a>
                   </div>
                   <div>
                     <div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#7d7979;margin-bottom:11px")}>Contact</div>
                     <a href="mailto:monkeyradio.in@gmail.com" style={css("display:block;font:600 14px 'Archivo',sans-serif;margin-bottom:8px;word-break:break-all")}>monkeyradio.in@gmail.com</a>
+                    <button onClick={v.goSubmit} style={css("display:block;background:none;border:0;padding:0;margin-bottom:8px;cursor:pointer;text-align:left;font:600 14px 'Archivo',sans-serif;color:#201e1d")}>Submit a show</button>
                     <a href="http://www.monkeyradio.in" target="_blank" rel="noopener" style={css("display:block;font:600 14px 'Archivo',sans-serif")}>monkeyradio.in</a>
                   </div>
                   <div>
@@ -1395,17 +1792,15 @@ class Component extends React.Component {
         </footer>
 
         {v.detailOpen && (
-          <div onClick={v.closeDetail} className="mri-backdrop" style={css("position:fixed;inset:0;z-index:60;background:rgba(32,30,29,.9);display:flex;align-items:center;justify-content:center;padding:28px")}>
-            <div onClick={v.stop} style={css("width:min(900px,100%);max-height:88vh;overflow-y:auto;background:#f3f2f2;border:2px solid #201e1d;border-radius:0")}>
+          <div style={css("position:fixed;left:0;right:0;top:0;bottom:0;z-index:60;background:#f3f2f2;overflow-y:auto;-webkit-overflow-scrolling:touch")}>
+            <div style={css("min-height:100%;max-width:940px;margin:0 auto;background:#f3f2f2;padding-bottom:" + v.detailBottom)}>
               <div className="mri-modalhead" style={css("position:relative;display:flex;gap:32px;padding:32px;flex-wrap:wrap;border-bottom:1px solid #d7d3d3")}>
                 <div role="img" aria-label="Album art" style={st("width:min(238px,100%);aspect-ratio:1;background-size:cover;background-position:center;background-color:#eae9e9;border:1px solid #d7d3d3;flex:none", {backgroundImage: v.detail.bg})}></div>
                 <div style={css("flex:1;min-width:260px")}>
                   <div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#ae1800;margin-bottom:12px")}>{v.detail.when} / Monkey Radio India</div>
                   <h2 style={css("font-weight:800;font-size:27px;line-height:1.06;letter-spacing:-.03em;margin:0 0 12px;text-wrap:pretty;padding-right:40px")}>{v.detail.name}</h2>
                   <div style={css("font:500 14px 'Archivo',sans-serif;color:#444141;margin-bottom:20px")}>Selected by <strong style={css("font-weight:700;color:#201e1d")}>{v.detail.dj}</strong></div>
-                  {v.detail.desc ? (
-                    <p style={css("font:400 14px/1.6 'Archivo',sans-serif;color:#444141;margin:0 0 20px;text-wrap:pretty;white-space:pre-line")}>{v.detail.desc}</p>
-                  ) : null}
+                  {this.notesBlock(v.detail, false)}
                   <div style={css("display:flex;flex-wrap:wrap;gap:6px;margin-bottom:22px")}>
                     {v.detail.tags.map((t, i) => (
                       <span key={i} style={css("font:500 10.5px 'Archivo',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#605d5d;border:1px solid #d7d3d3;padding:5px 9px")}>{t}</span>
@@ -1435,7 +1830,7 @@ class Component extends React.Component {
                     </button>
                   </div>
                 </div>
-                <button onClick={v.closeDetail} aria-label="Close" className="h-close" style={css("position:absolute;top:18px;right:18px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border:1px solid #201e1d;background:none;color:#201e1d;cursor:pointer;border-radius:0")}>
+                <button onClick={v.closeDetail} aria-label="Close" className="h-close" style={css("position:fixed;top:16px;right:16px;z-index:61;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:1px solid #201e1d;background:#f3f2f2;color:#201e1d;cursor:pointer;border-radius:0")}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block")}><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
                 </button>
               </div>
@@ -1466,21 +1861,25 @@ class Component extends React.Component {
               </button>
             </div>
             <div className="mp-body">
-              <div role="img" aria-label="Album art" className="mp-cover" style={st("aspect-ratio:1;background-size:cover;background-position:center;background-color:#eae9e9;border:1px solid #d7d3d3", {backgroundImage: v.now.bg})}></div>
+              <div role="img" aria-label="Show details" onClick={v.openMix} data-key={v.now.key} style={st("aspect-ratio:1;background-size:cover;background-position:center;background-color:#eae9e9;border:1px solid #d7d3d3;cursor:pointer", {backgroundImage: v.now.bg})} className="mp-cover"></div>
               <div>
                 <div className="mp-when">{v.now.when} / Monkey Radio India</div>
-                <h2 className="mp-title">{v.now.name}</h2>
+                <h2 className="mp-title" onClick={v.openMix} data-key={v.now.key} style={css("cursor:pointer")}>{v.now.name}</h2>
                 <div className="mp-dj">Selected by <strong>{v.now.dj}</strong></div>
                 {v.upNextName ? <div className="mp-next">Up next &middot; {v.upNextName}</div> : null}
               </div>
               <div className="mp-scrub">
                 <iframe ref={v.playerRef} title="Mixcloud player" src={v.playerSrc} width="100%" height="60" frameBorder="0" allow="autoplay" style={css("display:block;border:0")}></iframe>
               </div>
-              <button onClick={v.toggleRadio} className="mp-radio" data-on={v.radio ? '1' : '0'} title="Autoplay the next show when this one ends">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none")}><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"></path><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"></path><circle cx="12" cy="12" r="2"></circle><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"></path><path d="M19.1 4.9C23 8.8 23 15.1 19.1 19"></path></svg>
-                Radio {v.radioState}
+              <button onClick={v.cycleSleep} className="mp-radio" data-on={v.sleepOn ? '1' : '0'} aria-label="Sleep timer" title="Stop playback after this show or a set time">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none")}><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+                {v.sleepLabel}
               </button>
               <div className="mp-row3">
+                <button onClick={v.playPrev} disabled={!v.canPrev} className="mp-abtn" aria-label="Previous show" style={css(v.canPrev ? "" : "opacity:.38;pointer-events:none")}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none")}><polygon points="19 20 9 12 19 4"></polygon><line x1="5" x2="5" y1="19" y2="5"></line></svg>
+                  Prev
+                </button>
                 <button onClick={v.playNext} className="mp-abtn" aria-label="Next show">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none")}><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" x2="19" y1="5" y2="19"></line></svg>
                   Next
@@ -1522,18 +1921,21 @@ class Component extends React.Component {
         ) : (
           <div style={css("position:fixed;left:0;right:0;bottom:0;z-index:70;background:#f3f2f2;border-top:2px solid #201e1d")}>
             <div style={css("max-width:1560px;margin:0 auto;padding:10px clamp(16px,3.2vw,32px);display:flex;align-items:center;gap:12px;flex-wrap:wrap")}>
-              <div role="img" aria-label="Album art" style={st("width:48px;height:48px;background-size:cover;background-position:center;background-color:#eae9e9;border:1px solid #d7d3d3;flex:none", {backgroundImage: v.now.bg})}></div>
+              <div role="img" aria-label="Show details" onClick={v.openMix} data-key={v.now.key} style={st("width:48px;height:48px;background-size:cover;background-position:center;background-color:#eae9e9;border:1px solid #d7d3d3;flex:none;cursor:pointer", {backgroundImage: v.now.bg})}></div>
               <div className="mri-nowmeta" style={css("min-width:140px;max-width:250px")}>
-                <div style={css("font:600 13px 'Archivo',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis")}>{v.now.name}</div>
+                <div onClick={v.openMix} data-key={v.now.key} style={css("font:600 13px 'Archivo',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer")}>{v.now.name}</div>
                 <div style={css("font:500 10px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#7d7979;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis")}>{v.now.dj}</div>
                 {v.upNextName ? <div style={css("font:600 9.5px 'Archivo',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#a8a4a4;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis")}>Next &middot; {v.upNextName}</div> : null}
               </div>
               <div style={css("flex:1;min-width:240px")}>
                 <iframe ref={v.playerRef} title="Mixcloud player" src={v.playerSrc} width="100%" height="60" frameBorder="0" allow="autoplay" style={css("display:block;border:0")}></iframe>
               </div>
-              <button onClick={v.toggleRadio} title="Autoplay the next show when this one ends" style={css("display:flex;align-items:center;gap:9px;border:1px solid #201e1d;background:" + v.radioBg + ";color:" + v.radioFg + ";border-radius:0;padding:10px 13px;font:600 10.5px 'Archivo',sans-serif;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;white-space:nowrap")}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none")}><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"></path><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"></path><circle cx="12" cy="12" r="2"></circle><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"></path><path d="M19.1 4.9C23 8.8 23 15.1 19.1 19"></path></svg>
-                Radio {v.radioState}
+              <button onClick={v.cycleSleep} aria-label="Sleep timer" title="Stop after this show or a set time" style={css("display:flex;align-items:center;gap:9px;border:1px solid #201e1d;background:" + (v.sleepOn ? "#201e1d" : "transparent") + ";color:" + (v.sleepOn ? "#f3f2f2" : "#201e1d") + ";border-radius:0;padding:10px 13px;font:600 10.5px 'Archivo',sans-serif;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;white-space:nowrap")}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none")}><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+                {v.sleepOn ? 'Sleep · ' + v.sleepShort : 'Sleep'}
+              </button>
+              <button onClick={v.playPrev} disabled={!v.canPrev} aria-label="Previous show" className="h-invert" style={css("width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:1px solid #201e1d;background:none;color:#201e1d;border-radius:0;cursor:" + (v.canPrev ? "pointer" : "not-allowed") + ";opacity:" + (v.canPrev ? "1" : ".38") + ";pointer-events:" + (v.canPrev ? "auto" : "none"))}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block")}><polygon points="19 20 9 12 19 4"></polygon><line x1="5" x2="5" y1="19" y2="5"></line></svg>
               </button>
               <button onClick={v.playNext} aria-label="Next show" className="h-invert" style={css("width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:1px solid #201e1d;background:none;color:#201e1d;cursor:pointer;border-radius:0")}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block")}><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" x2="19" y1="5" y2="19"></line></svg>
@@ -1558,6 +1960,18 @@ class Component extends React.Component {
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(<Component />);
+</script>
+<script>
+/* PWA: register the service worker so the app installs and its shell
+   loads offline. https / localhost only (the API needs a secure context). */
+(function () {
+  if (!('serviceWorker' in navigator)) return;
+  var ok = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  if (!ok) return;
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('/sw.js').catch(function () {});
+  });
+})();
 </script>
 </body>
 </html>

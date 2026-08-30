@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<base href="/">
+<title>Off air (404) · Monkey Radio India</title>
+<meta name="description" content="This frequency is off the air. The page you were tuning into doesn't exist on Monkey Radio India.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#f3f2f2">
+<link rel="icon" href="assets/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  html,body{margin:0;padding:0}
+  body{
+    background:#f3f2f2;color:#201e1d;
+    font-family:"Archivo",system-ui,-apple-system,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;min-height:100dvh;
+    display:flex;flex-direction:column;
+  }
+  *{box-sizing:border-box}
+  a{color:#ae1800;text-decoration:none}
+  ::selection{background:#ffe0d9;color:#201e1d}
+  a:focus-visible,button:focus-visible{outline:2px solid #ec3013;outline-offset:3px}
+
+  /* ---- shell ---- */
+  .wrap{
+    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:56px 24px 40px;
+  }
+  .kicker{
+    font:600 11px "Archivo",sans-serif;letter-spacing:.24em;text-transform:uppercase;
+    color:#7d7979;margin-bottom:26px;
+    display:flex;align-items:center;gap:10px;
+  }
+  .kicker .live{
+    width:7px;height:7px;background:#ec3013;border-radius:50%;
+    animation:pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.15}}
+
+  /* ---- the 404 lockup ---- */
+  .lockup{
+    display:flex;align-items:center;justify-content:center;gap:clamp(6px,2vw,20px);
+    font-weight:800;letter-spacing:-.05em;line-height:1;
+    font-size:clamp(96px,24vw,180px);
+    color:#201e1d;
+  }
+  .dial{
+    width:clamp(96px,24vw,180px);height:clamp(96px,24vw,180px);
+    display:block;flex:none;
+  }
+  .dial .arc{animation:spin 9s linear infinite;transform-origin:60px 60px}
+  .dial .arc.slow{animation-duration:14s;animation-direction:reverse}
+  .dial .needle{
+    transform-origin:60px 60px;
+    animation:scan 3.4s cubic-bezier(.55,0,.4,1) infinite alternate;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes scan{
+    0%{transform:rotate(-46deg)}
+    44%{transform:rotate(10deg)}
+    52%{transform:rotate(4deg)}
+    100%{transform:rotate(45deg)}
+  }
+
+  /* ---- flatlined equaliser ---- */
+  .eq{display:flex;align-items:flex-end;gap:5px;height:34px;margin:30px 0 4px}
+  .eq i{width:7px;background:#201e1d;opacity:.28;height:6px;display:block}
+  .eq i.a{animation:tw 1.1s steps(2,end) infinite}
+  .eq i.b{animation:tw 1.7s steps(2,end) infinite;background:#ec3013;opacity:.9}
+  .eq i.c{animation:tw 2.3s steps(2,end) infinite}
+  @keyframes tw{0%,100%{height:6px}50%{height:15px}}
+
+  h1{
+    font:800 clamp(22px,4.2vw,32px)/1.15 "Archivo",sans-serif;
+    letter-spacing:-.02em;margin:22px 0 0;max-width:18ch;
+  }
+  p.lede{
+    font:500 15px/1.6 "Archivo",sans-serif;color:#605d5d;
+    max-width:42ch;margin:14px 0 32px;
+  }
+
+  .actions{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+  .btn{
+    display:inline-flex;align-items:center;gap:10px;
+    height:44px;padding:0 22px;border-radius:0;cursor:pointer;
+    font:600 11px "Archivo",sans-serif;letter-spacing:.14em;text-transform:uppercase;
+    transition:background .15s,color .15s,border-color .15s;
+  }
+  .btn.primary{background:#201e1d;color:#f3f2f2;border:2px solid #201e1d}
+  .btn.primary:hover{background:#ec3013;border-color:#ec3013}
+  .btn.ghost{background:none;color:#201e1d;border:2px solid #201e1d}
+  .btn.ghost:hover{border-color:#ec3013;color:#ec3013}
+
+  footer{
+    border-top:2px solid #201e1d;
+    padding:18px 24px;
+    display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;
+    font:600 10px "Archivo",sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#7d7979;
+  }
+  footer a{color:#7d7979}
+  footer a:hover{color:#ec3013}
+
+  @media (prefers-reduced-motion:reduce){
+    .dial .arc,.dial .needle,.kicker .live,.eq i{animation:none}
+    .dial .needle{transform:rotate(-8deg)}
+  }
+</style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="kicker"><span class="live"></span>No signal on this frequency</div>
+
+    <div class="lockup" role="img" aria-label="404, page off air">
+      <span aria-hidden="true">4</span>
+      <svg class="dial" viewBox="0 0 120 120" aria-hidden="true">
+        <circle cx="60" cy="60" r="54" fill="#f3f2f2" stroke="#201e1d" stroke-width="6"/>
+        <g class="arc" fill="none" stroke="#201e1d" stroke-width="2" stroke-linecap="round" opacity=".3" stroke-dasharray="3 9">
+          <circle cx="60" cy="60" r="46"/>
+        </g>
+        <g class="arc slow" fill="none" stroke="#201e1d" stroke-width="2" stroke-linecap="round" opacity=".25" stroke-dasharray="2 14">
+          <circle cx="60" cy="60" r="38"/>
+        </g>
+        <g id="ticks" stroke="#201e1d" stroke-width="2"></g>
+        <line class="needle" x1="60" y1="60" x2="60" y2="20" stroke="#ec3013" stroke-width="5" stroke-linecap="round"/>
+        <circle cx="60" cy="60" r="7" fill="#ec3013"/>
+        <circle cx="60" cy="60" r="2.4" fill="#f3f2f2"/>
+      </svg>
+      <span aria-hidden="true">4</span>
+    </div>
+
+    <div class="eq" aria-hidden="true">
+      <i></i><i class="a"></i><i></i><i class="b"></i><i class="c"></i><i></i><i class="a"></i><i></i><i class="c"></i><i></i>
+    </div>
+
+    <h1>This page tuned out</h1>
+    <p class="lede">The frequency you were after doesn't exist, or it drifted off the dial. Head back to the studio and pick the signal back up.</p>
+
+    <div class="actions">
+      <a class="btn primary" href="/">Back to home</a>
+      <a class="btn ghost" href="/archive">Browse the archive</a>
+    </div>
+  </main>
+
+  <footer>
+    <span>Monkey Radio India</span>
+    <span>Independent radio &middot; Hyderabad</span>
+  </footer>
+
+  <script>
+    // Frequency ticks around the dial: 24 marks, every 6th one longer + red.
+    (function () {
+      var g = document.getElementById('ticks');
+      if (!g) return;
+      var ns = 'http://www.w3.org/2000/svg';
+      for (var i = 0; i < 24; i++) {
+        var ang = (i / 24) * Math.PI * 2 - Math.PI / 2;
+        var major = i % 6 === 0;
+        var r1 = major ? 40 : 44, r2 = 50;
+        var ln = document.createElementNS(ns, 'line');
+        ln.setAttribute('x1', (60 + Math.cos(ang) * r1).toFixed(2));
+        ln.setAttribute('y1', (60 + Math.sin(ang) * r1).toFixed(2));
+        ln.setAttribute('x2', (60 + Math.cos(ang) * r2).toFixed(2));
+        ln.setAttribute('y2', (60 + Math.sin(ang) * r2).toFixed(2));
+        ln.setAttribute('stroke-width', major ? 3 : 2);
+        if (major) ln.setAttribute('stroke', '#ec3013');
+        g.appendChild(ln);
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -1859,12 +1859,6 @@ class Component extends React.Component {
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block")}><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
             </button>
 
-            {/* Station ident: a quiet text-only wordmark in the top-left,
-                readable at a glance from across a room without reading as a
-                pasted-on logo. The now-playing block below carries the
-                louder "· ON AIR" kicker. */}
-            <div style={css("position:absolute;left:24px;top:22px;z-index:2;font:800 12px 'Archivo',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:rgba(243,242,242,.62);text-shadow:0 1px 10px rgba(0,0,0,.35);pointer-events:none")}>Monkey Radio India</div>
-
             {!v.now.key ? (
               <button onClick={v.ambientTapStart} style={css("position:relative;z-index:2;background:none;border:0;color:#f3f2f2;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:22px;padding:0")}>
                 <div role="img" aria-label="The Monkey Sound System, a hand-built dub speaker stack" style={css("aspect-ratio:460/421;pointer-events:none;width:min(260px,52vw);background:center/contain no-repeat " + SOUND_SYSTEM_BG)}></div>

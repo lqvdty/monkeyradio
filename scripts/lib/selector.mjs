@@ -56,7 +56,12 @@ const OVERRIDES = [
   [/sunday special\s*-\s*roman nz selekta/i, 'Roman NZ Selekta'],
   [/monkey radio india special mix\s*-\s*von dewey/i, 'Von Dewey'],
   [/\bmango\s?-?\s?p-zion highway/i, 'Selecta Mango P'],
-  [/cloudcast by daktadub/i, 'Dakta Dub']
+  [/cloudcast by daktadub/i, 'Dakta Dub'],
+  [/story of shiva'?s monkey mind/i, 'Shivacult'],
+  [/bonalu mix/i, 'Dakta Dub'],
+  [/slow beats & smoky tunes/i, 'Dj Def Hawk'],
+  [/california knows how to party/i, 'Dj Def Hawk'],
+  [/ozon::tilos to monkey/i, 'Dj Ozon']
 ];
 
 // The text before a "presents"/"feat"/"showcase" keyword is the station or

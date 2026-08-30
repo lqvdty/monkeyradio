@@ -321,6 +321,9 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #ec30
 <body>
 <div id="root"></div>
 <script src="assets/app.js"></script>
+<!-- Ambient-mode WebGL backdrop (ShaderGradient). Self-contained ES module;
+     its heavy dependency tree is only fetched when ambient mode opens. -->
+<script type="module" src="assets/shader-bg.js"></script>
 <script>
 /* PWA: register the service worker so the app installs and its shell
    loads offline. https / localhost only (the API needs a secure context). */

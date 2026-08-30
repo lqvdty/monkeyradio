@@ -53,6 +53,7 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #ec30
 .mri-herostats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px 32px;margin-bottom:30px}
 .mri-herostats>div{min-width:0}
 .mri-herostats>div>div:last-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mri-heroart-m{display:none}
 
 /* ============================================================
    Responsive layer. Desktop ( > 1080px ) renders exactly as
@@ -89,11 +90,16 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #ec30
 
   .mri-herostats{grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:14px 22px !important}
 
-  /* Stacked hero: lead with the cover so it reads as this show's
-     artwork, not a stray image after the buttons. */
-  .mri-hero{gap:22px !important}
-  .mri-heroart{order:-1;max-width:min(72vw,300px) !important;margin:0 auto 2px}
-  .mri-herotext{order:0}
+  /* Stacked hero flows kicker -> title -> blurb -> cover -> stats.
+     The cover is moved inline (mri-heroart-m) so it sits with the
+     text it describes; the desktop right-column cover is dropped.
+     Drop the fixed-height title reservation too: with vertical
+     flow there is nothing below it that must stay put. */
+  .mri-herohead{height:auto !important;display:block !important}
+  .mri-herohead h1{display:block !important;-webkit-line-clamp:unset !important}
+  .mri-heroblurb{height:auto !important;display:block !important;-webkit-line-clamp:unset !important;margin:8px 0 0 !important}
+  .mri-heroart{display:none !important}
+  .mri-heroart-m{display:block;width:100%;max-width:min(86vw,340px);aspect-ratio:1;margin:18px auto 22px;background-size:cover;background-position:center;background-color:#eae9e9;border:1px solid #d7d3d3}
 
   /* Listen-by-mood: the inline vertical-divider row wraps into a
      broken grid on phones. Recast the label as a standalone
@@ -970,6 +976,7 @@ class Component extends React.Component {
                   </div>
                   <div className="mri-herohead"><h1>{v.heroTitle}</h1></div>
                   <p className="mri-heroblurb">{v.heroBlurb}</p>
+                  <div className="mri-heroart-m" role="img" aria-label="Album art" style={{backgroundImage: v.heroBg}}></div>
                   <div className="mri-herostats">
                     <div><div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#7d7979;margin-bottom:5px")}>Selector</div><div style={css("font:600 15px 'Archivo',sans-serif")}>{v.heroDj}</div></div>
                     <div><div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#7d7979;margin-bottom:5px")}>Runtime</div><div style={css("font:600 15px 'Archivo',sans-serif")}>{v.heroLen}</div></div>

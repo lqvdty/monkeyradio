@@ -15,8 +15,8 @@
  * static routes, so crawlers are actually pointed at what this script just
  * built - see robots.txt, which already refers to it.
  *
- * Also writes archive.html and selectors.html - crawlable linked indexes of
- * the whole archive, served at the /archive and /selectors clean URLs (a
+ * Also writes archive.html, selectors.html and about.html - crawlable
+ * prerenders served at the /archive, /selectors and /about clean URLs (a
  * static file outranks the SPA rewrite) - and llms.txt, a Markdown digest
  * of the site for language models (https://llmstxt.org).
  *
@@ -24,9 +24,9 @@
  * normalised archive the client can boot from instantly instead of paging
  * the Mixcloud API live on a cold visit - see sync() in src/app.jsx.
  *
- * Output (show/, sitemap.xml, archive.html, selectors.html, llms.txt,
- * assets/archive.json) is git-ignored and regenerated in CI right before
- * every deploy - see .github/workflows/*.yml and the firebase.json
+ * Output (show/, sitemap.xml, archive.html, selectors.html, about.html,
+ * llms.txt, assets/archive.json) is git-ignored and regenerated in CI right
+ * before every deploy - see .github/workflows/*.yml and the firebase.json
  * predeploy hook.
  *
  *     node scripts/build-show-pages.mjs
@@ -300,6 +300,22 @@ ${rows}
   </ul>`);
 }
 
+// Mirrors the copy in the app's About view (src/app.jsx, v.isAbout block) -
+// keep the two in step by hand. Gives /about real crawlable text instead of
+// the bare SPA shell it otherwise serves.
+function aboutHub(shows) {
+  const P = 'style="font-size:15px;line-height:1.7;margin:0 0 16px;max-width:68ch"';
+  return HUB_WRAP(`  <h1 style="font-weight:800;font-size:clamp(26px,5vw,40px);letter-spacing:-.03em;margin:0 0 16px">About Monkey Radio India</h1>
+  <p ${P}>Monkey Radio India is a community radio station and streaming platform broadcasting from Hyderabad. Since 25 October 2011 it has been public, non-profit and free of commercials, with a civilian approach to broadcasting, and is run by the Monkey Foundation. It takes inspiration from <a href="https://tilos.hu" rel="noopener" style="color:#ae1800">Tilos R&aacute;di&oacute;</a> in Hungary.</p>
+  <p ${P}>Founded by Dakta Dub, the station began as a meeting point for Hyderabad's underground and has grown into a platform that connects local crews with artists from across India and the world. The schedule runs live DJ sets, pre-recorded shows and conversations, with attention on artists and scenes working beyond the mainstream.</p>
+  <p ${P}>The programme moves between genres without rules. Dub, reggae and sound system music sit alongside jazz, electronic, hip hop, experimental and ambient, as well as literature and other art forms. The result is an archive of ${shows.length} shows, broadcast at international standards.</p>
+  <p ${P}>Beyond broadcasting, the Monkey Foundation runs events, workshops and projects that grow the community at home and abroad, working with a network of like-minded DJs, foundations and cultural spaces.</p>
+  <h2 style="font-weight:700;font-size:20px;letter-spacing:-.02em;margin:28px 0 12px">The Monkey Sound System</h2>
+  <p ${P}>The Monkey Sound System is a custom rig, hand-built by Mr. Taus to the personal taste of Dakta Dub, founder of Monkey Foundation. On any sound system the sub-bass boxes are the real weapon; for the Monkey rig that weapon is the hog scoop. We call the boxes &ldquo;Balasub&rdquo;, named for Dakta Dub and his long endeavour to build a sound system for Hyderabad, and to put the city on the global map of sound system culture.</p>
+  <p style="font:600 12px/1.5 sans-serif;color:#6a6666;margin:24px 0 0">Based in Hyderabad, India &middot; &copy; Monkey Foundation</p>
+  <p style="margin:16px 0 0"><a href="/archive" style="color:#ae1800;font-weight:600">Browse the archive</a></p>`);
+}
+
 // ---- llms.txt ----------------------------------------------------------
 // https://llmstxt.org convention: a single Markdown digest of the site for
 // language models, linking out to the per-show pages for detail.
@@ -367,8 +383,14 @@ writeFileSync(join(ROOT, 'selectors.html'), hubShell(tpl, {
   desc: 'Every DJ, selector and guest who has played on Monkey Radio India, each linking to their shows in the archive.',
   bodyHtml: selectorsHub(shows)
 }));
+writeFileSync(join(ROOT, 'about.html'), hubShell(tpl, {
+  path: '/about',
+  title: 'About · Monkey Radio India',
+  desc: 'Monkey Radio India is a public, non-profit community radio station and sound system project broadcasting from Hyderabad since 25 October 2011, run by the Monkey Foundation.',
+  bodyHtml: aboutHub(shows)
+}));
 writeFileSync(join(ROOT, 'llms.txt'), buildLlmsTxt(shows));
-console.log('Wrote archive.html, selectors.html, llms.txt');
+console.log('Wrote archive.html, selectors.html, about.html, llms.txt');
 
 // ---- prebuilt archive index -----------------------------------------------
 // Ships the whole normalised archive as a same-origin static file, in the

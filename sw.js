@@ -12,7 +12,7 @@
  *
  * Bump CACHE whenever the precache list or this file changes.
  */
-const CACHE = 'mri-shell-v14';
+const CACHE = 'mri-shell-v15';
 
 // Same-origin shell + the pinned, immutable third-party runtime the page
 // cannot boot without. All CORS-clean, so addAll() is safe.

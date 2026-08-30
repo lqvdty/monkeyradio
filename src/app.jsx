@@ -144,7 +144,7 @@ class Component extends React.Component {
     {id:'cratedig', label:'Crate digger', tags:['vinyl only','vinyl','old school hip hop','rare groove','45s','oldies','soul jazz','1970s','boogie','northern soul']},
     {id:'focus', label:'Focus', tags:['instrumental hip hop','ambient','jazz','lofi','beats','minimal','downtempo','psychill','organic house']}
   ];
-  CACHE_KEY = 'mri.cloudcasts.v7';
+  CACHE_KEY = 'mri.cloudcasts.v8';
   PREF_KEY = 'mri.prefs.v1';
   RESUME_KEY = 'mri.resume.v1';
   PROG_KEY = 'mri.progress.v1';
@@ -325,6 +325,9 @@ class Component extends React.Component {
     } catch (e) {}
     let cached = null;
     try { cached = JSON.parse(localStorage.getItem(this.CACHE_KEY) || 'null'); } catch (e) {}
+    // Drop superseded cache blobs so a returning visitor doesn't keep a
+    // stale archive (e.g. old selector attribution) sitting in storage.
+    try { for (let i = 1; i < 8; i++) localStorage.removeItem('mri.cloudcasts.v' + i); } catch (e) {}
     if (cached && cached.items && cached.items.length) this.setState({items: cached.items});
     this.bootAndSync(cached);
     // A show that was playing before a reload: queue it to be restored on

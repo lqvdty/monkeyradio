@@ -144,7 +144,8 @@ class Component extends React.Component {
     [/5th anniversary.*showcase\s*-\s*papa 31\.10\.2017/i, 'psy'],
     [/^disco freak 14\.01\.2013$/i, 'funk'],
     [/^09-06-2014__disco freak feat amul/i, 'funk'],
-    [/\bmalz\b/i, 'bass']
+    [/\bmalz\b/i, 'bass'],
+    [/^transmission 13\.05\.2015$/i, 'psy']
   ];
   MOODS = [
     {id:'latenight', label:'Late night', tags:['deep house','techno','downtempo','ambient','dub','trip hop','triphop','minimal','lofi','psydub','dub techno','underground hip hop','melodic techno']},

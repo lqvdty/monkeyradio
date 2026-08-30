@@ -492,10 +492,31 @@ class Component extends React.Component {
     }
   }
 
-  NOT_A_DJ = ['indiearth','monkey radio','monkeyradio','monkey sound','tune inn','souls of sound','music manthan','disco freak','bass sanskriti','dub vibration','roots unwired','aurelia pszichedelia','sleepless monk','daktadub','dakta dub','hyderabad underground movement','hyderabad hi fi','hi fi hyderabad','sunday special','sunday live','excursions in','guest mix','radio show','podcast'];
+  NOT_A_DJ = ['indiearth','monkey radio','monkeyradio','monkey sound','tune inn','souls of sound','music manthan','disco freak','bass sanskriti','dub vibration','roots unwired','aurelia pszichedelia','sleepless monk','puri juggernaut','the situation','daktadub','dakta dub','hyderabad underground movement','hyderabad hi fi','hi fi hyderabad','sunday special','sunday live','excursions in','guest mix','radio show','podcast'];
   ALIASES = ['dj def hawk','selekta chakkra','amul','psylenz','berencz balazs','dj makarun'];
+  // Resident selector behind a recurring show - credited only when the
+  // title itself names no guest, so a "<show> ft <guest>" episode still
+  // keeps its guest. First regex to match wins.
+  RESIDENTS = [
+    [/\b(?:dub vibration|tune inn|hyderabad hi.?fi|hi.?fi hyderabad)\b/i, 'Dakta Dub'],
+    [/\bmusic manthan\b/i, 'Selekta Chakkra'],
+    [/\broots unwired\b/i, 'Mr Nobody'],
+    [/\bswatantram\b/i, 'Velugu'],
+    [/\bsouls of sound\b/i, 'Selecta Psylenz'],
+    [/\bpuri juggernaut\b/i, 'Shivacult'],
+    [/\bthe situation\b/i, 'Kid Move']
+  ];
 
   djFrom(raw) {
+    const named = this.pickDj(raw);
+    if (named) return named;
+    // No guest in the title - fall back to the show's resident selector.
+    const s = (raw || '').replace(/│/g, '|');
+    for (const [re, name] of this.RESIDENTS) if (re.test(s)) return name;
+    return null;
+  }
+
+  pickDj(raw) {
     let s = (raw || '').replace(/│/g, '|').trim();
     const flat = x => (x || '').toLowerCase().replace(/[^a-z0-9]/g, '');
     const alias = this.ALIASES.find(a => flat(s).indexOf(flat(a)) >= 0);

@@ -102,9 +102,15 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #ec30
 .h-fade:hover{opacity:.72}
 .h-row:hover{background:#eae9e9 !important}
 .h-close:hover{background:#ec3013 !important;border-color:#ec3013 !important;color:#fff !important}
+/* Album art (see ArtImg / ArtBg in src/app.jsx): a bundled placeholder is
+   painted at the final box size first, then the real cover fades in once it
+   has decoded, so nothing around it reflows while the network is slow. */
+.mri-artimg{transition:opacity .35s ease}
+.mri-artimg[data-art="wait"]{opacity:.7}
 /* Landing cards: on hover the cover slowly zooms and the runtime chip
    flips to accent. */
 .mri-art img{transition:transform .5s cubic-bezier(.2,.7,.2,1)}
+.mri-art .mri-artimg{transition:transform .5s cubic-bezier(.2,.7,.2,1),opacity .35s ease}
 .mri-card:hover .mri-art img{transform:scale(1.06)}
 .mri-card:hover .mri-arttag{background:#ec3013 !important}
 /* Vinyl-sleeve treatment: a translucent orange wash (the "Tune in"
@@ -120,6 +126,8 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #ec30
 .mri-card .mri-art .mri-arttag{z-index:2}
 @media (prefers-reduced-motion:reduce){
   .mri-art img{transition:none}
+  .mri-artimg,.mri-art .mri-artimg{transition:none}
+  .mri-artimg[data-art="wait"]{opacity:1}
   .mri-card:hover .mri-art img{transform:none}
   .mri-card .mri-art::before{transition:none}
   .mri-heroart,.mri-heroart-m{animation:none}

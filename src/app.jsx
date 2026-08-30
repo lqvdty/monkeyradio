@@ -43,6 +43,82 @@ const SOUND_SYSTEM_BG = "image-set(" +
   "url(assets/monkey-sound-system.png) 1x, " +
   "url(assets/monkey-sound-system@2x.png) 2x)";
 
+/* Album art (every show cover) is fetched from Mixcloud's CDN and can take
+   a moment to arrive. Painting an empty <img>/tile in the meantime is what
+   made the layout look broken - the box has no content, borders and
+   surrounding text settle late. So every cover renders through <ArtImg> /
+   <ArtBg>: they show a bundled placeholder immediately (a data-URI SVG that
+   lives in this bundle - no network, always instant) at the final box size,
+   then preload the real image off-DOM and fade it in once it has decoded.
+   Nothing around the cover moves; only the picture inside it changes. */
+const ART_PLACEHOLDER =
+  "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='16'%20height='16'%3E" +
+  "%3Crect%20width='16'%20height='16'%20fill='%23eae9e9'/%3E%3C/svg%3E";
+const ART_PLACEHOLDER_BG = 'url("' + ART_PLACEHOLDER + '")';
+
+// Accept a bare URL, a `url(...)` wrapper or the literal 'none' and return
+// the bare URL ('' for nothing to load).
+function artUrl(v) {
+  if (!v || v === 'none') return '';
+  const m = /^url\((['"]?)([\s\S]*?)\1\)$/.exec(String(v).trim());
+  return m ? m[2] : String(v);
+}
+
+// Preload `url` off-DOM; returns true once it has loaded. A falsy url just
+// keeps the placeholder. Re-runs when the url changes (detail view, player).
+function useArtLoaded(url) {
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => {
+    if (!url) { setLoaded(false); return; }
+    let live = true;
+    const img = new Image();
+    const done = () => { if (live) setLoaded(true); };
+    img.onload = done;
+    img.onerror = () => {};
+    img.src = url;
+    if (img.complete && img.naturalWidth) done();
+    else setLoaded(false);
+    return () => { live = false; img.onload = img.onerror = null; };
+  }, [url]);
+  return loaded;
+}
+
+// <img> slot: same props as a plain <img> (src, alt, loading, style, …).
+// Renders the placeholder at the caller's exact box size, then swaps in the
+// real cover once it has decoded - the <img> element never changes size, so
+// borders and neighbouring text never reflow. The `.mri-artimg` class (see
+// index.html) fades the swap where motion is allowed.
+function ArtImg(props) {
+  const { src, style, className, ...rest } = props;
+  const url = artUrl(src);
+  const loaded = useArtLoaded(url);
+  return (
+    <img
+      {...rest}
+      className={className ? className + ' mri-artimg' : 'mri-artimg'}
+      data-art={loaded ? 'on' : 'wait'}
+      src={loaded ? url : ART_PLACEHOLDER}
+      style={style || undefined}
+    />
+  );
+}
+
+// background-image cover tile. `base` is the inline style string the call
+// site used to pass to st(); `tag` picks the element (div/button).
+function ArtBg(props) {
+  const { url, base, tag, style, children, ...rest } = props;
+  const real = artUrl(url);
+  const loaded = useArtLoaded(real);
+  const bg = loaded ? 'url("' + real + '")' : ART_PLACEHOLDER_BG;
+  return React.createElement(
+    tag || 'div',
+    Object.assign({}, rest, {
+      style: st(base || '', Object.assign({backgroundImage: bg}, style || {}))
+    }),
+    children
+  );
+}
+
 class Component extends React.Component {
   // Show/DJ/station branding tags, never treated as genres.
   STOP = ['monkey radio india','monkeyradioindia','monkey radio','hyderabad','india','daktadub','dakta dub','dakta-dub','roots unwired','dub vibration','mr nobody','mrnobody','tune inn','souls of sound','psylenz','selekta chakkra','music manthan','disco freak','bass sanskriti','hyderabad underground movement','dj amul','dj def hawk','radio','radio show','mix','dj mix','podcast','live','guest mix','india radio','underground'];
@@ -78,6 +154,10 @@ class Component extends React.Component {
     if (!width) return;
     const b = width <= 720 ? 'sm' : width <= 1080 ? 'md' : 'lg';
     if (b !== this.state.bp) this.setState({bp: b});
+    if (this._headEl) {
+      const h = this._headEl.offsetHeight;
+      if (h && h !== this.state.headH) this.setState({headH: h});
+    }
   };
   _onResize = () => this._measure();
   attachRoot = (el) => {
@@ -98,7 +178,7 @@ class Component extends React.Component {
 
   state = {
     items: [], indexing: false, view: 'home', query: '', genre: null, mood: null, dj: null,
-    sort: 'latest', limit: 48, detailKey: null, descs: {}, secs: {}, nowKey: null, tab: 'favs',
+    sort: 'latest', limit: 48, detailKey: null, descs: {}, secs: {}, nowKey: null, tab: 'favs', headH: 0,
     favs: [], queue: [], history: [], shared: false, bp: 'lg', menuOpen: false,
     paused: false, playerExpanded: false, toast: '', heroIdx: 0,
     // Sleep timer, ephemeral: null | {type:'show'} | {type:'time', mins, at}.
@@ -1043,6 +1123,9 @@ class Component extends React.Component {
   }
   componentDidUpdate() {
     this.bindWidget();
+    // Keep the measured header height current so the show-detail modal can
+    // sit below it (header stays visible while the modal is open).
+    this._measure();
     // Lock the page behind the full-screen show detail so the body's
     // scrollbar disappears while it's open.
     document.body.style.overflow =
@@ -1228,6 +1311,8 @@ class Component extends React.Component {
       isLibrary: s.view === 'library' && !(detail && s.bp === 'sm'), isAbout: s.view === 'about' && !(detail && s.bp === 'sm'),
       detailPage: !!detail && s.bp === 'sm',
       rootRef: this.attachRoot,
+      headRef: (el) => { this._headEl = el; },
+      detailOffset: (detail && s.bp !== 'sm') ? (s.headH || 0) : 0,
       isSm: s.bp === 'sm', navInline: s.bp !== 'sm', menuOpen: s.bp === 'sm' && s.menuOpen,
       searchOrder: s.bp === 'sm' ? 3 : 0,
       tuneText: 'Tune in',
@@ -1303,10 +1388,10 @@ class Component extends React.Component {
       playerRef: (el) => { this._iframe = el; this.bindWidget(); },
       upNextName,
 
-      goHome: () => this.setState({view: 'home', genre: null, mood: null, dj: null, query: ''}),
+      goHome: () => this.setState({view: 'home', genre: null, mood: null, dj: null, query: '', detailKey: null}),
       goSubmit: () => { this._scrollTo = 'mri-submit'; this.setState({view: 'about', menuOpen: false, genre: null, mood: null, dj: null, query: '', detailKey: null}); },
-      nav: (e) => { const view = e.currentTarget.dataset.view; const clear = view === 'browse' ? {} : {genre: null, mood: null, dj: null, query: ''}; this.setState(Object.assign({view, limit: 48, menuOpen: false}, clear)); },
-      onSearch: (e) => this.setState({query: e.target.value, view: 'browse', limit: 48}),
+      nav: (e) => { const view = e.currentTarget.dataset.view; const clear = view === 'browse' ? {} : {genre: null, mood: null, dj: null, query: ''}; this.setState(Object.assign({view, limit: 48, menuOpen: false, detailKey: null}, clear)); },
+      onSearch: (e) => this.setState({query: e.target.value, view: 'browse', limit: 48, detailKey: null}),
       // Opening a show remembers the shelf it was opened from (home shelves
       // carry data-ctx), so playing it pins auto-advance to that shelf's
       // list instead of the whole archive.
@@ -1426,7 +1511,7 @@ class Component extends React.Component {
     return (
       <div ref={v.rootRef} className="mri-app" style={css("min-height:100vh;background:#f3f2f2;padding-bottom:" + v.padBottom)}>
 
-        <header style={css("position:sticky;top:0;z-index:40;background:#f3f2f2;border-bottom:2px solid #201e1d")}>
+        <header ref={v.headRef} style={css("position:sticky;top:0;z-index:62;background:#f3f2f2;border-bottom:2px solid #201e1d")}>
           <div className="mri-headbar" style={css("max-width:1560px;margin:0 auto;padding:12px clamp(16px,3.2vw,32px);display:flex;align-items:center;gap:clamp(12px,2vw,26px);flex-wrap:wrap")}>
             <button onClick={v.goHome} style={css("display:flex;align-items:center;gap:10px;background:none;border:0;padding:0;cursor:pointer;color:inherit")}>
               <img src="assets/logo.png" alt="Monkey Radio India" style={css("width:34px;height:32px;object-fit:contain;display:block")} />
@@ -1490,7 +1575,7 @@ class Component extends React.Component {
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none")}><path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path></svg>
                 Back
               </button>
-              <div role="img" aria-label="Album art" className="mri-detailart" style={st("width:100%;aspect-ratio:1;background-size:cover;background-position:center;background-color:#eae9e9;border:1px solid #d7d3d3", {backgroundImage: v.detail.bg})}></div>
+              <ArtBg url={v.detail.pic} role="img" aria-label="Album art" className="mri-detailart" base="width:100%;aspect-ratio:1;background-size:cover;background-position:center;background-color:#eae9e9;border:1px solid #d7d3d3" />
               <div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#ae1800;margin:18px 0 10px")}>{v.detail.when} / Monkey Radio India</div>
               <h1 style={css("font-weight:800;font-size:clamp(24px,7vw,32px);line-height:1.06;letter-spacing:-.03em;margin:0 0 12px;text-wrap:pretty")}>{v.detail.name}</h1>
               <div style={css("font:500 14px 'Archivo',sans-serif;color:#444141;margin-bottom:20px")}>Selected by <strong style={css("font-weight:700;color:#201e1d")}>{v.detail.dj}</strong></div>
@@ -1541,7 +1626,7 @@ class Component extends React.Component {
               <div className="mri-row" style={css("display:flex;gap:12px;overflow-x:auto;padding-bottom:6px")}>
                 {v.related.map((m) => (
                   <div key={m.key} role="button" tabIndex={0} aria-label={m.name + ', selected by ' + m.dj} onClick={v.openMix} onKeyDown={v.openMixKey} data-key={m.key} style={css("flex:none;width:124px;cursor:pointer")}>
-                    <img src={m.pic} alt="" loading="lazy" style={css("width:124px;height:124px;object-fit:cover;border:1px solid #d7d3d3;display:block")} />
+                    <ArtImg src={m.pic} alt="" loading="lazy" style={css("width:124px;height:124px;object-fit:cover;border:1px solid #d7d3d3;display:block")} />
                     <div style={css("font:600 11.5px/1.3 'Archivo',sans-serif;margin-top:9px;height:30px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden")}>{m.name}</div>
                   </div>
                 ))}
@@ -1569,7 +1654,7 @@ class Component extends React.Component {
                       </div>
                     </div>
                   ) : null}
-                  <div key={v.heroKey} className="mri-heroart-m" role="img" aria-label="Album art" style={{backgroundImage: v.heroBg}}></div>
+                  <ArtBg key={v.heroKey} url={v.heroBg} className="mri-heroart-m" role="img" aria-label="Album art" />
                   <div className="mri-herometa">
                     <span>{v.heroDj}</span>
                     <span>Aired {v.heroWhen}</span>
@@ -1595,7 +1680,7 @@ class Component extends React.Component {
                     </div>
                   )}
                 </div>
-                <div key={v.heroKey} className="mri-heroart" role="img" aria-label="Album art" style={st("width:100%;max-width:460px;aspect-ratio:1;background-size:cover;background-position:center;background-color:#eae9e9;border:2px solid #201e1d", {backgroundImage: v.heroBg})}></div>
+                <ArtBg key={v.heroKey} url={v.heroBg} className="mri-heroart" role="img" aria-label="Album art" base="width:100%;max-width:460px;aspect-ratio:1;background-size:cover;background-position:center;background-color:#eae9e9;border:2px solid #201e1d" />
               </div>
 
               <div className="mri-statbar" style={css("display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));border-bottom:2px solid #201e1d")}>
@@ -1633,7 +1718,7 @@ class Component extends React.Component {
                     {shelf.items.map((m, i) => (
                       <div key={m.key + ':' + i} role="button" tabIndex={0} aria-label={m.name + ', selected by ' + m.dj} onClick={v.openMix} onKeyDown={v.openMixKey} data-key={m.key} data-ctx={shelf.id} className="mri-card" style={css("flex:none;width:clamp(146px,40vw,198px);scroll-snap-align:start;cursor:pointer")}>
                         <div className="mri-art" style={css("position:relative;width:100%;aspect-ratio:1;background:#eae9e9;border:1px solid #d7d3d3;overflow:hidden")}>
-                          <img src={m.pic} alt="" loading="lazy" style={css("width:100%;height:100%;object-fit:cover;display:block")} />
+                          <ArtImg src={m.pic} alt="" loading="lazy" style={css("width:100%;height:100%;object-fit:cover;display:block")} />
                           <span className="mri-arttag" style={css("position:absolute;right:0;bottom:0;background:#201e1d;color:#f3f2f2;font:600 10px 'Archivo',sans-serif;letter-spacing:.08em;padding:4px 7px;transition:background .2s ease")}>{m.len}</span>
                         </div>
                         <div style={css("font:600 13px/1.3 'Archivo',sans-serif;margin-top:11px;height:34px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden")}>{m.name}</div>
@@ -1672,7 +1757,7 @@ class Component extends React.Component {
                 {v.gridItems.map((m, i) => (
                   <div key={m.key + ':' + i} role="button" tabIndex={0} aria-label={m.name + ', selected by ' + m.dj} onClick={v.openMix} onKeyDown={v.openMixKey} data-key={m.key} className="mri-card" style={css("cursor:pointer")}>
                     <div className="mri-art" style={css("position:relative;width:100%;aspect-ratio:1;background:#eae9e9;border:1px solid #d7d3d3;overflow:hidden")}>
-                      <img src={m.pic} alt="" loading="lazy" style={css("width:100%;height:100%;object-fit:cover;display:block")} />
+                      <ArtImg src={m.pic} alt="" loading="lazy" style={css("width:100%;height:100%;object-fit:cover;display:block")} />
                       <span className="mri-arttag" style={css("position:absolute;right:0;bottom:0;background:#201e1d;color:#f3f2f2;font:600 10px 'Archivo',sans-serif;letter-spacing:.08em;padding:4px 7px;transition:background .2s ease")}>{m.len}</span>
                     </div>
                     <div style={css("font:600 13px/1.3 'Archivo',sans-serif;margin-top:11px;height:34px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden")}>{m.name}</div>
@@ -1698,7 +1783,7 @@ class Component extends React.Component {
               <div style={css("border-top:2px solid #201e1d")}>
                 {v.djs.map((d) => (
                   <div key={d.name} role="button" tabIndex={0} aria-label={"Shows by " + d.name} onClick={v.pickDj} onKeyDown={v.pickDjKey} data-id={d.name} className="h-row mri-djrow" style={css("display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:14px 0;border-bottom:1px solid #d7d3d3;cursor:pointer")}>
-                    <img src={d.pic} alt="" loading="lazy" style={css("width:52px;height:52px;object-fit:cover;flex:none;border:1px solid #d7d3d3;display:block")} />
+                    <ArtImg src={d.pic} alt="" loading="lazy" style={css("width:52px;height:52px;object-fit:cover;flex:none;border:1px solid #d7d3d3;display:block")} />
                     <div style={css("flex:1 1 220px;min-width:0;font:600 15px 'Archivo',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis")}>{d.name}</div>
                     <div style={css("flex:1 1 180px;min-width:0;font:500 12px 'Archivo',sans-serif;color:#6a6666;white-space:nowrap;overflow:hidden;text-overflow:ellipsis")}>{d.tags}</div>
                     <div style={css("flex:none;min-width:78px;text-align:right;font:600 12px 'Archivo',sans-serif;letter-spacing:.08em;text-transform:uppercase")}>{d.count} shows</div>
@@ -1720,7 +1805,7 @@ class Component extends React.Component {
               <div>
                 {v.libItems.map((m, i) => (
                   <div key={m.key + ':' + i} role="button" tabIndex={0} aria-label={m.name + ', selected by ' + m.dj} onClick={v.openMix} onKeyDown={v.openMixKey} data-key={m.key} className="h-row" style={css("display:flex;gap:18px;align-items:center;padding:12px 0;border-bottom:1px solid #d7d3d3;cursor:pointer")}>
-                    <img src={m.pic} alt="" loading="lazy" style={css("width:48px;height:48px;object-fit:cover;flex:none;border:1px solid #d7d3d3;display:block")} />
+                    <ArtImg src={m.pic} alt="" loading="lazy" style={css("width:48px;height:48px;object-fit:cover;flex:none;border:1px solid #d7d3d3;display:block")} />
                     <div style={css("flex:1;min-width:0")}>
                       <div style={css("font:600 14px 'Archivo',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis")}>{m.name}</div>
                       <div style={css("font:500 11px 'Archivo',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#6a6666;margin-top:4px")}>{m.dj}</div>
@@ -1833,10 +1918,10 @@ class Component extends React.Component {
         </footer>
 
         {v.detailOpen && (
-          <div role="dialog" aria-modal="true" aria-labelledby="mri-detail-title" ref={v.detailDialogRef} onKeyDown={v.detailTrapKey} style={css("position:fixed;left:0;right:0;top:0;bottom:0;z-index:60;background:#f3f2f2;overflow-y:auto;-webkit-overflow-scrolling:touch")}>
+          <div role="dialog" aria-modal="true" aria-labelledby="mri-detail-title" ref={v.detailDialogRef} onKeyDown={v.detailTrapKey} style={css("position:fixed;left:0;right:0;top:" + v.detailOffset + "px;bottom:0;z-index:60;background:#f3f2f2;overflow-y:auto;-webkit-overflow-scrolling:touch")}>
             <div style={css("min-height:100%;max-width:940px;margin:0 auto;background:#f3f2f2;padding-bottom:" + v.detailBottom)}>
               <div className="mri-modalhead" style={css("position:relative;display:flex;gap:32px;padding:32px;flex-wrap:wrap;border-bottom:1px solid #d7d3d3")}>
-                <div role="img" aria-label="Album art" style={st("width:min(238px,100%);aspect-ratio:1;background-size:cover;background-position:center;background-color:#eae9e9;border:1px solid #d7d3d3;flex:none", {backgroundImage: v.detail.bg})}></div>
+                <ArtBg url={v.detail.pic} role="img" aria-label="Album art" base="width:min(238px,100%);aspect-ratio:1;background-size:cover;background-position:center;background-color:#eae9e9;border:1px solid #d7d3d3;flex:none" />
                 <div style={css("flex:1;min-width:260px")}>
                   <div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#ae1800;margin-bottom:12px")}>{v.detail.when} / Monkey Radio India</div>
                   <h2 id="mri-detail-title" style={css("font-weight:800;font-size:27px;line-height:1.06;letter-spacing:-.03em;margin:0 0 12px;text-wrap:pretty;padding-right:40px")}>{v.detail.name}</h2>
@@ -1882,7 +1967,7 @@ class Component extends React.Component {
                     </div>
                   )}
                 </div>
-                <button ref={v.detailCloseBtnRef} onClick={v.closeDetail} aria-label="Close" className="h-close" style={css("position:fixed;top:16px;right:16px;z-index:61;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:1px solid #201e1d;background:#f3f2f2;color:#201e1d;cursor:pointer;border-radius:0")}>
+                <button ref={v.detailCloseBtnRef} onClick={v.closeDetail} aria-label="Close" className="h-close" style={css("position:fixed;top:" + (v.detailOffset + 16) + "px;right:16px;z-index:61;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:1px solid #201e1d;background:#f3f2f2;color:#201e1d;cursor:pointer;border-radius:0")}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block")}><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
                 </button>
               </div>
@@ -1891,7 +1976,7 @@ class Component extends React.Component {
                 <div className="mri-row" style={css("display:flex;gap:16px;overflow-x:auto;padding-bottom:4px")}>
                   {v.related.map((m) => (
                     <div key={m.key} role="button" tabIndex={0} aria-label={m.name + ', selected by ' + m.dj} onClick={v.openMix} onKeyDown={v.openMixKey} data-key={m.key} className="h-fade" style={css("flex:none;width:124px;cursor:pointer")}>
-                      <img src={m.pic} alt="" loading="lazy" style={css("width:124px;height:124px;object-fit:cover;border:1px solid #d7d3d3;display:block")} />
+                      <ArtImg src={m.pic} alt="" loading="lazy" style={css("width:124px;height:124px;object-fit:cover;border:1px solid #d7d3d3;display:block")} />
                       <div style={css("font:600 11.5px/1.3 'Archivo',sans-serif;margin-top:9px;height:30px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden")}>{m.name}</div>
                     </div>
                   ))}
@@ -1913,7 +1998,7 @@ class Component extends React.Component {
               </button>
             </div>
             <div className="mp-body">
-              <div aria-hidden="true" onClick={v.openMix} data-key={v.now.key} style={st("aspect-ratio:1;background-size:cover;background-position:center;background-color:#eae9e9;border:1px solid #d7d3d3;cursor:pointer", {backgroundImage: v.now.bg})} className="mp-cover"></div>
+              <ArtBg url={v.now.pic} aria-hidden="true" onClick={v.openMix} data-key={v.now.key} className="mp-cover" base="aspect-ratio:1;background-size:cover;background-position:center;background-color:#eae9e9;border:1px solid #d7d3d3;cursor:pointer" />
               <div>
                 <div className="mp-when">{v.now.when} / Monkey Radio India</div>
                 <h2 className="mp-title" role="button" tabIndex={0} aria-label={"Show details: " + v.now.name} onClick={v.openMix} onKeyDown={v.openMixKey} data-key={v.now.key} style={css("cursor:pointer")}>{v.now.name}</h2>
@@ -1949,7 +2034,7 @@ class Component extends React.Component {
               </div>
             </div>
             <div className="mp-mini">
-              <button onClick={v.expandPlayer} aria-label="Open player" className="mp-mthumb" style={st("", {backgroundImage: v.now.bg})}></button>
+              <ArtBg tag="button" url={v.now.pic} onClick={v.expandPlayer} aria-label="Open player" className="mp-mthumb" />
               <button onClick={v.expandPlayer} className="mp-mmeta">
                 <span className="mp-mtitle">{v.now.name}</span>
                 <span className="mp-mdj">{v.now.dj}</span>
@@ -1973,7 +2058,7 @@ class Component extends React.Component {
         ) : (
           <div style={css("position:fixed;left:0;right:0;bottom:0;z-index:70;background:#f3f2f2;border-top:2px solid #201e1d")}>
             <div className="mri-dockrow" style={css("max-width:1560px;margin:0 auto;padding:10px clamp(16px,3.2vw,32px);display:flex;align-items:center;gap:12px;flex-wrap:wrap")}>
-              <div aria-hidden="true" onClick={v.openMix} data-key={v.now.key} style={st("width:48px;height:48px;background-size:cover;background-position:center;background-color:#eae9e9;border:1px solid #d7d3d3;flex:none;cursor:pointer", {backgroundImage: v.now.bg})}></div>
+              <ArtBg url={v.now.pic} aria-hidden="true" onClick={v.openMix} data-key={v.now.key} base="width:48px;height:48px;background-size:cover;background-position:center;background-color:#eae9e9;border:1px solid #d7d3d3;flex:none;cursor:pointer" />
               <div className="mri-nowmeta" style={css("min-width:140px;max-width:250px")}>
                 <div role="button" tabIndex={0} aria-label={"Show details: " + v.now.name} onClick={v.openMix} onKeyDown={v.openMixKey} data-key={v.now.key} style={css("font:600 13px 'Archivo',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer")}>{v.now.name}</div>
                 <div style={css("font:500 10px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#6a6666;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis")}>{v.now.dj}</div>

@@ -158,6 +158,9 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #ec30
   .mri-herohead h1{display:block !important;-webkit-line-clamp:unset !important;overflow:visible !important}
   .mri-heroblurb{height:auto !important;display:block !important;-webkit-line-clamp:unset !important;overflow:visible !important;margin:8px 0 0 !important}
   .mri-herolive{margin:16px 0 0 !important}
+  /* Keep Play + Save side by side on one row; never let them wrap apart. */
+  .mri-herobtns{flex-wrap:nowrap !important}
+  .mri-herobtns>button{min-width:0;white-space:nowrap}
   .mri-heroart{display:none !important}
   .mri-heroart-m{display:block;width:100%;max-width:min(86vw,340px);aspect-ratio:1;margin:18px auto 22px;background-size:cover;background-position:center;background-color:#eae9e9;border:1px solid #d7d3d3}
 
@@ -308,6 +311,7 @@ class Component extends React.Component {
   CACHE_KEY = 'mri.cloudcasts.v7';
   PREF_KEY = 'mri.prefs.v1';
   RESUME_KEY = 'mri.resume.v1';
+  PROG_KEY = 'mri.progress.v1';
 
   _measure = (w) => {
     const width = w || (this._root && this._root.clientWidth) || document.documentElement.clientWidth;
@@ -450,7 +454,7 @@ class Component extends React.Component {
     this._reduced = !!reduced;
     if (!reduced) {
       this._heroRotate = setInterval(() => {
-        if (this._heroPaused || document.hidden || this.state.view !== 'home' || this.state.detailKey) return;
+        if (this._heroPaused || document.hidden || this.state.view !== 'home' || this.state.detailKey || this.state.nowKey) return;
         const n = this.heroDeck().length;
         if (n > 1) this.setState({heroIdx: (this.state.heroIdx + 1) % n});
       }, 9000);
@@ -481,11 +485,46 @@ class Component extends React.Component {
   saveResume(key, pos) {
     if (!key || !(pos > 5)) return;
     this._lastResumeSave = Date.now();
+    this.saveProg(key, pos);
     try { localStorage.setItem(this.RESUME_KEY, JSON.stringify({key, pos: Math.floor(pos), ts: Date.now()})); } catch (e) {}
   }
   clearResume() {
     this._resumeSeek = null;
     try { localStorage.removeItem(this.RESUME_KEY); } catch (e) {}
+  }
+
+  // Per-show playhead memory. Unlike RESUME_KEY (the single show to drop
+  // back on the dock after a reload), this keeps a small map of how far
+  // into each mix the listener got, so replaying any of them later picks
+  // up from the same spot. Capped to the 60 most recent to stay tiny.
+  loadProg() {
+    if (!this._progMap) {
+      try { this._progMap = JSON.parse(localStorage.getItem(this.PROG_KEY) || '{}') || {}; }
+      catch (e) { this._progMap = {}; }
+    }
+    return this._progMap;
+  }
+  saveProg(key, pos) {
+    if (!key || !(pos > 5)) return;
+    const map = this.loadProg();
+    map[key] = {pos: Math.floor(pos), ts: Date.now()};
+    const keys = Object.keys(map);
+    if (keys.length > 60) {
+      keys.sort((a, b) => (map[b].ts || 0) - (map[a].ts || 0)).slice(60)
+        .forEach(k => { delete map[k]; });
+    }
+    try { localStorage.setItem(this.PROG_KEY, JSON.stringify(map)); } catch (e) {}
+  }
+  progFor(key) {
+    const r = key && this.loadProg()[key];
+    return r && r.pos > 5 ? r.pos : 0;
+  }
+  clearProg(key) {
+    const map = this.loadProg();
+    if (key && map[key] != null) {
+      delete map[key];
+      try { localStorage.setItem(this.PROG_KEY, JSON.stringify(map)); } catch (e) {}
+    }
   }
 
   NOT_A_DJ = ['indiearth','monkey radio','monkeyradio','monkey sound','tune inn','souls of sound','music manthan','disco freak','bass sanskriti','dub vibration','roots unwired','daktadub','dakta dub','hyderabad underground movement','hyderabad hi fi','hi fi hyderabad','sunday special','sunday live','excursions in','guest mix','radio show','podcast'];
@@ -692,7 +731,7 @@ class Component extends React.Component {
   }
 
   // Which listening mood the current local time leans toward. Weights the
-  // shuffle so "Tune in" / "Shuffle" match the hour instead of firing blind.
+  // shuffle so "Tune in" matches the hour instead of firing blind.
   timeMoodId() {
     const d = new Date(), h = d.getHours(), day = d.getDay();
     if (day === 0) return 'sunday';
@@ -870,12 +909,20 @@ class Component extends React.Component {
     const m = this.byKey(key);
     if (!m) return;
     opts = opts || {};
-    // A deliberate play starts a fresh show: no cold-resume, and the new
-    // playhead should be saved on the very next tick.
     this._cold = false;
-    this._resumeSeek = null;
     this._lastResumeSave = 0;
-    if (key !== this.state.nowKey) this.clearResume();
+    // Replaying a mix picks up where it was last left: seek to the saved
+    // per-show playhead on the widget's first play event. A brand-new show,
+    // or one played through to the end, has no mark and starts at 0.
+    if (key !== this.state.nowKey) {
+      this.clearResume();
+      this._nowSince = Date.now();   // trailing ticks from the old show don't save
+      const at = this.progFor(key);
+      this._resumeSeek = (at > 5 && (!m.len || at < m.len - 30)) ? at : null;
+      this._wpos = this._resumeSeek || 0;
+    } else {
+      this._resumeSeek = null;
+    }
     const hist = [key].concat(this.state.history.filter(h => h !== key)).slice(0, 40);
     // Back/forward nav stack, oldest -> newest. A normal play (user pick or
     // auto-advance) drops any "forward" entries and appends; stepping back
@@ -894,7 +941,7 @@ class Component extends React.Component {
       const s = this.state;
       this._ctx = opts.ctx || {genre: s.genre, mood: s.mood, dj: s.dj, query: s.query, sort: s.sort};
     }
-    this.setState({nowKey: key, detailKey: null, paused: false, upNext: this.buildUpNext(key, 3)});
+    this.setState({nowKey: key, detailKey: null, paused: false, heroIdx: 0, upNext: this.buildUpNext(key, 3)});
     this.savePrefs({history: hist});
     this.updateMediaSession(m);
   }
@@ -1063,15 +1110,18 @@ class Component extends React.Component {
       w.ready.then(() => {
         try {
           w.events.pause.on(() => {
+            // A show switch briefly fires pause on the outgoing stream; that
+            // is not a real pause and its position belongs to the old show.
+            if (Date.now() - (this._nowSince || 0) < 1500) return;
             this.setState({ paused: true }); this.setMSState('paused');
             if (this.state.nowKey && this._wpos > 5) this.saveResume(this.state.nowKey, this._wpos);
           });
           w.events.play.on(() => {
             this.setState({ paused: false }); this.setMSState('playing');
             this._cold = false;
-            // First play after a reload: jump to where we left off. Done
-            // here (not in `ready`) because seeking only sticks once the
-            // stream has actually started buffering.
+            // First play after a reload or a show switch: jump to where we
+            // left off. Done here (not in `ready`) because seeking only
+            // sticks once the stream has actually started buffering.
             if (this._resumeSeek != null) {
               const p = this._resumeSeek; this._resumeSeek = null;
               try { w.seek(p); } catch (e) {}
@@ -1081,9 +1131,12 @@ class Component extends React.Component {
           // hero "on air" bar (while that show is the featured one on the
           // home screen) and the lock-screen scrubber.
           w.events.progress.on((position) => {
-            this._wpos = position;
             const s = this.state;
-            if (s.nowKey && !s.paused && position > 5 && Date.now() - (this._lastResumeSave || 0) > 5000) {
+            // Trailing ticks from the previous show carry its position but
+            // the new key: don't let them save over the new show's mark.
+            const settled = Date.now() - (this._nowSince || 0) > 1500;
+            if (settled) this._wpos = position;
+            if (settled && s.nowKey && !s.paused && position > 5 && Date.now() - (this._lastResumeSave || 0) > 5000) {
               this.saveResume(s.nowKey, position);
             }
             const m = s.nowKey && this.byKey(s.nowKey);
@@ -1101,6 +1154,7 @@ class Component extends React.Component {
         } catch (e) {}
         w.events.ended.on(() => {
           this.clearResume();   // a finished show shouldn't be "resumed"
+          this.clearProg(this.state.nowKey);
           if (this.state.sleep && this.state.sleep.type === 'show') {
             this.setState({sleep: null});
             this.flash('Sleep timer, stopped');
@@ -1162,7 +1216,19 @@ class Component extends React.Component {
   renderVals() {
     const s = this.state;
     const items = s.items;
-    const heroDeck = this.heroDeck();
+    let heroDeck = this.heroDeck();
+    // While a show is on the dock it leads the deck as slot 0 ("On air"),
+    // so — wherever play was triggered from — the landing card shows live
+    // progress by default, while the other featured picks stay reachable
+    // through the dots. The plain curated deck returns once playback stops.
+    const nowHero = s.nowKey ? this.byKey(s.nowKey) : null;
+    if (nowHero) {
+      heroDeck = [{
+        m: nowHero,
+        kicker: s.paused ? 'Paused' : 'On air now',
+        blurb: (nowHero.dj && !/^monkey radio india$/i.test(nowHero.dj) ? nowHero.dj + ' · ' : '') + this.fmtLen(nowHero.len) + ' set'
+      }].concat(heroDeck.filter(d => d.m.key !== nowHero.key));
+    }
     const heroPos = heroDeck.length ? ((s.heroIdx % heroDeck.length) + heroDeck.length) % heroDeck.length : 0;
     const feat = heroDeck[heroPos] || null;
     const hero = feat ? feat.m : null;
@@ -1178,7 +1244,9 @@ class Component extends React.Component {
     const heroRuntime = hero && hero.len > 0 ? this.fmtLen(hero.len) : '';
     let heroProgPct = '0%', heroElapsed = '', heroUpNext = '';
     if (heroOnAir && hero.len > 0) {
-      const pos = Math.max(0, Math.min(this._wpos || 0, hero.len));
+      // _resumeSeek carries the saved playhead until the widget's first
+      // progress tick, so a resumed mix shows its real position at once.
+      const pos = Math.max(0, Math.min(this._wpos || this._resumeSeek || 0, hero.len));
       heroProgPct = (Math.round((pos / hero.len) * 1000) / 10) + '%';
       heroElapsed = this.fmtLen(Math.floor(pos));
       heroUpNext = upNextName ? 'Next: ' + upNextName : '';
@@ -1350,7 +1418,6 @@ class Component extends React.Component {
         : s.sleep.type === 'show' ? 'Show'
         : Math.max(1, Math.ceil((s.sleep.at - Date.now()) / 60000)) + 'm',
       heroPlay: () => { if (!hero) return; this.play(hero.key); },
-      heroShuffle: () => { if (!items.length) return; const k = this.smartPick(items); if (k) this.play(k); },
       heroDot: (e) => this.setState({heroIdx: Number(e.currentTarget.dataset.i) || 0}),
       heroHold: () => { this._heroPaused = true; },
       heroRelease: () => { this._heroPaused = false; },
@@ -1382,7 +1449,6 @@ class Component extends React.Component {
   render() {
     const v = this.renderVals();
     const iconPlay = <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none" style={css("display:block;flex:none")}><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>;
-    const iconShuffle = <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none")}><path d="M18 4l3 3-3 3"></path><path d="M18 20l3-3-3-3"></path><path d="M3 7h4l11 11h3"></path><path d="M3 17h4l3-3"></path><path d="M14 7h4"></path></svg>;
     const iconHeart = (fill) => <svg width="16" height="16" viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none")}><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>;
     const iconQueue = <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none")}><path d="M11 12H3"></path><path d="M16 6H3"></path><path d="M16 18H3"></path><path d="M18 9v6"></path><path d="M21 12h-6"></path></svg>;
     const iconShare = <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block")}><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" x2="12" y1="2" y2="15"></line></svg>;
@@ -1530,14 +1596,10 @@ class Component extends React.Component {
                     <div><div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#7d7979;margin-bottom:5px")}>Aired</div><div style={css("font:600 15px 'Archivo',sans-serif")}>{v.heroWhen}</div></div>
                     <div><div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#7d7979;margin-bottom:5px")}>Tags</div><div style={css("font:600 15px 'Archivo',sans-serif")}>{v.heroTags}</div></div>
                   </div>
-                  <div style={css("display:flex;flex-wrap:wrap;gap:10px")}>
+                  <div className="mri-herobtns" style={css("display:flex;flex-wrap:wrap;gap:10px")}>
                     <button onClick={v.heroPlay} data-key={v.heroKey} className="h-dark-accent" style={css("display:flex;align-items:center;gap:10px;background:#201e1d;color:#f3f2f2;border:0;border-radius:0;padding:13px 20px;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer")}>
                       {iconPlay}
                       Play the set
-                    </button>
-                    <button onClick={v.heroShuffle} className="h-accent-outline" style={css("display:flex;align-items:center;gap:10px;background:none;color:#201e1d;border:2px solid #201e1d;border-radius:0;padding:11px 18px;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer")}>
-                      {iconShuffle}
-                      Shuffle
                     </button>
                     <button onClick={v.toggleFav} data-key={v.heroKey} className="h-accent-outline" style={st("display:flex;align-items:center;gap:10px;background:none;border:2px solid #201e1d;border-radius:0;padding:11px 18px;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer", {color: v.heroSaveColor, borderColor: v.heroSaveColor})}>
                       {iconHeart(v.heroSaved ? "currentColor" : "none")}

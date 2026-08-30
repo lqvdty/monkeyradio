@@ -543,6 +543,7 @@ class Component extends React.Component {
     [/indiearth\s*-\s*monkey radio india\s*-\s*cloudcast/i, 'Dakta Dub'],
     [/indiearth presents world music day/i, 'Dakta Dub'],
     [/world music day\s*-\s*bass sampradayam/i, 'Dakta Dub'],
+    [/world of sound 10112012/i, 'Sonoluminescence'],
     [/\bworld of sound\b/i, 'Dakta Dub'],
     [/world radio day special/i, 'Dakta Dub'],
     [/^\s*dub\s*$/i, 'Dakta Dub'],

@@ -39,6 +39,9 @@ jobs:
             git push
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
+      - name: Prerender per-show social-preview pages
+        if: steps.commit.outputs.changed == 'true'
+        run: node scripts/build-show-pages.mjs
       - name: Deploy to Firebase Hosting
         if: steps.commit.outputs.changed == 'true'
         uses: FirebaseExtended/action-hosting-deploy@v0

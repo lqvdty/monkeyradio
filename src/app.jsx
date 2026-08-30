@@ -457,12 +457,22 @@ class Component extends React.Component {
   // progress re-renders in between. The ShaderGradient bundle (assets/
   // shader-bg.js) is loaded lazily on that first call.
   ambientShaderRef = (el) => {
+    const variant = this.ambientVariant();
     // Parked for the backdrop module to pick up if it is still loading.
     window.__mriShaderEl = el || null;
+    window.__mriShaderVariant = variant;
+    this._ambientVariant = el ? variant : null;
     if (!window.MRIShaderBG) return;
-    if (el) window.MRIShaderBG.mount(el);
+    if (el) window.MRIShaderBG.mount(el, variant);
     else window.MRIShaderBG.unmount();
   };
+  // On-air genre -> ambient backdrop palette (see assets/shader-bg.js).
+  // Genres not listed here use the default warm palette.
+  AMBIENT_PALETTE = { reggae: 'reggae', bass: 'reggae', psy: 'psychedelic', house: 'psychedelic' };
+  ambientVariant() {
+    const m = this.state.nowKey ? this.byKey(this.state.nowKey) : null;
+    return (m && this.AMBIENT_PALETTE[this.primaryGenre(m)]) || 'default';
+  }
 
   savePrefs(patch) {
     const next = {favs: this.state.favs, queue: this.state.queue, history: this.state.history, ...patch};
@@ -1409,6 +1419,17 @@ class Component extends React.Component {
     } else if (!this.state.ambient && this._ambientTick) {
       clearInterval(this._ambientTick);
       this._ambientTick = null;
+    }
+    // Recolour the ambient backdrop when the on-air show's genre changes
+    // (e.g. auto-advancing from a house set into a dub set) while ambient
+    // mode stays open.
+    if (this.state.ambient && window.MRIShaderBG) {
+      const variant = this.ambientVariant();
+      if (variant !== this._ambientVariant) {
+        this._ambientVariant = variant;
+        window.__mriShaderVariant = variant;
+        window.MRIShaderBG.setVariant(variant);
+      }
     }
     // Keep the measured header height current so the show-detail modal can
     // sit below it (header stays visible while the modal is open).

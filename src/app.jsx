@@ -326,7 +326,15 @@ class Component extends React.Component {
     // the throttled progress tick.
     this._onHide = () => { if (this.state.nowKey && this._wpos > 5) this.saveResume(this.state.nowKey, this._wpos); };
     window.addEventListener('pagehide', this._onHide);
-    document.addEventListener('visibilitychange', () => { if (document.hidden) this._onHide(); });
+    // The Wake Lock API silently releases whenever the tab is hidden (e.g.
+    // the OS locks the screen), even if playback continues in the
+    // background. Re-request it on return so a long unattended session
+    // (a venue running this on a counter, screen off between glances)
+    // doesn't end up dark for good after the first lock.
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) this._onHide();
+      else if (!this.state.paused && this.state.nowKey) this.requestWakeLock();
+    });
     this._onPop = () => this.applyRoute();
     window.addEventListener('popstate', this._onPop);
     this.applyRoute();
@@ -354,6 +362,23 @@ class Component extends React.Component {
     clearTimeout(this._sleepT);
     (this._timers || []).forEach(t => { clearTimeout(t); });
     document.body.style.overflow = '';
+    this.releaseWakeLock();
+  }
+
+  // Keeps the screen from sleeping mid-show - the app is meant to run
+  // unattended for hours (a venue playing it through a long session), and a
+  // sleeping display kills a Mixcloud iframe's playback along with it.
+  // Silently a no-op where the API is unsupported (Safari, older browsers):
+  // those just fall back to the OS display-sleep setting.
+  async requestWakeLock() {
+    if (!('wakeLock' in navigator) || this._wakeLock) return;
+    try {
+      this._wakeLock = await navigator.wakeLock.request('screen');
+      this._wakeLock.addEventListener('release', () => { this._wakeLock = null; });
+    } catch (e) { this._wakeLock = null; }
+  }
+  releaseWakeLock() {
+    if (this._wakeLock) { try { this._wakeLock.release(); } catch (e) {} this._wakeLock = null; }
   }
 
   savePrefs(patch) {
@@ -1064,10 +1089,12 @@ class Component extends React.Component {
             if (Date.now() - (this._nowSince || 0) < 1500) return;
             this.setState({ paused: true }); this.setMSState('paused');
             if (this.state.nowKey && this._wpos > 5) this.saveResume(this.state.nowKey, this._wpos);
+            this.releaseWakeLock();
           });
           w.events.play.on(() => {
             this.setState({ paused: false }); this.setMSState('playing');
             this._cold = false;
+            this.requestWakeLock();
             // First play after a reload or a show switch: jump to where we
             // left off. Done here (not in `ready`) because seeking only
             // sticks once the stream has actually started buffering.
@@ -1114,9 +1141,11 @@ class Component extends React.Component {
           if (this.state.sleep && this.state.sleep.type === 'show') {
             this.setState({sleep: null});
             this.flash('Sleep timer, stopped');
+            this.releaseWakeLock();
             return;
           }
-          this.advance();   // play() tops the lineup back up to 3
+          this.advance();   // play() tops the lineup back up to 3; its own
+                             // play event re-acquires the wake lock
         });
       });
     } catch (e) {}

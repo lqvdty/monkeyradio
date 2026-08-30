@@ -561,7 +561,9 @@ class Component extends React.Component {
     [/one year anniversary/i, 'Dakta Dub'],
     [/disco kebab/i, 'Vedat Akdağ'],
     [/khaas aap ke liye-jstar/i, 'JStar'],
-    [/presents hemant chotani/i, 'Hemant Chotani']
+    [/presents hemant chotani/i, 'Hemant Chotani'],
+    [/puri juggernaut - guest mix - balu/i, 'Dakta Dub'],
+    [/xmas special featuring hemant/i, 'Hemant Chotani']
   ];
 
   djFrom(raw) {

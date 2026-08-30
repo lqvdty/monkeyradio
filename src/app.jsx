@@ -1022,7 +1022,16 @@ class Component extends React.Component {
     this._pgMap.set(m, best);
     return best;
   }
-  inGenre(m, id) { return this.primaryGenre(m) === id; }
+  inGenre(m, id) {
+    // Vinyl Only is a format, not a sound: any show whose tags mention vinyl
+    // belongs on that shelf on top of whatever genre its music scores for,
+    // so it stays cross-cutting rather than losing out to a louder genre.
+    if (id === 'vinyl') {
+      if (!this._vinylG) this._vinylG = this.GENRES.find(g => g.id === 'vinyl');
+      if (this._vinylG && this.genreScore(m, this._vinylG) > 0) return true;
+    }
+    return this.primaryGenre(m) === id;
+  }
   // Mirrors primaryGenre()'s WeakMap: an item's tags never change after
   // load, so mood membership only needs computing once per item per mood,
   // not once per item on every render (the mood chips and the browse

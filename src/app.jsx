@@ -1748,11 +1748,11 @@ class Component extends React.Component {
       },
       pickGenre: (e) => { const id = e.currentTarget.dataset.id; this.setState({genre: s.genre === id ? null : id, view: 'browse', dj: null, limit: 48}); },
       pickMood: (e) => { const id = e.currentTarget.dataset.id; this.setState({mood: s.mood === id ? null : id, view: 'browse', dj: null, limit: 48}); },
-      pickDj: (e) => this.setState({dj: e.currentTarget.dataset.id, view: 'browse', genre: null, mood: null, limit: 48}),
+      pickDj: (e) => this.setState({dj: e.currentTarget.dataset.id, view: 'browse', genre: null, mood: null, limit: 48, detailKey: null, menuOpen: false}),
       pickDjKey: (e) => {
         if (e.key !== 'Enter' && e.key !== ' ') return;
         e.preventDefault();
-        this.setState({dj: e.currentTarget.dataset.id, view: 'browse', genre: null, mood: null, limit: 48});
+        this.setState({dj: e.currentTarget.dataset.id, view: 'browse', genre: null, mood: null, limit: 48, detailKey: null, menuOpen: false});
       },
       openShelf: (e) => { const id = e.currentTarget.dataset.id; const g = this.GENRES.find(x => x.id === id); this.setState({view: 'browse', genre: g ? id : null, mood: null, dj: null, query: '', sort: id === 'long' ? 'longest' : id === 'latest' ? 'latest' : 'plays', limit: 48}); },
       cycleSort: () => { const order = ['latest', 'plays', 'longest', 'oldest']; this.setState({sort: order[(order.indexOf(s.sort) + 1) % order.length]}); },
@@ -1888,7 +1888,9 @@ class Component extends React.Component {
               <ArtBg url={v.detail.pic} role="img" aria-label="Album art" className="mri-detailart" base="width:100%;aspect-ratio:1;background-size:cover;background-position:center;background-color:#eae9e9;border:1px solid #d7d3d3" />
               <div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#ae1800;margin:18px 0 10px")}>{v.detail.when} / Monkey Radio India</div>
               <h1 style={css("font-weight:800;font-size:clamp(24px,7vw,32px);line-height:1.06;letter-spacing:-.03em;margin:0 0 12px;text-wrap:pretty")}>{v.detail.name}</h1>
-              <div style={css("font:500 14px 'Archivo',sans-serif;color:#444141;margin-bottom:20px")}>Selected by <strong style={css("font-weight:700;color:#201e1d")}>{v.detail.dj}</strong></div>
+              <div style={css("font:500 14px 'Archivo',sans-serif;color:#444141;margin-bottom:20px")}>Selected by {/^monkey radio india$/i.test(v.detail.dj)
+                ? <strong style={css("font-weight:700;color:#201e1d")}>{v.detail.dj}</strong>
+                : <button onClick={v.pickDj} data-id={v.detail.dj} aria-label={"All shows selected by " + v.detail.dj} style={css("font:inherit;font-weight:700;color:#201e1d;background:none;border:0;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:3px")}>{v.detail.dj}</button>}</div>
               {this.notesBlock(v.detail, true)}
               <div className="mri-detailstats" style={css("display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid #d7d3d3;border-bottom:1px solid #d7d3d3;margin-bottom:20px")}>
                 <div style={css("padding:14px 0")}><div style={css("font-weight:800;font-size:19px;letter-spacing:-.02em")}>{v.detail.len}</div><div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#6a6666;margin-top:4px")}>Runtime</div></div>
@@ -2235,7 +2237,9 @@ class Component extends React.Component {
                 <div style={css("flex:1;min-width:260px")}>
                   <div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#ae1800;margin-bottom:12px")}>{v.detail.when} / Monkey Radio India</div>
                   <h2 id="mri-detail-title" style={css("font-weight:800;font-size:27px;line-height:1.06;letter-spacing:-.03em;margin:0 0 12px;text-wrap:pretty;padding-right:40px")}>{v.detail.name}</h2>
-                  <div style={css("font:500 14px 'Archivo',sans-serif;color:#444141;margin-bottom:20px")}>Selected by <strong style={css("font-weight:700;color:#201e1d")}>{v.detail.dj}</strong></div>
+                  <div style={css("font:500 14px 'Archivo',sans-serif;color:#444141;margin-bottom:20px")}>Selected by {/^monkey radio india$/i.test(v.detail.dj)
+                ? <strong style={css("font-weight:700;color:#201e1d")}>{v.detail.dj}</strong>
+                : <button onClick={v.pickDj} data-id={v.detail.dj} aria-label={"All shows selected by " + v.detail.dj} style={css("font:inherit;font-weight:700;color:#201e1d;background:none;border:0;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:3px")}>{v.detail.dj}</button>}</div>
                   {this.notesBlock(v.detail, false)}
                   <div style={css("display:flex;flex-wrap:wrap;gap:6px;margin-bottom:22px")}>
                     {v.detail.tags.map((t, i) => (

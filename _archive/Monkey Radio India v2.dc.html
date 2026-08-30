@@ -97,6 +97,9 @@ Back
 <div style="font:600 10px 'Archivo',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#ae1800;margin:18px 0 10px">{{ detail.when }} / Monkey Radio India</div>
 <h1 style="font-weight:800;font-size:clamp(24px,7vw,32px);line-height:1.06;letter-spacing:-.03em;margin:0 0 12px;text-wrap:pretty">{{ detail.name }}</h1>
 <div style="font:500 14px 'Archivo',sans-serif;color:#444141;margin-bottom:20px">Selected by <strong style="font-weight:700;color:#201e1d">{{ detail.dj }}</strong></div>
+<sc-if value="{{ detail.desc }}" hint-placeholder-val="{{ '' }}">
+<p style="font:400 14.5px/1.65 'Archivo',sans-serif;color:#444141;margin:0 0 22px;text-wrap:pretty;white-space:pre-line">{{ detail.desc }}</p>
+</sc-if>
 <div style="display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid #d7d3d3;border-bottom:1px solid #d7d3d3;margin-bottom:20px">
 <div style="padding:14px 0"><div style="font-weight:800;font-size:19px;letter-spacing:-.02em">{{ detail.len }}</div><div style="font:600 10px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#7d7979;margin-top:4px">Runtime</div></div>
 <div style="padding:14px 0 14px 16px;border-left:1px solid #d7d3d3"><div style="font-weight:800;font-size:19px;letter-spacing:-.02em">{{ detail.plays }}</div><div style="font:600 10px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#7d7979;margin-top:4px">Plays</div></div>
@@ -141,13 +144,14 @@ Queue
 
 <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
 <section>
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:clamp(26px,4vw,56px);padding:clamp(28px,4vw,46px) 0 clamp(26px,3.4vw,40px);border-bottom:2px solid #201e1d;align-items:start">
+<div onMouseEnter="{{ heroHold }}" onMouseLeave="{{ heroRelease }}" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:clamp(26px,4vw,56px);padding:clamp(28px,4vw,46px) 0 clamp(26px,3.4vw,40px);border-bottom:2px solid #201e1d;align-items:start">
 <div>
 <div style="display:flex;align-items:center;gap:9px;margin-bottom:22px">
 <span style="width:9px;height:9px;background:#ec3013;display:block;animation:mri-blink 1.8s steps(1,end) infinite"></span>
-<span style="font:600 11px 'Archivo',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#ae1800">Latest transmission</span>
+<span style="font:600 11px 'Archivo',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#ae1800">{{ heroKicker }}</span>
 </div>
-<h1 style="font-weight:800;font-size:clamp(32px,4.6vw,62px);line-height:.98;letter-spacing:-.035em;margin:0 0 22px;text-wrap:pretty;max-width:16ch">{{ heroTitle }}</h1>
+<h1 style="font-weight:800;font-size:clamp(32px,4.6vw,62px);line-height:.98;letter-spacing:-.035em;margin:0 0 14px;text-wrap:pretty;max-width:16ch;min-height:3.92em;display:flex;flex-direction:column;justify-content:flex-end">{{ heroTitle }}</h1>
+<p style="font:500 14.5px/1.5 'Archivo',sans-serif;color:#605d5d;margin:0 0 26px;max-width:42ch;min-height:3em">{{ heroBlurb }}</p>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,max-content));gap:18px 40px;margin-bottom:30px">
 <div style="padding-right:24px"><div style="font:600 10px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#7d7979;margin-bottom:5px">Selector</div><div style="font:600 15px 'Archivo',sans-serif">{{ heroDj }}</div></div>
 <div style="padding-right:24px"><div style="font:600 10px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#7d7979;margin-bottom:5px">Runtime</div><div style="font:600 15px 'Archivo',sans-serif">{{ heroLen }}</div></div>
@@ -155,15 +159,28 @@ Queue
 <div><div style="font:600 10px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#7d7979;margin-bottom:5px">Tags</div><div style="font:600 15px 'Archivo',sans-serif">{{ heroTags }}</div></div>
 </div>
 <div style="display:flex;flex-wrap:wrap;gap:10px">
-<button onClick="{{ openMix }}" data-key="{{ heroKey }}" style="display:flex;align-items:center;gap:10px;background:#201e1d;color:#f3f2f2;border:0;border-radius:0;padding:13px 20px;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer" style-hover="background:#ec3013">
+<button onClick="{{ heroPlay }}" data-key="{{ heroKey }}" style="display:flex;align-items:center;gap:10px;background:#201e1d;color:#f3f2f2;border:0;border-radius:0;padding:13px 20px;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer" style-hover="background:#ec3013">
 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="display:block;flex:none"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
 Play the set
 </button>
-<button onClick="{{ toggleFav }}" data-key="{{ heroKey }}" style="display:flex;align-items:center;gap:10px;background:none;color:#201e1d;border:2px solid #201e1d;border-radius:0;padding:11px 18px;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer" style-hover="border-color:#ec3013;color:#ec3013">
+<button onClick="{{ heroShuffle }}" style="display:flex;align-items:center;gap:10px;background:none;color:#201e1d;border:2px solid #201e1d;border-radius:0;padding:11px 18px;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer" style-hover="border-color:#ec3013;color:#ec3013">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style="display:block;flex:none"><path d="M18 4l3 3-3 3"></path><path d="M18 20l3-3-3-3"></path><path d="M3 7h4l11 11h3"></path><path d="M3 17h4l3-3"></path><path d="M14 7h4"></path></svg>
+Shuffle
+</button>
+<button onClick="{{ toggleFav }}" data-key="{{ heroKey }}" style="display:flex;align-items:center;gap:10px;background:none;color:{{ heroSaveFg }};border:2px solid {{ heroSaveBd }};border-radius:0;padding:11px 18px;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer" style-hover="border-color:#ec3013;color:#ec3013">
 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style="display:block;flex:none"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>
-Save
+{{ heroSaveLabel }}
 </button>
 </div>
+<sc-if value="{{ heroMulti }}">
+<div role="tablist" aria-label="Featured transmissions" style="display:flex;align-items:center;gap:4px;margin-top:20px;margin-left:-7px">
+<sc-for list="{{ heroDots }}" as="d">
+<button onClick="{{ heroDot }}" data-i="{{ d.i }}" aria-label="Show featured transmission" style="width:26px;height:26px;padding:0;display:flex;align-items:center;justify-content:center;border:0;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent">
+<span style="width:10px;height:10px;display:block;border:1px solid {{ d.bd }};background:{{ d.bg }}"></span>
+</button>
+</sc-for>
+</div>
+</sc-if>
 </div>
 <div role="img" aria-label="Album art" style="width:100%;max-width:460px;aspect-ratio:1;background-size:cover;background-position:center;background-color:#eae9e9;border:1px solid #d7d3d3;background-image:{{ heroBg }}"></div>
 </div>
@@ -331,6 +348,9 @@ See all
 <div style="font:600 10px 'Archivo',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#ae1800;margin-bottom:12px">{{ detail.when }} / Monkey Radio India</div>
 <h2 style="font-weight:800;font-size:27px;line-height:1.06;letter-spacing:-.03em;margin:0 0 12px;text-wrap:pretty;padding-right:40px">{{ detail.name }}</h2>
 <div style="font:500 14px 'Archivo',sans-serif;color:#444141;margin-bottom:20px">Selected by <strong style="font-weight:700;color:#201e1d">{{ detail.dj }}</strong></div>
+<sc-if value="{{ detail.desc }}" hint-placeholder-val="{{ '' }}">
+<p style="font:400 14px/1.6 'Archivo',sans-serif;color:#444141;margin:0 0 20px;text-wrap:pretty;white-space:pre-line">{{ detail.desc }}</p>
+</sc-if>
 <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:22px">
 <sc-for list="{{ detail.tags }}" as="t" hint-placeholder-count="5">
 <span style="font:500 10.5px 'Archivo',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#605d5d;border:1px solid #d7d3d3;padding:5px 9px">{{ t }}</span>
@@ -467,8 +487,8 @@ class Component extends DCLogic {
 
   state = {
     items: [], indexing: false, view: 'home', query: '', genre: null, mood: null, dj: null,
-    sort: 'latest', limit: 48, detailKey: null, nowKey: null, radio: true, tab: 'favs',
-    favs: [], queue: [], history: [], shared: false, bp: 'lg', menuOpen: false
+    sort: 'latest', limit: 48, detailKey: null, descs: {}, nowKey: null, radio: true, tab: 'favs',
+    favs: [], queue: [], history: [], shared: false, bp: 'lg', menuOpen: false, heroIdx: 0
   };
 
   componentDidMount() {
@@ -485,11 +505,20 @@ class Component extends DCLogic {
     this._measure();
     window.addEventListener('resize', this._onResize);
     this._timers = [setTimeout(this._onResize, 250), setTimeout(this._onResize, 1000)];
+    const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!reduced) {
+      this._heroRotate = setInterval(() => {
+        if (this._heroPaused || document.hidden || this.state.view !== 'home' || this.state.detailKey) return;
+        const n = this.heroDeck().length;
+        if (n > 1) this.setState({heroIdx: (this.state.heroIdx + 1) % n});
+      }, 9000);
+    }
   }
   componentWillUnmount() {
     window.removeEventListener('keydown', this._onKey);
     window.removeEventListener('resize', this._onResize);
     if (this._ro) this._ro.disconnect();
+    if (this._heroRotate) clearInterval(this._heroRotate);
     (this._timers || []).forEach(t => { clearTimeout(t); });
   }
 
@@ -618,6 +647,68 @@ class Component extends DCLogic {
     return {key: m.key, name: m.name, dj: m.dj, pic: m.pic, bg: 'url(' + m.pic + ')',
       len: this.fmtLen(m.len), when: this.fmtWhen(m.created), plays: this.fmtNum(m.plays)};
   }
+
+  // Show descriptions are not in the list feed, so pull the single cloudcast
+  // on demand when a detail view opens. '' is stored first as a "fetched" flag.
+  fetchDesc(key) {
+    if (!key || this.state.descs[key] !== undefined) return;
+    this.setState({descs: Object.assign({}, this.state.descs, {[key]: ''})});
+    fetch('https://api.mixcloud.com' + key)
+      .then(r => r.json())
+      .then(c => {
+        const d = (c && c.description ? String(c.description) : '').trim();
+        if (d) this.setState({descs: Object.assign({}, this.state.descs, {[key]: d})});
+      })
+      .catch(() => {});
+  }
+
+  // A stable per-day integer, so day-seeded hero picks don't flicker between renders.
+  daySeed() {
+    const d = new Date();
+    return d.getFullYear() * 366 + d.getMonth() * 31 + d.getDate();
+  }
+
+  // The hero rotates through a small curated deck instead of only the newest
+  // upload: newest, a recent crowd favourite, a "this week years ago" vault pull,
+  // and a long player. Order is deterministic so rotation is the only movement.
+  heroDeck() {
+    const items = this.state.items;
+    if (!items.length) return [];
+    const clean = t => t && this.STOP.indexOf(t) < 0;
+    const topTag = m => { const t = (m.tags || []).find(clean); return t ? t.replace(/\b\w/g, c => c.toUpperCase()) : ''; };
+    const mins = m => Math.max(1, Math.round(m.len / 60));
+    const named = m => m && !/^monkey radio india$/i.test(m.dj || '');
+    const out = [], seen = {};
+    const add = (m, kicker, blurb) => { if (m && !seen[m.key]) { seen[m.key] = 1; out.push({m, kicker, blurb}); } };
+
+    const fresh = items[0];
+    if (fresh) {
+      const age = (Date.now() - new Date(fresh.created).getTime()) / 86400000;
+      add(fresh, age < 10 ? 'New transmission' : 'Latest transmission',
+        mins(fresh) + ' minutes' + (named(fresh) ? ' from ' + fresh.dj : '') + (topTag(fresh) ? ' · ' + topTag(fresh) : ''));
+    }
+
+    const hot = items.slice(0, 25).slice().sort((a, b) => b.plays - a.plays)[0];
+    if (hot) add(hot, 'In heavy rotation',
+      this.fmtNum(hot.plays) + ' plays and counting' + (named(hot) ? ' · ' + hot.dj : ''));
+
+    const target = new Date().getMonth() * 31 + new Date().getDate();
+    const cal = d => { const x = new Date(d); return x.getMonth() * 31 + x.getDate(); };
+    const vault = items.filter(m => Math.abs(cal(m.created) - target) <= 4)
+      .sort((a, b) => new Date(a.created) - new Date(b.created))[0]
+      || items.slice().sort((a, b) => b.plays - a.plays)[0];
+    if (vault) add(vault, 'From the vault',
+      'Aired ' + new Date(vault.created).getFullYear() + (named(vault) ? ' · ' + vault.dj : '') + ' — pulled back up');
+
+    const longs = items.filter(m => m.len > 7000);
+    if (longs.length) {
+      const lp = longs[this.daySeed() % longs.length];
+      add(lp, 'Long player',
+        (Math.round(lp.len / 360) / 10) + ' hours deep' + (named(lp) ? ' · ' + lp.dj : ''));
+    }
+
+    return out.slice(0, 5);
+  }
   // Exact tag match, or whole-word containment, never a bare substring, so show
   // branding tags like "daktadub" do not fall into the Dub bucket.
   matchTags(m, set) {
@@ -687,7 +778,10 @@ class Component extends DCLogic {
   renderVals() {
     const s = this.state;
     const items = s.items;
-    const hero = items[0];
+    const heroDeck = this.heroDeck();
+    const heroPos = heroDeck.length ? ((s.heroIdx % heroDeck.length) + heroDeck.length) % heroDeck.length : 0;
+    const feat = heroDeck[heroPos] || null;
+    const hero = feat ? feat.m : null;
     const shelves = [];
     if (items.length) {
       shelves.push({id: 'latest', title: 'Latest shows', sub: 'Newest first', items: items.slice(0, 14).map(m => this.card(m))});
@@ -755,11 +849,22 @@ class Component extends DCLogic {
       navAbout: navOn('about'), navAboutBar: navBar('about'),
       query: s.query, moods: this.MOODS, shelves,
       searchHint: 'Search ' + (items.length || '974') + ' shows',
+      heroKicker: feat ? feat.kicker : 'Latest transmission',
+      heroBlurb: feat ? feat.blurb : '',
       heroTitle: hero ? hero.name : 'Loading the archive',
       heroDj: hero ? hero.dj : '', heroLen: hero ? this.fmtLen(hero.len) : '',
       heroWhen: hero ? this.fmtWhen(hero.created) : '', heroTags: heroTags || 'radio',
       heroBg: hero ? 'url(' + hero.pic + ')' : 'none',
       heroKey: hero ? hero.key : '',
+      heroMulti: heroDeck.length > 1,
+      heroDots: heroDeck.map((d, i) => ({
+        i: String(i),
+        bg: i === heroPos ? '#201e1d' : 'transparent',
+        bd: i === heroPos ? '#201e1d' : '#b3afaf'
+      })),
+      heroSaveLabel: hero && isFav(hero.key) ? 'Saved' : 'Save',
+      heroSaveBd: hero && isFav(hero.key) ? '#ec3013' : '#201e1d',
+      heroSaveFg: hero && isFav(hero.key) ? '#ec3013' : '#201e1d',
       totalShows: items.length || '0',
       totalHours: items.length ? Math.round(items.reduce((a, m) => a + m.len, 0) / 3600) : '0',
       djCount: djs.length || '0', djs, unattributed,
@@ -776,7 +881,8 @@ class Component extends DCLogic {
         favLabel: isFav(detail.key) ? 'Saved' : 'Save',
         favBg: isFav(detail.key) ? '#201e1d' : 'transparent',
         favFg: isFav(detail.key) ? '#f3f2f2' : '#201e1d',
-        favFill: isFav(detail.key) ? 'currentColor' : 'none'
+        favFill: isFav(detail.key) ? 'currentColor' : 'none',
+        desc: s.descs[detail.key] || ''
       }) : {tags: []},
       related, shareLabel: s.shared ? 'Link copied' : 'Share',
       playing: !!now,
@@ -793,7 +899,7 @@ class Component extends DCLogic {
       goHome: () => this.setState({view: 'home', genre: null, mood: null, dj: null, query: ''}),
       nav: (e) => this.setState({view: e.currentTarget.dataset.view, limit: 48, menuOpen: false}),
       onSearch: (e) => this.setState({query: e.target.value, view: 'browse', limit: 48}),
-      openMix: (e) => this.setState({detailKey: e.currentTarget.dataset.key, shared: false}),
+      openMix: (e) => { const k = e.currentTarget.dataset.key; this.fetchDesc(k); this.setState({detailKey: k, shared: false}); },
       closeDetail: () => this.setState({detailKey: null}),
       stop: (e) => e.stopPropagation(),
       playDetail: () => this.play(s.detailKey),
@@ -801,6 +907,11 @@ class Component extends DCLogic {
       shareDetail: () => { try { navigator.clipboard.writeText(detail ? detail.url : ''); } catch (e) {} this.setState({shared: true}); },
       toggleFav: (e) => { e.stopPropagation(); const k = e.currentTarget.dataset.key; if (!k) return; this.savePrefs({favs: isFav(k) ? s.favs.filter(x => x !== k) : [k].concat(s.favs)}); },
       toggleRadio: () => this.savePrefs({radio: !s.radio}),
+      heroPlay: () => { if (hero) this.play(hero.key); },
+      heroShuffle: () => { if (!items.length) return; if (!s.radio) this.savePrefs({radio: true}); this.play(items[Math.floor(Math.random() * items.length)].key); },
+      heroDot: (e) => this.setState({heroIdx: Number(e.currentTarget.dataset.i) || 0}),
+      heroHold: () => { this._heroPaused = true; },
+      heroRelease: () => { this._heroPaused = false; },
       playNext: () => { const q = s.queue.slice(); const k = q.length ? q.shift() : this.nextKey(); if (q.length !== s.queue.length) this.savePrefs({queue: q}); if (k) this.play(k); },
       stopPlaying: () => this.setState({nowKey: null}),
       tuneIn: () => { const pool = list.length ? list : items; if (pool.length) this.play(pool[Math.floor(Math.random() * pool.length)].key); },

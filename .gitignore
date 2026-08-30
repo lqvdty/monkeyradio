@@ -7,8 +7,8 @@
 # Export archives
 *.zip
 
-# Duplicated design export
-Monkey Radio India webapp design/
+# Archived design-canvas source + exports (not part of the live app)
+_archive/Monkey Radio India webapp design/
 
 # Firebase
 .firebase/

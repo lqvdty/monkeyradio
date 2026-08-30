@@ -6,11 +6,11 @@ Mixcloud player.
 
 ## Files
 
-- `Monkey Radio India v2.dc.html` — the app (current design).
-- `Monkey Radio India.dc.html` — the first, darker exploration (kept for reference).
-- `support.js` — the Design Component runtime. Required.
-- `assets/logo.png` — station logo.
-- `_ds/modernist-.../` — the Modernist design system (tokens + bundle).
+- `Monkey Radio India v2.dc.html` - the app (current design).
+- `Monkey Radio India.dc.html` - the first, darker exploration (kept for reference).
+- `support.js` - the Design Component runtime. Required.
+- `assets/logo.png` - station logo.
+- `_ds/modernist-.../` - the Modernist design system (tokens + bundle).
 
 ## Running locally
 

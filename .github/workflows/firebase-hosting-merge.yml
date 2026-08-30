@@ -1,7 +1,7 @@
 # Deploys the site to Firebase Hosting on every push to main.
 # Requires repo secret FIREBASE_SERVICE_ACCOUNT (a Firebase service-account JSON
 # key with the "Firebase Hosting Admin" role). Update `projectId` below to match
-# your actual Firebase project id if it is not "monkey-radio-india".
+# your actual Firebase project id if it is not "monkeyradioindia".
 name: Deploy to Firebase Hosting on merge
 
 on:
@@ -19,4 +19,4 @@ jobs:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           channelId: live
-          projectId: monkey-radio-india
+          projectId: monkeyradioindia

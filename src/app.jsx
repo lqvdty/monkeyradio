@@ -1465,6 +1465,9 @@ class Component extends React.Component {
       const el = document.getElementById(this._scrollTo);
       if (el) { this._scrollTo = null; el.scrollIntoView({behavior: 'smooth', block: 'start'}); }
     }
+    // A top-nav / footer link jumps to the top of the freshly rendered page
+    // rather than keeping the scroll position of the view left behind.
+    if (this._scrollTop) { this._scrollTop = false; window.scrollTo(0, 0); }
   }
 
   renderVals() {
@@ -1682,7 +1685,7 @@ class Component extends React.Component {
 
       goHome: () => this.setState({view: 'home', genre: null, mood: null, dj: null, query: '', detailKey: null}),
       goSubmit: () => { this._scrollTo = 'mri-submit'; this.setState({view: 'about', menuOpen: false, genre: null, mood: null, dj: null, query: '', detailKey: null}); },
-      nav: (e) => { const view = e.currentTarget.dataset.view; const clear = view === 'browse' ? {} : {genre: null, mood: null, dj: null, query: ''}; this.setState(Object.assign({view, limit: 48, menuOpen: false, detailKey: null}, clear)); },
+      nav: (e) => { const view = e.currentTarget.dataset.view; const clear = view === 'browse' ? {} : {genre: null, mood: null, dj: null, query: ''}; this._scrollTop = true; this.setState(Object.assign({view, limit: 48, menuOpen: false, detailKey: null}, clear)); },
       onSearch: (e) => this.setState({query: e.target.value, view: 'browse', limit: 48, detailKey: null}),
       // Opening a show remembers the shelf it was opened from (home shelves
       // carry data-ctx), so playing it pins auto-advance to that shelf's

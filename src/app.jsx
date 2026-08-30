@@ -536,7 +536,14 @@ class Component extends React.Component {
     [/bonalu mix/i, 'Dakta Dub'],
     [/slow beats & smoky tunes/i, 'Dj Def Hawk'],
     [/california knows how to party/i, 'Dj Def Hawk'],
-    [/ozon::tilos to monkey/i, 'Dj Ozon']
+    [/ozon::tilos to monkey/i, 'Dj Ozon'],
+    [/indiearth\s*-\s*monkey radio india\s*-\s*cloudcast/i, 'Dakta Dub'],
+    [/indiearth presents world music day/i, 'Dakta Dub'],
+    [/world music day\s*-\s*bass sampradayam/i, 'Dakta Dub'],
+    [/\bworld of sound\b/i, 'Dakta Dub'],
+    [/world radio day special/i, 'Dakta Dub'],
+    [/^\s*dub\s*$/i, 'Dakta Dub'],
+    [/dub'in and step'in/i, 'Dakta Dub']
   ];
 
   djFrom(raw) {

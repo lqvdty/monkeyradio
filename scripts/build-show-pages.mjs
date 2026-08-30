@@ -7,14 +7,24 @@
  * Each file is index.html with only its <head> social tags rewritten; the
  * app still boots and opens the show exactly as the /show/** rewrite does.
  *
- * Output (show/) is git-ignored and regenerated in CI right before every
- * deploy - see .github/workflows/*.yml and the firebase.json predeploy hook.
+ * Also writes sitemap.xml, listing every one of those pages plus the site's
+ * static routes, so crawlers are actually pointed at what this script just
+ * built - see robots.txt, which already refers to it.
+ *
+ * Also writes assets/archive.json, a prebuilt snapshot of the whole
+ * normalised archive the client can boot from instantly instead of paging
+ * the Mixcloud API live on a cold visit - see sync() in src/app.jsx.
+ *
+ * Output (show/, sitemap.xml, assets/archive.json) is git-ignored and
+ * regenerated in CI right before every deploy - see .github/workflows/*.yml
+ * and the firebase.json predeploy hook.
  *
  *     node scripts/build-show-pages.mjs
  */
 import { readFileSync, writeFileSync, rmSync, mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { selector } from './lib/selector.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SITE = 'https://www.monkeyradio.in';
@@ -25,52 +35,18 @@ const esc = (s) => String(s == null ? '' : s)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
   .replace(/"/g, '&quot;');
 
-// ---- selector attribution (kept in step with djFrom() in index.html) -------
-const NOT_A_DJ = ['indiearth', 'monkey radio', 'monkeyradio', 'monkey sound', 'tune inn', 'souls of sound', 'music manthan', 'disco freak', 'bass sanskriti', 'dub vibration', 'roots unwired', 'daktadub', 'dakta dub', 'hyderabad underground movement', 'hyderabad hi fi', 'hi fi hyderabad', 'sunday special', 'sunday live', 'excursions in', 'guest mix', 'radio show', 'podcast'];
-const ALIASES = ['dj def hawk', 'selekta chakkra', 'dj amul', 'psylenz', 'berencz balazs', 'dj makarun'];
-const GENERIC = ['the', 'a', 'of', 'and', 'in', 'on', 'for', 'my', 'our', 'your', 'music', 'musical', 'journey', 'transmission', 'world', 'day', 'vibration', 'vibes', 'special', 'session', 'sessions', 'sound', 'sounds', 'radio', 'show', 'mix', 'mixes', 'set', 'selection', 'live', 'dancehall', 'funk', 'bass', 'soul', 'jazz', 'dub', 'house', 'techno', 'hip', 'hop', 'rap', 'reggae', 'disco', 'edition', 'episode', 'vol', 'volume', 'part', 'night', 'weekend', 'sunday', 'monday', 'friday', 'saturday', 'summer', 'winter', 'new', 'best', 'top'];
-const flat = (x) => (x || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-
-function djFrom(raw) {
-  let s = (raw || '').replace(/│/g, '|').trim();
-  const alias = ALIASES.find((a) => flat(s).indexOf(flat(a)) === 0);
-  if (alias) return alias.replace(/\b\w/g, (c) => c.toUpperCase());
-  const bar = s.split('|');
-  const barred = bar.length > 1 && bar[0].trim().length > 1;
-  if (barred) s = bar[0].trim();
-  let cand = null;
-  { const m = s.match(/\bby\s+([A-Za-z][^|,]{1,34})$/i); if (m) cand = m[1]; }
-  if (!cand) { const i = s.indexOf(' - '); if (i > 1 && i < 52) cand = s.slice(0, i); }
-  if (!cand) { const m = s.match(/^(.{2,46}?)\s+(?:presents|present|pres\.?)\s+/i); if (m) cand = m[1]; }
-  if (!cand) { const m = s.match(/^(.{2,46}?)\s+(?:feat\.?|ft\.?|w\/)\s+/i); if (m) cand = m[1]; }
-  if (!cand && barred) cand = s;
-  if (!cand) return null;
-  cand = cand.replace(/\s+(?:feat\.?|ft\.?|w\/|with)\s+.*$/i, '');
-  cand = cand.replace(/\s*\d{1,2}[./-]\d{1,2}[./-]\d{2,4}\s*$/, '');
-  cand = cand.replace(/\s*\b(?:19|20)\d{2}\b\s*$/, '');
-  cand = cand.split(' - ')[0];
-  const w = cand.match(/\b(?:with|w\/)\s+(.{2,36})$/i);
-  if (w) cand = w[1];
-  cand = cand.replace(/^[\s\-–_.,:]+/, '').replace(/[\s\-–_.,:]+$/, '').trim();
-  cand = cand.replace(/\s{2,}/g, ' ');
-  if (cand.length < 2 || cand.length > 44) return null;
-  if (/^\d+$/.test(cand)) return null;
-  const fc = flat(cand);
-  if (NOT_A_DJ.some((n) => fc.indexOf(flat(n)) >= 0)) return null;
-  if (/monkey/i.test(cand)) return null;
-  if (/^\d{1,2}[-./]\d{1,2}[-./]\d{2,4}/.test(cand) || cand.indexOf('__') >= 0) return null;
-  if (cand.toLowerCase().split(/[^a-z0-9]+/i).filter(Boolean).every((x) => GENERIC.indexOf(x) >= 0)) return null;
-  if (/\b(fm|f\.m\.|radio|station)\b/i.test(cand)) return null;
-  if (/\b\d+\s*(st|nd|rd|th)\s+(anniversary|birthday|edition)\b/i.test(cand)) return null;
-  if (/\b(special|episode|vol|volume|part|mixtape|session|mix|mixes|show|set|selection|takeover|edition)\b\s*\d*$/i.test(cand)) return null;
-  if (/^(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\b/i.test(cand)) return null;
-  return cand;
-}
-
-function selector(c) {
-  let dj = djFrom(c.name || '');
-  if (!dj && c.user && c.user.name && c.user.name !== 'Monkey Radio India') dj = c.user.name;
-  return dj || 'Monkey Radio India';
+// Mirrors norm() in src/app.jsx field-for-field - this is what ships as
+// assets/archive.json, and the client's localStorage cache (mri.cloudcasts.v7)
+// is expected to be interchangeable with it. Keep the two in step.
+function norm(c) {
+  const pics = c.pictures || {};
+  return {
+    key: c.key, name: c.name || '', url: c.url, dj: selector(c),
+    pic: pics.extra_large || pics.large || pics['640wx640h'] || 'assets/logo.png',
+    created: c.created_time, len: c.audio_length || 0,
+    plays: c.play_count || 0, favs: c.favorite_count || 0,
+    tags: (c.tags || []).map((t) => (t.name || '').toLowerCase())
+  };
 }
 
 // ---- Mixcloud archive -----------------------------------------------------
@@ -125,6 +101,28 @@ function render(tpl, c) {
   return { slug, html: tpl };
 }
 
+// ---- sitemap.xml ----------------------------------------------------------
+// The station's own client-side-only pages (/saved) are left out - they
+// show per-visitor localStorage state, not content a crawler should index.
+const STATIC_ROUTES = [
+  { path: '/', changefreq: 'daily', priority: '1.0' },
+  { path: '/archive', changefreq: 'daily', priority: '0.8' },
+  { path: '/selectors', changefreq: 'weekly', priority: '0.6' },
+  { path: '/about', changefreq: 'monthly', priority: '0.5' }
+];
+
+function buildSitemap(shows, slugFor) {
+  const today = new Date().toISOString().slice(0, 10);
+  const urls = STATIC_ROUTES.map((r) => `  <url>\n    <loc>${SITE}${r.path}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>${r.changefreq}</changefreq>\n    <priority>${r.priority}</priority>\n  </url>`);
+  for (const c of shows) {
+    const slug = slugFor(c);
+    if (!slug) continue;
+    const lastmod = (c.updated_time || c.created_time || '').slice(0, 10) || today;
+    urls.push(`  <url>\n    <loc>${SITE}/show/${slug}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.6</priority>\n  </url>`);
+  }
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>\n`;
+}
+
 // ---- run ----------------------------------------------------------------
 const tpl = readFileSync(join(ROOT, 'index.html'), 'utf8');
 const raw = await fetchAll();
@@ -144,3 +142,17 @@ for (const c of shows) {
   n++;
 }
 console.log(`Prerendered ${n} show pages into show/`);
+
+writeFileSync(join(ROOT, 'sitemap.xml'), buildSitemap(shows, (c) => slugOf(c.key)));
+console.log(`Wrote sitemap.xml (${STATIC_ROUTES.length} static routes + ${n} shows)`);
+
+// ---- prebuilt archive index -----------------------------------------------
+// Ships the whole normalised archive as a same-origin static file, in the
+// exact shape the client's own localStorage cache uses (mri.cloudcasts.v7 -
+// see CACHE_KEY in src/app.jsx), so a first-ever visit paints instantly from
+// one fast request instead of paging the Mixcloud API ~10 times live. The
+// client still checks Mixcloud for anything published after this build and
+// only fetches the delta - see sync() in src/app.jsx.
+const archiveItems = shows.map(norm);
+writeFileSync(join(ROOT, 'assets', 'archive.json'), JSON.stringify({ ts: Date.now(), complete: true, items: archiveItems }));
+console.log(`Wrote assets/archive.json (${archiveItems.length} shows)`);

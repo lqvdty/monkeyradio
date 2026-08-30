@@ -18,6 +18,13 @@ firebase-debug.log
 # Node
 node_modules/
 
-# Prerendered per-show social-preview pages (scripts/build-show-pages.mjs).
-# Regenerated on every deploy via the firebase.json predeploy hook and CI.
+# Prerendered per-show social-preview pages + sitemap.xml + the prebuilt
+# archive index (scripts/build-show-pages.mjs). Regenerated on every deploy
+# via the firebase.json predeploy hook and CI.
 /show/
+/sitemap.xml
+/assets/archive.json
+
+# Compiled app bundle (scripts/build-app.mjs, from src/app.jsx). Regenerated
+# the same way - see the firebase.json predeploy hook and CI.
+/assets/app.js

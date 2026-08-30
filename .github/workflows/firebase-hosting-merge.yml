@@ -17,7 +17,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Prerender per-show social-preview pages
+      - name: Install build dependencies
+        run: npm ci
+      - name: Compile app bundle (JSX -> assets/app.js)
+        run: node scripts/build-app.mjs
+      - name: Prerender show pages + sitemap.xml + archive.json
         run: node scripts/build-show-pages.mjs
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:

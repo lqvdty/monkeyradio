@@ -2,7 +2,10 @@
   "hosting": {
     "public": ".",
     "cleanUrls": true,
-    "predeploy": ["node scripts/build-show-pages.mjs"],
+    "predeploy": [
+      "node scripts/build-app.mjs",
+      "node scripts/build-show-pages.mjs"
+    ],
     "ignore": [
       "firebase.json",
       ".firebaserc",
@@ -12,6 +15,7 @@
       "_archive/**",
       ".github/**",
       "scripts/**",
+      "src/**",
       "package.json",
       "package-lock.json",
       "serve.py",

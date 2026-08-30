@@ -8,7 +8,7 @@
       "**/.*",
       "**/node_modules/**",
       "**/*.zip",
-      "Monkey Radio India webapp design/**",
+      "_archive/**",
       ".github/**",
       "serve.py",
       "vercel.json",

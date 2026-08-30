@@ -86,7 +86,8 @@ const OVERRIDES = [
   [/presents hemant chotani/i, 'Hemant Chotani'],
   [/puri juggernaut - guest mix - balu/i, 'Dakta Dub'],
   [/xmas special featuring hemant/i, 'Hemant Chotani'],
-  [/banyan tree dub - moonchild/i, 'MoonChild']
+  [/banyan tree dub - moonchild/i, 'MoonChild'],
+  [/features smoke signals/i, 'Bagula Bhagat']
 ];
 
 // The text before a "presents"/"feat"/"showcase" keyword is the station or

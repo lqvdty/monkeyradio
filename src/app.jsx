@@ -563,10 +563,17 @@ class Component extends React.Component {
     [/khaas aap ke liye-jstar/i, 'JStar'],
     [/presents hemant chotani/i, 'Hemant Chotani'],
     [/puri juggernaut - guest mix - balu/i, 'Dakta Dub'],
-    [/xmas special featuring hemant/i, 'Hemant Chotani']
+    [/xmas special featuring hemant/i, 'Hemant Chotani'],
+    [/banyan tree dub - moonchild/i, 'MoonChild']
   ];
 
   djFrom(raw) {
+    const n = this.resolveDj(raw);
+    // Normalise the "DJ" token to uppercase however the title spelled it.
+    return n ? n.replace(/\bdj\b/gi, 'DJ') : null;
+  }
+
+  resolveDj(raw) {
     const s = (raw || '').replace(/│/g, '|');
     for (const [re, name] of this.OVERRIDES) if (re.test(s)) return name;
     const named = this.pickDj(raw);

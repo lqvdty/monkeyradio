@@ -1,0 +1,16 @@
+{
+  "name": "monkey-radio-india",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build-app.mjs",
+    "build:show-pages": "node scripts/build-show-pages.mjs",
+    "build:feed": "node scripts/build-feed.mjs",
+    "dev": "npm run build && python3 serve.py"
+  },
+  "devDependencies": {
+    "@babel/core": "7.29.7",
+    "@babel/preset-react": "7.28.5",
+    "sharp": "0.35.4"
+  }
+}

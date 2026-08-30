@@ -39,7 +39,13 @@ jobs:
             git push
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
-      - name: Prerender per-show social-preview pages
+      - name: Install build dependencies
+        if: steps.commit.outputs.changed == 'true'
+        run: npm ci
+      - name: Compile app bundle (JSX -> assets/app.js)
+        if: steps.commit.outputs.changed == 'true'
+        run: node scripts/build-app.mjs
+      - name: Prerender show pages + sitemap.xml + archive.json
         if: steps.commit.outputs.changed == 'true'
         run: node scripts/build-show-pages.mjs
       - name: Deploy to Firebase Hosting

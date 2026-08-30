@@ -1,27 +1,31 @@
 /* Monkey Radio India - service worker.
  *
- * Goal: the app *shell* (HTML, the React/Babel runtime, the logo, the UI
- * font) loads offline, so opening the installed app on a dead connection
- * shows the interface instead of the browser's dinosaur. Audio and the
- * archive index still need the network - anything on *.mixcloud.com is
- * always fetched live and never cached.
+ * Goal: the app *shell* (HTML, the React runtime, the compiled app bundle,
+ * the logo, the UI font) loads offline, so opening the installed app on a
+ * dead connection shows the interface instead of the browser's dinosaur.
+ * Audio and the archive index still need the network - anything on
+ * *.mixcloud.com is always fetched live and never cached.
+ *
+ * The app ships as a precompiled bundle (assets/app.js, built from
+ * src/app.jsx by scripts/build-app.mjs) rather than shipping a JSX
+ * compiler to the browser - see index.html.
  *
  * Bump CACHE whenever the precache list or this file changes.
  */
-const CACHE = 'mri-shell-v7';
+const CACHE = 'mri-shell-v14';
 
 // Same-origin shell + the pinned, immutable third-party runtime the page
 // cannot boot without. All CORS-clean, so addAll() is safe.
 const PRECACHE = [
   '/',
   '/index.html',
+  '/assets/app.js',
   '/manifest.webmanifest',
   '/assets/logo.png',
   '/assets/icon-192.png',
   '/assets/icon-512.png',
   'https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.26.4/babel.min.js'
+  'https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js'
 ];
 
 self.addEventListener('install', (event) => {

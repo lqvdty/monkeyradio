@@ -14,11 +14,23 @@ Mixcloud player.
 
 ## Running locally
 
-The page fetches sibling files, so open it through a local server, not file://
+The live app is `index.html`. Its component code lives in `src/app.jsx` and
+is compiled ahead of time to `assets/app.js` (see `scripts/build-app.mjs`) -
+the browser never runs a JSX compiler, so that file has to exist before you
+serve the app.
 
-    python3 -m http.server 8000
+    npm install       # once, installs the Babel build dependency
+    npm run dev       # builds assets/app.js, then serves on :8000
 
-then visit http://localhost:8000/Monkey%20Radio%20India%20v2.dc.html
+or, equivalently:
+
+    node scripts/build-app.mjs
+    python3 serve.py
+
+`serve.py` gives client-side routes (`/about`, `/show/<slug>`, ...) the same
+SPA fallback as Firebase Hosting; a plain `python3 -m http.server` 404s on
+them. Re-run `npm run build` after editing `src/app.jsx` - the shipped
+`index.html` only ever loads the compiled `assets/app.js`, not the source.
 
 ## How it works
 

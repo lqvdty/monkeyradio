@@ -3,10 +3,28 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Client-side routes like /show/<slug> are nested, so relative asset
+     URLs must resolve from the site root, not the current path. -->
+<base href="/">
 <title>Monkey Radio India · Independent and colourful radio out of Hyderabad</title>
 <meta name="description" content="Independent and colourful radio out of Hyderabad. The live Mixcloud archive for Monkey Radio India, browsable by genre, mood and selector, with an in-page player and radio mode.">
+<link rel="canonical" href="https://www.monkeyradio.in/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Monkey Radio India">
+<meta property="og:locale" content="en_IN">
+<meta property="og:url" content="https://www.monkeyradio.in/">
 <meta property="og:title" content="Monkey Radio India · Independent and colourful radio out of Hyderabad">
 <meta property="og:description" content="Independent and colourful radio out of Hyderabad. Browse the live Mixcloud archive by genre, mood and selector, with an in-page player and radio mode.">
+<meta property="og:image" content="https://www.monkeyradio.in/assets/og-image.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Monkey Radio India: community radio and sound system culture, beside the hand-built Monkey Sound System speaker stack.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Monkey Radio India · Independent and colourful radio out of Hyderabad">
+<meta name="twitter:description" content="Independent and colourful radio out of Hyderabad. Browse the live Mixcloud archive by genre, mood and selector, with an in-page player and radio mode.">
+<meta name="twitter:image" content="https://www.monkeyradio.in/assets/og-image.png">
+<meta name="twitter:image:alt" content="Monkey Radio India: community radio and sound system culture, beside the hand-built Monkey Sound System speaker stack.">
 <link rel="icon" href="assets/logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -30,7 +48,7 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #ec30
 @keyframes mri-toast{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
 @keyframes mri-sheet{from{transform:translateY(14px);opacity:.4}to{transform:translateY(0);opacity:1}}
 .mri-toast{animation:mri-toast .2s ease-out}
-/* Interaction states — the design's style-hover / style-active, as real rules. */
+/* Interaction states: the design's style-hover / style-active, as real rules. */
 .h-accent-bg:hover{background:#dd2b0f !important}
 .h-accent-bg:active{background:#ae1800 !important}
 .h-dark-accent:hover{background:#ec3013 !important}
@@ -44,12 +62,20 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #ec30
 #root{min-height:100vh;min-height:100dvh}
 
 /* Hero: the featured card rotates, so the title / blurb / stat
-   zones are locked to a fixed height and clipped. Nothing below
-   them (stats, buttons, dot nav) can shift vertically between
-   cards, on any viewport. */
-.mri-herohead{font-size:clamp(32px,4.6vw,62px);line-height:.98;height:3.92em;max-width:16ch;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end}
+   zones are locked to a fixed height. Nothing below them (bar,
+   stats, buttons, dot nav) shifts vertically between cards, on any
+   viewport. line-height 1.1 + a bottom pad keeps descenders (g, y,
+   p) inside the clip box. */
+.mri-herohead{font-size:clamp(32px,4.6vw,62px);line-height:1.1;height:4.55em;padding-bottom:.15em;max-width:16ch;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end}
 .mri-herohead h1{font-weight:800;font-size:1em;line-height:inherit;letter-spacing:-.035em;margin:0;text-wrap:pretty;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:4;overflow:hidden}
-.mri-heroblurb{font:500 14.5px/1.5 "Archivo",sans-serif;color:#605d5d;margin:14px 0 26px;max-width:44ch;height:3em;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.mri-heroblurb{font:500 14.5px/1.5 "Archivo",sans-serif;color:#605d5d;margin:12px 0 16px;max-width:44ch;height:3em;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.mri-herogreet{font:600 11px "Archivo",sans-serif;letter-spacing:.04em;color:#7d7979;margin-bottom:10px}
+.mri-herolive{max-width:44ch;margin:0 0 24px;min-height:26px}
+.mri-herobar{height:4px;background:#ded9d9;overflow:hidden}
+.mri-herobar>span{display:block;height:100%;background:#201e1d}
+.mri-herolivemeta{display:flex;align-items:baseline;gap:16px;margin-top:8px;font:600 10px "Archivo",sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#7d7979}
+.mri-herolivemeta>span:first-child{flex:none}
+.mri-heroup{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}
 .mri-herostats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px 32px;margin-bottom:30px}
 .mri-herostats>div{min-width:0}
 .mri-herostats>div>div:last-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -90,14 +116,15 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #ec30
 
   .mri-herostats{grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:14px 22px !important}
 
-  /* Stacked hero flows kicker -> title -> blurb -> cover -> stats.
-     The cover is moved inline (mri-heroart-m) so it sits with the
-     text it describes; the desktop right-column cover is dropped.
-     Drop the fixed-height title reservation too: with vertical
-     flow there is nothing below it that must stay put. */
-  .mri-herohead{height:auto !important;display:block !important}
-  .mri-herohead h1{display:block !important;-webkit-line-clamp:unset !important}
-  .mri-heroblurb{height:auto !important;display:block !important;-webkit-line-clamp:unset !important;margin:8px 0 0 !important}
+  /* Stacked hero flows greeting -> kicker -> title -> blurb -> bar
+     -> cover -> stats. The cover moves inline (mri-heroart-m) so it
+     sits with the text it describes; the desktop right-column cover
+     is dropped. Drop the fixed-height title reservation too: with
+     vertical flow there is nothing below it that must stay put. */
+  .mri-herohead{height:auto !important;padding-bottom:0 !important;display:block !important;overflow:visible !important}
+  .mri-herohead h1{display:block !important;-webkit-line-clamp:unset !important;overflow:visible !important}
+  .mri-heroblurb{height:auto !important;display:block !important;-webkit-line-clamp:unset !important;overflow:visible !important;margin:8px 0 0 !important}
+  .mri-herolive{margin:16px 0 0 !important}
   .mri-heroart{display:none !important}
   .mri-heroart-m{display:block;width:100%;max-width:min(86vw,340px);aspect-ratio:1;margin:18px auto 22px;background-size:cover;background-position:center;background-color:#eae9e9;border:1px solid #d7d3d3}
 
@@ -136,7 +163,7 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #ec30
    Mobile Now-Playing player. Rendered only at bp:sm. One node,
    two states via [data-exp]: a 60px mini bar, or a full-screen
    sheet. The .mp-body wrapper (which holds the single, persistent
-   Mixcloud <iframe>) is never display:none — collapsed it is
+   Mixcloud <iframe>) is never display:none. Collapsed, it is
    clipped to nothing so audio keeps running without a reload.
    ============================================================ */
 .mri-mp{position:fixed;left:0;right:0;bottom:0;z-index:75;background:#f3f2f2;border-top:2px solid #201e1d;color:#201e1d}
@@ -174,6 +201,7 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #ec30
 .mp-title{font-weight:800;font-size:clamp(22px,6.4vw,30px);line-height:1.08;letter-spacing:-.03em;margin:0 0 10px;overflow-wrap:anywhere}
 .mp-dj{font-weight:500;font-size:14px;color:#444141}
 .mp-dj strong{font-weight:700;color:#201e1d}
+.mp-next{font-weight:600;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#7d7979;margin-top:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mp-scrub{border-top:2px solid #201e1d;padding-top:16px}
 .mp-radio{display:flex;align-items:center;gap:10px;width:100%;border:1px solid #201e1d;background:none;color:#201e1d;padding:14px 16px;font-weight:600;font-size:11px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
 .mp-radio[data-on="1"]{background:#201e1d;color:#f3f2f2}
@@ -226,9 +254,9 @@ class Component extends React.Component {
     {id:'hiphop', label:'Hip Hop & Rap', tags:['hip hop','hip-hop','hiphop','rap','boom bap','boombap','old school hip hop','underground hip hop','g-funk','g funk','west coast hip hop','east coast hip hop','instrumental hip hop','turntablism','trap','conscious hip hop','90s hip hop','golden era','scratch']},
     {id:'funk', label:'Funk, Soul & Disco', tags:['funk','soul','r&b','rnb','r and b','disco','nu disco','motown','northern soul','boogie','rare groove','neo soul','soul funk','funk soul','1970s','1980s','70s','80s soul']},
     {id:'afro', label:'Indian Classical & World', tags:['indian classical','carnatic','hindustani','raga','raag','sitar','tabla','sarod','bansuri','classical indian','desi','bhangra','bollywood','sufi','qawwali','folk','afrobeat','afrobeats','afro house','afro','afrofunk','world','world music','latin','cumbia','reggaeton','salsa','arabic','balkan','ethiopian','ethio jazz','highlife','tropical','global bass','fusion']},
-    {id:'house', label:'House & Techno', tags:['house','techno','deep house','tech house','minimal','minimal techno','electro','edm','dance','acid','acid house','disco house','progressive house','electronica','electronic','melodic techno','dub techno','dubtechno','italo','detroit techno']},
-    {id:'psy', label:'Psy & Ambient', tags:['psychill','psy chill','psydub','psy dub','psybient','psytrance','psy trance','goa','goa trance','ambient','ambient dub','chillgressive','forest psy','organic house','ethnic ambient','dark psy','downtempo psy']},
-    {id:'reggae', label:'Reggae & Dub', tags:['reggae','dub','dancehall','ska','roots reggae','rocksteady','riddim','dub reggae','steppers','lovers rock','ragga','reggae roots','uk dub','sound system']},
+    {id:'house', label:'Techno', tags:['house','techno','deep house','tech house','minimal','minimal techno','electro','edm','dance','acid','acid house','disco house','progressive house','electronica','electronic','melodic techno','dub techno','dubtechno','italo','detroit techno']},
+    {id:'psy', label:'Psychedelic', tags:['psychill','psy chill','psydub','psy dub','psybient','psytrance','psy trance','goa','goa trance','ambient','ambient dub','chillgressive','forest psy','organic house','ethnic ambient','dark psy','downtempo psy']},
+    {id:'reggae', label:'Dub & Reggae', tags:['reggae','dub','dancehall','ska','roots reggae','rocksteady','riddim','dub reggae','steppers','lovers rock','ragga','reggae roots','uk dub','sound system']},
     {id:'chill', label:'Downtempo & Chill', tags:['lofi','lo-fi','lo fi','chillout','chill','chill out','downtempo','trip hop','triphop','jazz hop','beats','lounge','balearic']},
     {id:'jazz', label:'Jazz & Blues', tags:['jazz','blues','bossa nova','bossa','latin jazz','swing','soul jazz','spiritual jazz','free jazz','jazz funk','nu jazz','afro jazz']},
     {id:'rock', label:'Rock & Alternative', tags:['rock','indie','punk','surf rock','psychedelic rock','metal','garage rock','post punk','alternative','new wave','shoegaze','grunge','classic rock','indie rock','post rock']},
@@ -274,7 +302,10 @@ class Component extends React.Component {
     items: [], indexing: false, view: 'home', query: '', genre: null, mood: null, dj: null,
     sort: 'latest', limit: 48, detailKey: null, descs: {}, nowKey: null, radio: true, tab: 'favs',
     favs: [], queue: [], history: [], shared: false, bp: 'lg', menuOpen: false,
-    paused: false, playerExpanded: false, toast: '', heroIdx: 0
+    paused: false, playerExpanded: false, toast: '', heroIdx: 0,
+    // Auto-generated station lineup, kept topped up to 3 at all times.
+    // Ephemeral: never written to prefs, unlike the user's `queue`.
+    upNext: []
   };
 
   // One of the four colourways, picked once per load for the Station page.
@@ -366,6 +397,7 @@ class Component extends React.Component {
     window.addEventListener('resize', this._onResize);
     this._timers = [setTimeout(this._onResize, 250), setTimeout(this._onResize, 1000)];
     const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    this._reduced = !!reduced;
     if (!reduced) {
       this._heroRotate = setInterval(() => {
         if (this._heroPaused || document.hidden || this.state.view !== 'home' || this.state.detailKey) return;
@@ -494,6 +526,13 @@ class Component extends React.Component {
     return Math.round(d / 365) + 'y ago';
   }
   fmtNum(n) { return n >= 1000 ? (n / 1000).toFixed(1).replace('.0', '') + 'k' : String(n || 0); }
+  // Compact form for the big stat tiles: 8,500 / 342k / 1.2M.
+  fmtBig(n) {
+    n = Math.round(n || 0);
+    if (n >= 1e6) return (n / 1e6).toFixed(n >= 1e7 ? 0 : 1).replace(/\.0$/, '') + 'M';
+    if (n >= 1e4) return Math.round(n / 1e3) + 'k';
+    return n.toLocaleString('en-US');
+  }
 
   card(m) {
     return {key: m.key, name: m.name, dj: m.dj, pic: m.pic, bg: 'url(' + m.pic + ')',
@@ -520,18 +559,59 @@ class Component extends React.Component {
     return d.getFullYear() * 366 + d.getMonth() * 31 + d.getDate();
   }
 
-  // The hero rotates through a small curated deck instead of only the newest
-  // upload: newest, a recent crowd favourite, a "this week years ago" vault pull,
-  // and a long player. Order is deterministic so rotation is the only movement.
+  // A short line above the kicker, keyed to the local hour and weekday.
+  heroGreeting() {
+    const d = new Date(), h = d.getHours(), day = d.getDay();
+    if (day === 0) return 'Sunday slowdown';
+    if (day === 6) return 'Weekend session';
+    if (h < 5) return 'Late shift';
+    if (h < 11) return 'Morning warm-up';
+    if (h < 16) return 'Afternoon rinse';
+    if (h < 20) return 'Evening set';
+    return 'After dark';
+  }
+
+  // A small palette nudge: the pulse dot runs brighter by day, deeper after dark.
+  heroPulse() {
+    const h = new Date().getHours();
+    if (h >= 21 || h < 5) return '#ae1800';
+    if (h >= 18) return '#d0300f';
+    return '#ec3013';
+  }
+
+  // The hero rotates through a small curated deck. A returning listener
+  // (any saved show or listen history) leads with a personal pick; a
+  // first-time visitor leads with the newest upload. The rest of the
+  // deck is newest, a recent crowd favourite, and a "this week years
+  // ago" vault pull. Order is deterministic so rotation is the only
+  // movement.
   heroDeck() {
-    const items = this.state.items;
+    const s = this.state;
+    const items = s.items;
     if (!items.length) return [];
     const clean = t => t && this.STOP.indexOf(t) < 0;
     const topTag = m => { const t = (m.tags || []).find(clean); return t ? t.replace(/\b\w/g, c => c.toUpperCase()) : ''; };
     const mins = m => Math.max(1, Math.round(m.len / 60));
     const named = m => m && !/^monkey radio india$/i.test(m.dj || '');
+    const byKey = k => items.find(m => m.key === k);
     const out = [], seen = {};
     const add = (m, kicker, blurb) => { if (m && !seen[m.key]) { seen[m.key] = 1; out.push({m, kicker, blurb}); } };
+
+    // Returning listener: open with something personal.
+    if (s.history && s.history.length) {
+      const last = byKey(s.history[0]);
+      if (last) add(last, 'Where you left off',
+        'Back to your last play' + (named(last) ? ' · ' + last.dj : ''));
+    } else if (s.favs && s.favs.length) {
+      const fav = byKey(s.favs[0]);
+      if (fav) {
+        const favTags = (fav.tags || []).filter(clean);
+        const match = items.find(m => m.key !== fav.key && (m.tags || []).some(t => clean(t) && favTags.indexOf(t) >= 0));
+        const pick = match || fav;
+        add(pick, named(fav) ? 'More like ' + fav.dj : 'From your saves',
+          match ? (topTag(pick) ? topTag(pick) + ' · close to your saves' : 'Close to your saves') : 'Saved by you');
+      }
+    }
 
     const fresh = items[0];
     if (fresh) {
@@ -550,7 +630,7 @@ class Component extends React.Component {
       .sort((a, b) => new Date(a.created) - new Date(b.created))[0]
       || items.slice().sort((a, b) => b.plays - a.plays)[0];
     if (vault) add(vault, 'From the vault',
-      'Aired ' + new Date(vault.created).getFullYear() + (named(vault) ? ' · ' + vault.dj : '') + ' — pulled back up');
+      'Aired ' + new Date(vault.created).getFullYear() + (named(vault) ? ' · ' + vault.dj : '') + ', back on rotation');
 
     const longs = items.filter(m => m.len > 7000);
     if (longs.length) {
@@ -559,7 +639,7 @@ class Component extends React.Component {
         (Math.round(lp.len / 360) / 10) + ' hours deep' + (named(lp) ? ' · ' + lp.dj : ''));
     }
 
-    return out.slice(0, 5);
+    return out.slice(0, 4);
   }
   // Broad catch-all tags: they hint at a genre but must not, on their own,
   // outweigh a specific tag (e.g. an "electronic" tag on a drum & bass mix).
@@ -628,17 +708,44 @@ class Component extends React.Component {
     const m = this.byKey(key);
     if (!m) return;
     const hist = [key].concat(this.state.history.filter(h => h !== key)).slice(0, 40);
-    this.setState({nowKey: key, detailKey: null, paused: false});
+    this.setState({nowKey: key, detailKey: null, paused: false, upNext: this.buildUpNext(key, 3)});
     this.savePrefs({history: hist});
+  }
+
+  // The pool the station plays through: the active browse result when a
+  // filter narrows things, otherwise the whole archive in the current sort.
+  stationPool() {
+    const f = this.filtered();
+    return f.length > 3 ? f : this.state.items;
+  }
+
+  // The next `count` shows after `anchor` in station order, wrapping past
+  // the end so the lineup never runs out. Skips the anchor, the show on
+  // air, and anything already in the manual queue, so nothing double-books.
+  buildUpNext(anchor, count) {
+    const pool = this.stationPool();
+    if (!pool.length) return [];
+    const s = this.state;
+    const skip = {};
+    [anchor, s.nowKey].concat(s.queue || []).forEach(k => { if (k) skip[k] = 1; });
+    const start = Math.max(0, pool.findIndex(m => m.key === anchor));
+    const out = [];
+    for (let step = 1; step <= pool.length && out.length < count; step++) {
+      const cand = pool[(start + step) % pool.length];
+      if (!cand || skip[cand.key]) continue;
+      skip[cand.key] = 1;
+      out.push(cand.key);
+    }
+    return out;
   }
 
   nextKey() {
     const s = this.state;
     if (s.queue.length) return s.queue[0];
-    const f = this.filtered();
-    const pool = f.length > 3 ? f : s.items;
+    if (s.upNext && s.upNext.length) return s.upNext[0];
+    const pool = this.stationPool();
     const i = pool.findIndex(m => m.key === s.nowKey);
-    if (i >= 0 && pool[i + 1]) return pool[i + 1].key;
+    if (i >= 0 && pool[(i + 1) % pool.length]) return pool[(i + 1) % pool.length].key;
     return pool.length ? pool[Math.floor(Math.random() * pool.length)].key : null;
   }
 
@@ -653,13 +760,28 @@ class Component extends React.Component {
         try {
           w.events.pause.on(() => this.setState({ paused: true }));
           w.events.play.on(() => this.setState({ paused: false }));
+          // Real playback position, straight from the widget. Drives the
+          // hero "on air" bar, but only while that show is the featured
+          // one on the home screen.
+          w.events.progress.on((position) => {
+            this._wpos = position;
+            const s = this.state;
+            if (s.view === 'home' && !document.hidden && s.nowKey) this.forceUpdate();
+          });
         } catch (e) {}
         w.events.ended.on(() => {
           if (!this.state.radio) return;
-          const q = this.state.queue.slice();
-          const k = q.length ? q.shift() : this.nextKey();
-          if (q.length !== this.state.queue.length) this.savePrefs({queue: q});
-          if (k) this.play(k);
+          const s = this.state;
+          let k = null;
+          if (s.queue.length) {
+            const q = s.queue.slice(); k = q.shift();
+            this.savePrefs({queue: q});
+          } else if (s.upNext && s.upNext.length) {
+            k = s.upNext[0];
+          } else {
+            k = this.nextKey();
+          }
+          if (k) this.play(k);   // play() tops the lineup back up to 3
         });
       });
     } catch (e) {}
@@ -672,6 +794,14 @@ class Component extends React.Component {
       this._pendingShowSlug = null;
       if (key) this.setState({detailKey: key});
     }
+    // Seed the station lineup as soon as the archive is available, so a
+    // "next" show is lined up before the first play. Only sets state when
+    // it can produce a non-empty lineup, so it can't loop.
+    if (this.state.items.length && !this.state.upNext.length) {
+      const anchor = this.state.nowKey || this.state.items[0].key;
+      const seed = this.buildUpNext(anchor, 3);
+      if (seed.length) this.setState({upNext: seed});
+    }
     this.syncUrl();
   }
 
@@ -682,6 +812,23 @@ class Component extends React.Component {
     const heroPos = heroDeck.length ? ((s.heroIdx % heroDeck.length) + heroDeck.length) % heroDeck.length : 0;
     const feat = heroDeck[heroPos] || null;
     const hero = feat ? feat.m : null;
+    // The station lineup: the manual queue first, then the auto-filled
+    // upNext, minus whatever is on air. There is always a next show.
+    const lineup = (s.queue || []).concat(s.upNext || []).filter(k => k && k !== s.nowKey);
+    const upNextItem = lineup.length ? this.byKey(lineup[0]) : null;
+    const upNextName = upNextItem ? upNextItem.name : '';
+    // "On air" bar: real playback only. Shown with a fill + "Next" while
+    // the featured show is the one loaded in the dock player; otherwise
+    // the block just states the runtime, no fill.
+    const heroOnAir = !!(hero && s.nowKey && hero.key === s.nowKey);
+    const heroRuntime = hero && hero.len > 0 ? this.fmtLen(hero.len) : '';
+    let heroProgPct = '0%', heroElapsed = '', heroUpNext = '';
+    if (heroOnAir && hero.len > 0) {
+      const pos = Math.max(0, Math.min(this._wpos || 0, hero.len));
+      heroProgPct = (Math.round((pos / hero.len) * 1000) / 10) + '%';
+      heroElapsed = this.fmtLen(Math.floor(pos));
+      heroUpNext = upNextName ? 'Next: ' + upNextName : '';
+    }
     const shelves = [];
     if (items.length) {
       shelves.push({id: 'latest', title: 'Latest shows', sub: 'Newest first', items: items.slice(0, 14).map(m => this.card(m))});
@@ -712,8 +859,11 @@ class Component extends React.Component {
       ? {border: '#201e1d', bg: '#201e1d', fg: '#f3f2f2'}
       : {border: '#d7d3d3', bg: 'transparent', fg: '#201e1d'};
     const genreChips = this.GENRES.map(g => Object.assign({id: g.id, label: g.label,
-      count: items.filter(m => this.inGenre(m, g.id)).length}, chip(s.genre === g.id)));
-    const moodChips = this.MOODS.map(mo => Object.assign({id: mo.id, label: mo.label}, chip(s.mood === mo.id)));
+      count: items.filter(m => this.inGenre(m, g.id)).length}, chip(s.genre === g.id)))
+      .filter(g => g.count > 0 || s.genre === g.id);
+    const moodChips = this.MOODS.map(mo => Object.assign({id: mo.id, label: mo.label,
+      count: items.filter(m => this.inMood(m, mo.id)).length}, chip(s.mood === mo.id)))
+      .filter(mo => mo.count > 0 || s.mood === mo.id);
 
     const list = this.filtered();
     const detail = s.detailKey ? this.byKey(s.detailKey) : null;
@@ -728,7 +878,7 @@ class Component extends React.Component {
     const navOn = v => s.view === v ? '#201e1d' : '#7d7979';
     const navBar = v => s.view === v ? '#ec3013' : 'transparent';
     const related = detail ? items.filter(m => m.key !== detail.key && m.tags.some(t => this.STOP.indexOf(t) < 0 && detail.tags.includes(t))).slice(0, 12).map(m => this.card(m)) : [];
-    const heroTags = hero ? hero.tags.filter(t => this.STOP.indexOf(t) < 0).slice(0, 3).join(', ') : '';
+    const heroTags = hero ? hero.tags.filter(t => this.STOP.indexOf(t) < 0).slice(0, 2).join(', ') : '';
 
     return {
       indexing: s.indexing, loadedCount: items.length,
@@ -755,6 +905,9 @@ class Component extends React.Component {
       aboutLogo2x: 'assets/logos/monkey-' + this.aboutLogo + '@2x.png',
       query: s.query, moods: this.MOODS, shelves,
       searchHint: 'Search ' + (items.length || '974') + ' shows',
+      heroGreeting: this.heroGreeting(),
+      heroPulse: this.heroPulse(),
+      heroOnAir, heroProgPct, heroElapsed, heroRuntime, heroUpNext,
       heroKicker: feat ? feat.kicker : 'Latest transmission',
       heroBlurb: feat ? feat.blurb : '',
       heroTitle: hero ? hero.name : 'Loading the archive',
@@ -773,6 +926,7 @@ class Component extends React.Component {
       heroSaveColor: hero && isFav(hero.key) ? '#ec3013' : '#201e1d',
       totalShows: items.length || '0',
       totalHours: items.length ? Math.round(items.reduce((a, m) => a + m.len, 0) / 3600) : '0',
+      totalPlays: items.length ? this.fmtBig(items.reduce((a, m) => a + (m.plays || 0), 0)) : '0',
       djCount: djs.length || '0', djs, unattributed,
       browseTitle: s.dj ? s.dj : s.query ? 'Results for "' + s.query + '"' : s.genre ? (this.GENRES.find(g => g.id === s.genre) || {}).label : s.mood ? (this.MOODS.find(m => m.id === s.mood) || {}).label : 'Full archive',
       browseCount: list.length, sortLabel, genreChips, moodChips,
@@ -801,6 +955,7 @@ class Component extends React.Component {
       }) : {},
       playerSrc: now ? 'https://player-widget.mixcloud.com/widget/iframe/?hide_cover=1&light=1&autoplay=1&feed=' + encodeURIComponent(now.url.replace('https://www.mixcloud.com', '')) : '',
       playerRef: (el) => { this._iframe = el; this.bindWidget(); },
+      upNextName,
       radioState: s.radio ? 'on' : 'off',
       radioBg: s.radio ? '#201e1d' : 'transparent',
       radioFg: s.radio ? '#f3f2f2' : '#201e1d',
@@ -970,12 +1125,22 @@ class Component extends React.Component {
             <section>
               <div className="mri-hero" onMouseEnter={v.heroHold} onMouseLeave={v.heroRelease} style={css("display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:clamp(26px,4vw,56px);padding:clamp(28px,4vw,46px) 0 clamp(26px,3.4vw,40px);border-bottom:2px solid #201e1d;align-items:start")}>
                 <div className="mri-herotext">
+                  {v.heroGreeting ? <div className="mri-herogreet">{v.heroGreeting}</div> : null}
                   <div style={css("display:flex;align-items:center;gap:9px;margin-bottom:22px")}>
-                    <span style={css("width:9px;height:9px;background:#ec3013;display:block;animation:mri-blink 1.8s steps(1,end) infinite")}></span>
-                    <span style={css("font:600 11px 'Archivo',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#ae1800")}>{v.heroKicker}</span>
+                    <span style={st("width:9px;height:9px;flex:none;display:block;animation:mri-blink 1.8s steps(1,end) infinite", {background: v.heroPulse})}></span>
+                    <span style={css("font:600 11px/1 'Archivo',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#ae1800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0")}>{v.heroKicker}</span>
                   </div>
                   <div className="mri-herohead"><h1>{v.heroTitle}</h1></div>
                   <p className="mri-heroblurb">{v.heroBlurb}</p>
+                  {v.heroRuntime ? (
+                    <div className="mri-herolive" aria-hidden={v.heroOnAir ? undefined : "true"}>
+                      {v.heroOnAir ? <div className="mri-herobar"><span style={{width: v.heroProgPct}}></span></div> : null}
+                      <div className="mri-herolivemeta">
+                        <span>{v.heroOnAir ? v.heroElapsed + ' / ' + v.heroRuntime : v.heroRuntime + ' runtime'}</span>
+                        {v.heroOnAir && v.heroUpNext ? <span className="mri-heroup">{v.heroUpNext}</span> : null}
+                      </div>
+                    </div>
+                  ) : null}
                   <div className="mri-heroart-m" role="img" aria-label="Album art" style={{backgroundImage: v.heroBg}}></div>
                   <div className="mri-herostats">
                     <div><div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#7d7979;margin-bottom:5px")}>Selector</div><div style={css("font:600 15px 'Archivo',sans-serif")}>{v.heroDj}</div></div>
@@ -1014,7 +1179,7 @@ class Component extends React.Component {
                 <div style={css("padding:24px 24px 24px 0")}><div style={css("font-weight:800;font-size:clamp(28px,4vw,38px);letter-spacing:-.04em;line-height:1")}>{v.totalShows}</div><div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#7d7979;margin-top:6px")}>Shows archived</div></div>
                 <div style={css("padding:24px;border-left:1px solid #d7d3d3")}><div style={css("font-weight:800;font-size:clamp(28px,4vw,38px);letter-spacing:-.04em;line-height:1")}>{v.totalHours}</div><div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#7d7979;margin-top:6px")}>Hours of tape</div></div>
                 <div style={css("padding:24px;border-left:1px solid #d7d3d3")}><div style={css("font-weight:800;font-size:clamp(28px,4vw,38px);letter-spacing:-.04em;line-height:1")}>{v.djCount}</div><div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#7d7979;margin-top:6px")}>Selectors</div></div>
-                <div style={css("padding:24px;border-left:1px solid #d7d3d3")}><div style={css("font-weight:800;font-size:clamp(28px,4vw,38px);letter-spacing:-.04em;line-height:1")}>2,704</div><div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#7d7979;margin-top:6px")}>Followers</div></div>
+                <div style={css("padding:24px;border-left:1px solid #d7d3d3")}><div style={css("font-weight:800;font-size:clamp(28px,4vw,38px);letter-spacing:-.04em;line-height:1")}>{v.totalPlays}</div><div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#7d7979;margin-top:6px")}>Plays all time</div></div>
               </div>
 
               <div className="mri-moodbar" style={css("display:flex;align-items:center;flex-wrap:wrap;gap:0;border-bottom:1px solid #d7d3d3;padding:16px 0")}>
@@ -1306,6 +1471,7 @@ class Component extends React.Component {
                 <div className="mp-when">{v.now.when} / Monkey Radio India</div>
                 <h2 className="mp-title">{v.now.name}</h2>
                 <div className="mp-dj">Selected by <strong>{v.now.dj}</strong></div>
+                {v.upNextName ? <div className="mp-next">Up next &middot; {v.upNextName}</div> : null}
               </div>
               <div className="mp-scrub">
                 <iframe ref={v.playerRef} title="Mixcloud player" src={v.playerSrc} width="100%" height="60" frameBorder="0" allow="autoplay" style={css("display:block;border:0")}></iframe>
@@ -1360,6 +1526,7 @@ class Component extends React.Component {
               <div className="mri-nowmeta" style={css("min-width:140px;max-width:250px")}>
                 <div style={css("font:600 13px 'Archivo',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis")}>{v.now.name}</div>
                 <div style={css("font:500 10px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#7d7979;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis")}>{v.now.dj}</div>
+                {v.upNextName ? <div style={css("font:600 9.5px 'Archivo',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#a8a4a4;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis")}>Next &middot; {v.upNextName}</div> : null}
               </div>
               <div style={css("flex:1;min-width:240px")}>
                 <iframe ref={v.playerRef} title="Mixcloud player" src={v.playerSrc} width="100%" height="60" frameBorder="0" allow="autoplay" style={css("display:block;border:0")}></iframe>

@@ -73,7 +73,10 @@ const OVERRIDES = [
   [/100,?000 vibrations/i, 'Dakta Dub'],
   [/october hip hop mix feat lady rappers/i, 'Dj Def Hawk'],
   [/strictly hip hop mix/i, 'Dj Def Hawk'],
-  [/summer hip hop & rnb mix/i, 'Dj Def Hawk']
+  [/summer hip hop & rnb mix/i, 'Dj Def Hawk'],
+  [/presents a day in the sun/i, 'Naz & Schlopan'],
+  [/\{diwali special\}/i, 'Dakta Dub'],
+  [/monkey sound system ft raayal dub/i, 'Raayal Dub']
 ];
 
 // The text before a "presents"/"feat"/"showcase" keyword is the station or

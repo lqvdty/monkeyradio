@@ -551,7 +551,11 @@ class Component extends React.Component {
     [/summer hip hop & rnb mix/i, 'Dj Def Hawk'],
     [/presents a day in the sun/i, 'Naz & Schlopan'],
     [/\{diwali special\}/i, 'Dakta Dub'],
-    [/monkey sound system ft raayal dub/i, 'Raayal Dub']
+    [/monkey sound system ft raayal dub/i, 'Raayal Dub'],
+    [/presents the evolution of dub/i, 'The Evolution of Dub'],
+    [/indiearth's 2013 wrapup/i, 'Dakta Dub'],
+    [/4th anniversary mix/i, 'Dakta Dub'],
+    [/one year anniversary/i, 'Dakta Dub']
   ];
 
   djFrom(raw) {

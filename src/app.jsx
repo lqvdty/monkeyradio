@@ -121,20 +121,30 @@ function ArtBg(props) {
 
 class Component extends React.Component {
   // Show/DJ/station branding tags, never treated as genres.
-  STOP = ['monkey radio india','monkeyradioindia','monkey radio','hyderabad','india','daktadub','dakta dub','dakta-dub','roots unwired','dub vibration','mr nobody','mrnobody','tune inn','souls of sound','psylenz','selekta chakkra','music manthan','disco freak','bass sanskriti','hyderabad underground movement','dj amul','dj def hawk','radio','radio show','mix','dj mix','podcast','live','guest mix','india radio','underground'];
+  STOP = ['monkey radio india','monkeyradioindia','monkey radio','hyderabad','india','daktadub','dakta dub','dakta-dub','roots unwired','dub vibration','mr nobody','mrnobody','tune inn','souls of sound','psylenz','selekta chakkra','music manthan','disco freak','bass sanskriti','hyderabad underground movement','dj amul','dj def hawk','funk assassin','monkey sound system','radio','radio show','mix','dj mix','podcast','live','guest mix','india radio','underground'];
   GENRES = [
     {id:'hiphop', label:'Hip Hop & Rap', tags:['hip hop','hip-hop','hiphop','rap','boom bap','boombap','old school hip hop','underground hip hop','g-funk','g funk','west coast hip hop','east coast hip hop','instrumental hip hop','turntablism','trap','conscious hip hop','90s hip hop','golden era','scratch']},
     {id:'funk', label:'Funk, Soul & Disco', tags:['funk','soul','r&b','rnb','r and b','disco','nu disco','motown','northern soul','boogie','rare groove','neo soul','soul funk','funk soul','1970s','1980s','70s','80s soul']},
     {id:'afro', label:'Indian Classical & World', tags:['indian classical','carnatic','hindustani','raga','raag','sitar','tabla','sarod','bansuri','classical indian','desi','bhangra','bollywood','sufi','qawwali','folk','afrobeat','afrobeats','afro house','afro','afrofunk','world','world music','latin','cumbia','reggaeton','salsa','arabic','balkan','ethiopian','ethio jazz','highlife','tropical','global bass','fusion']},
     {id:'house', label:'Techno', tags:['house','techno','deep house','tech house','minimal','minimal techno','electro','edm','dance','acid','acid house','disco house','progressive house','electronica','electronic','melodic techno','dub techno','dubtechno','italo','detroit techno']},
-    {id:'psy', label:'Psychedelic', tags:['psychill','psy chill','psydub','psy dub','psybient','psytrance','psy trance','goa','goa trance','ambient','ambient dub','chillgressive','forest psy','organic house','ethnic ambient','dark psy','downtempo psy']},
+    {id:'psy', label:'Psychedelic', tags:['psychill','psy chill','psydub','psy dub','psybient','psytrance','psy trance','goa','goa trance','ambient','ambient dub','chillgressive','forest psy','organic house','ethnic ambient','dark psy','downtempo psy','indie','psychedelic','psychedelia','pszichedelia','psyamb','psy amb','psybass','psystep','psy glitchstep']},
     {id:'reggae', label:'Dub & Reggae', tags:['reggae','dub','dancehall','ska','roots reggae','rocksteady','riddim','dub reggae','steppers','lovers rock','ragga','reggae roots','uk dub','sound system']},
     {id:'chill', label:'Downtempo & Chill', tags:['lofi','lo-fi','lo fi','chillout','chill','chill out','downtempo','trip hop','triphop','jazz hop','beats','lounge','balearic']},
     {id:'jazz', label:'Jazz & Blues', tags:['jazz','blues','bossa nova','bossa','latin jazz','swing','soul jazz','spiritual jazz','free jazz','jazz funk','nu jazz','afro jazz']},
-    {id:'rock', label:'Rock & Alternative', tags:['rock','indie','punk','surf rock','psychedelic rock','metal','garage rock','post punk','alternative','new wave','shoegaze','grunge','classic rock','indie rock','post rock']},
     {id:'bass', label:'Jungle, D&B & Bass', tags:['drum and bass','drum & bass','drum n bass','dnb','d&b','jungle','breakbeat','breaks','garage','uk garage','dubstep','bass','bass music','grime','footwork','halftime','neurofunk']},
+    {id:'experimental', label:'Experimental', tags:['experimental','experimental ambient','experimental electronic','experimental dub','drone','dark ambient','idm','glitch','musique concrete','avant-garde','avant garde','leftfield','noise','abstract','field recording','field recordings','sound art','sound collage','plunderphonics','tape music','microsound','chidakasha','transmission','transmissions','swatantram','by velugu']},
     {id:'vinyl', label:'Vinyl Only', tags:['vinyl only','vinyl','all vinyl','45s','7 inch','vinyl mix','vinyl set','wax']},
     {id:'pop', label:'Pop & Classics', tags:['pop','90s','classics','oldies','retro','1990s','throwback','mashup','party','synthpop','city pop','80s pop']}
+  ];
+  // One-off shows the tag-scoring in primaryGenre() gets wrong (missing tag
+  // vocabulary, or a genuine tie the score can't break). Title pattern ->
+  // genre id; checked before scoring. First match wins.
+  GENRE_OVERRIDES = [
+    [/indiearth\s*-\s*monkey radio india\s*-\s*cloudcast\s*-\s*march 2014/i, 'afro'],
+    [/5th anniversary.*showcase\s*-\s*papa 31\.10\.2017/i, 'psy'],
+    [/^disco freak 14\.01\.2013$/i, 'funk'],
+    [/^09-06-2014__disco freak feat amul/i, 'funk'],
+    [/\bmalz\b/i, 'bass']
   ];
   MOODS = [
     {id:'latenight', label:'Late night', tags:['deep house','techno','downtempo','ambient','dub','trip hop','triphop','minimal','lofi','psydub','dub techno','underground hip hop','melodic techno']},
@@ -1002,7 +1012,9 @@ class Component extends React.Component {
     if (!this._pgMap) this._pgMap = new WeakMap();
     if (this._pgMap.has(m)) return this._pgMap.get(m);
     let best = null, bestSc = 0.5;
-    this.GENRES.forEach(g => {
+    const ov = this.GENRE_OVERRIDES.find(([re]) => re.test(m.name || ''));
+    if (ov) best = ov[1];
+    else this.GENRES.forEach(g => {
       const sc = this.genreScore(m, g);
       if (sc > bestSc) { bestSc = sc; best = g.id; }
     });

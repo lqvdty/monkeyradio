@@ -451,6 +451,18 @@ class Component extends React.Component {
     const k = this.smartPick(this.state.items);
     if (k) this.play(k);
   }
+  // Ref for the ambient backdrop mount node. A stable per-instance arrow, so
+  // React calls it exactly twice - once with the node when ambient mode
+  // opens, once with null when it closes - and never on the once-a-second
+  // progress re-renders in between. The ShaderGradient bundle (assets/
+  // shader-bg.js) is loaded lazily on that first call.
+  ambientShaderRef = (el) => {
+    // Parked for the backdrop module to pick up if it is still loading.
+    window.__mriShaderEl = el || null;
+    if (!window.MRIShaderBG) return;
+    if (el) window.MRIShaderBG.mount(el);
+    else window.MRIShaderBG.unmount();
+  };
 
   savePrefs(patch) {
     const next = {favs: this.state.favs, queue: this.state.queue, history: this.state.history, ...patch};
@@ -1682,6 +1694,7 @@ class Component extends React.Component {
       enterAmbient: () => this.enterAmbient(),
       exitAmbient: () => this.exitAmbient(),
       ambientTapStart: () => this.ambientTapStart(),
+      ambientShaderRef: this.ambientShaderRef,
 
       goHome: () => this.setState({view: 'home', genre: null, mood: null, dj: null, query: '', detailKey: null}),
       goSubmit: () => { this._scrollTo = 'mri-submit'; this.setState({view: 'about', menuOpen: false, genre: null, mood: null, dj: null, query: '', detailKey: null}); },
@@ -1812,36 +1825,52 @@ class Component extends React.Component {
             whole time, so entering/leaving never touches playback. */}
         {v.ambient && (
           <div role="dialog" aria-label="Ambient mode" style={css("position:fixed;inset:0;z-index:400;background:#201e1d;color:#f3f2f2;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;overflow:hidden;padding:32px")}>
-            <div aria-hidden="true" style={css("position:absolute;right:-40px;bottom:-40px;width:min(70vw,520px);aspect-ratio:460/421;opacity:.07;pointer-events:none;background:center/contain no-repeat " + SOUND_SYSTEM_BG)}></div>
+            {/* Live ShaderGradient backdrop. Fills the overlay; the solid
+                #201e1d above is the fallback while the (lazily loaded) WebGL
+                bundle boots or if it fails. Mounted / torn down by
+                ambientShaderRef -> window.MRIShaderBG (assets/shader-bg.js). */}
+            <div ref={v.ambientShaderRef} aria-hidden="true" style={css("position:absolute;inset:0;z-index:0;pointer-events:none")}></div>
+            {/* Darkening wash so foreground text stays legible over the
+                gradient's bright orange lobe. */}
+            <div aria-hidden="true" style={css("position:absolute;inset:0;z-index:0;pointer-events:none;background:linear-gradient(180deg,rgba(32,30,29,.28),rgba(32,30,29,.55))")}></div>
 
-            <button onClick={v.exitAmbient} aria-label="Exit ambient mode" style={css("position:absolute;top:20px;right:20px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;background:none;border:1px solid rgba(243,242,242,.4);color:#f3f2f2;border-radius:0;cursor:pointer;opacity:.65")}>
+            <div aria-hidden="true" style={css("position:absolute;right:-40px;bottom:-40px;z-index:1;width:min(70vw,520px);aspect-ratio:460/421;opacity:.12;pointer-events:none;background:center/contain no-repeat " + SOUND_SYSTEM_BG)}></div>
+
+            <button onClick={v.exitAmbient} aria-label="Exit ambient mode" style={css("position:absolute;top:20px;right:20px;z-index:3;width:38px;height:38px;display:flex;align-items:center;justify-content:center;background:rgba(32,30,29,.35);border:1px solid rgba(243,242,242,.4);color:#f3f2f2;border-radius:0;cursor:pointer;opacity:.8")}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block")}><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
             </button>
 
-            <div style={css("position:absolute;left:20px;bottom:20px;display:flex;align-items:center;gap:10px")}>
+            <div style={css("position:absolute;left:20px;bottom:20px;z-index:2;display:flex;align-items:center;gap:10px")}>
               <img src="assets/logo.png" alt="" style={css("width:38px;height:36px;object-fit:contain;display:block")} />
               <span style={css("font:800 13px 'Archivo',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#f3f2f2")}>Monkey Radio India</span>
             </div>
 
             {!v.now.key ? (
-              <button onClick={v.ambientTapStart} style={css("background:none;border:0;color:#f3f2f2;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:22px;padding:0")}>
+              <button onClick={v.ambientTapStart} style={css("position:relative;z-index:2;background:none;border:0;color:#f3f2f2;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:22px;padding:0")}>
                 <div role="img" aria-label="The Monkey Sound System, a hand-built dub speaker stack" style={css("aspect-ratio:460/421;pointer-events:none;width:min(260px,52vw);background:center/contain no-repeat " + SOUND_SYSTEM_BG)}></div>
                 <div style={css("font:600 13px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase")}>Tap to start the radio</div>
               </button>
             ) : (
-              <React.Fragment>
-                <ArtBg url={v.now.pic} role="img" aria-label="Album art" base={"width:min(58vh," + (v.isSm ? "72vw" : "440px") + ");aspect-ratio:1;background-size:cover;background-position:center;background-color:#33302f;border:2px solid #f3f2f2"} />
-                <h1 style={css("font:800 clamp(20px,3.4vw,34px)/1.2 'Archivo',sans-serif;margin:26px 0 0;max-width:min(90vw,720px)")}>{v.now.name}</h1>
-                <div style={css("font:600 11px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#c9c6c5;margin-top:10px")}>Selected by {v.now.dj}</div>
+              /* Playing: album art shrinks and sits left, with the show and
+                 selector names beside it; the progress bar runs full-width
+                 along the bottom of both. */
+              <div style={css("position:relative;z-index:2;width:min(92vw,880px);display:flex;flex-direction:column;gap:22px")}>
+                <div style={css("display:flex;align-items:center;gap:clamp(16px,3vw,32px);text-align:left")}>
+                  <ArtBg url={v.now.pic} role="img" aria-label="Album art" base={"flex:none;width:min(38vw,220px);aspect-ratio:1;background-size:cover;background-position:center;background-color:#33302f;border:2px solid #f3f2f2"} />
+                  <div style={css("min-width:0;flex:1")}>
+                    <h1 style={css("font:800 clamp(20px,3.4vw,34px)/1.15 'Archivo',sans-serif;margin:0;max-width:22ch")}>{v.now.name}</h1>
+                    <div style={css("font:600 11px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#e6e3e2;margin-top:12px")}>Selected by {v.now.dj}</div>
+                  </div>
+                </div>
                 {v.ambientRuntime ? (
-                  <div style={css("width:min(90vw,420px);margin-top:26px")}>
-                    <div style={css("height:2px;background:rgba(243,242,242,.2)")}><span style={css("display:block;height:100%;background:#ec3013;width:" + v.ambientPct)}></span></div>
-                    <div style={css("font:600 9.5px 'Archivo',sans-serif;letter-spacing:.12em;color:#8a8685;margin-top:8px")}>{v.ambientElapsed} / {v.ambientRuntime}</div>
+                  <div style={css("width:100%")}>
+                    <div style={css("height:3px;background:rgba(243,242,242,.25)")}><span style={css("display:block;height:100%;background:#ec3013;width:" + v.ambientPct)}></span></div>
+                    <div style={css("font:600 9.5px 'Archivo',sans-serif;letter-spacing:.12em;color:#d8d5d4;margin-top:8px")}>{v.ambientElapsed} / {v.ambientRuntime}</div>
                   </div>
                 ) : null}
                 {/* A per-show QR code (linking to /show/<slug>) lived here
                     briefly and is parked for now, not dropped for good. */}
-              </React.Fragment>
+              </div>
             )}
           </div>
         )}

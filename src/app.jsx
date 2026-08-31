@@ -196,6 +196,10 @@ class Component extends React.Component {
     // offline, widget API never resolves). Swaps the custom scrubber for
     // an "open on Mixcloud" fallback. Cleared on the next healthy tick.
     playerErr: false,
+    // Seconds a returning show was resumed to. Non-zero shows a transient
+    // "Resumed from mm:ss · Start over" pill; cleared on Start over, the
+    // dismiss button, a show change, or a timeout.
+    resumeAt: 0,
     // Sleep timer, ephemeral: null | {type:'show'} | {type:'time', mins, at}.
     sleep: null,
     // Auto-generated station lineup, kept topped up to 3 at all times.
@@ -1155,6 +1159,7 @@ class Component extends React.Component {
       this._widgetPlayed = 0;        // ...and so does "has this load ever played"
       this._loadAt = Date.now();
       if (this.state.playerErr) this.setState({playerErr: false});
+      if (this.state.resumeAt) { clearTimeout(this._resumePromptT); this.setState({resumeAt: 0}); }
       const at = this.progFor(key);
       this._resumeSeek = (at > 5 && (!m.len || at < m.len - 30)) ? at : null;
       this._wpos = this._resumeSeek || 0;
@@ -1239,8 +1244,9 @@ class Component extends React.Component {
 
   stopPlayback() {
     clearTimeout(this._sleepT);
+    clearTimeout(this._resumePromptT);
     this.clearResume();
-    this.setState({nowKey: null, playerExpanded: false, sleep: null});
+    this.setState({nowKey: null, playerExpanded: false, sleep: null, resumeAt: 0});
     if (typeof navigator !== 'undefined' && 'mediaSession' in navigator) {
       try { navigator.mediaSession.metadata = null; } catch (e) {}
       try { navigator.mediaSession.playbackState = 'none'; } catch (e) {}
@@ -1431,6 +1437,13 @@ class Component extends React.Component {
         if (this._resumeSeek != null) {
           const p = this._resumeSeek; this._resumeSeek = null;
           try { w.seek(p); } catch (e) {}
+          // Surface "Resumed from mm:ss · Start over" the moment playback
+          // jumps, then fade it after a few seconds.
+          if (p > 30) {
+            clearTimeout(this._resumePromptT);
+            if (this.state.resumeAt !== p) this.setState({resumeAt: p});
+            this._resumePromptT = setTimeout(() => this.setState({resumeAt: 0}), 9000);
+          }
         }
       });
       // Real playback position, straight from the widget. Drives the
@@ -1562,9 +1575,12 @@ class Component extends React.Component {
         this._widgetAlive = 0;
         this._nav = [r.key];
         this._navPos = 0;
-        this.setState({nowKey: r.key, paused: true, upNext: this.buildUpNext(r.key, 3)});
+        this.setState({nowKey: r.key, paused: true, resumeAt: r.pos > 30 ? r.pos : 0, upNext: this.buildUpNext(r.key, 3)});
         this.updateMediaSession(m);
-        this.flash('Resuming at ' + this.fmtLen(r.pos));
+        // The "Start over" pill stays up while the show sits paused on the
+        // dock; the play event re-arms a short auto-hide once playback
+        // actually jumps to the mark.
+        clearTimeout(this._resumePromptT);
       } else {
         this.clearResume();
       }
@@ -1806,18 +1822,30 @@ class Component extends React.Component {
       related, shareLinks, shareLabel: s.shared ? 'Link copied' : 'Share', shared: s.shared,
       toast: s.toast,
       toastBottom: !s.nowKey ? '28px' : s.bp === 'sm' ? (s.playerExpanded ? '112px' : '84px') : '150px',
+      // "Resumed from mm:ss · Start over" pill - sits just above the toast slot.
+      resumeAt: s.resumeAt,
+      resumeAtLabel: s.resumeAt ? this.fmtLen(s.resumeAt) : '',
+      resumeBottom: s.bp === 'sm' ? (s.playerExpanded ? '124px' : '96px') : '164px',
+      startOver: () => {
+        clearTimeout(this._resumePromptT);
+        this._resumeSeek = null;
+        this._wpos = 0;
+        try { this._widget && this._widget.seek(0); } catch (e) {}
+        this.clearResume();
+        this.clearProg(this.state.nowKey);   // wipe the per-show mark too, or the next replay resumes again
+        this.setState({resumeAt: 0});
+      },
+      dismissResume: () => { clearTimeout(this._resumePromptT); this.setState({resumeAt: 0}); },
       playing: !!now, paused: s.paused, playerExpanded: s.playerExpanded,
       now: now ? Object.assign({}, this.card(now), {
         url: now.url,
         favFg: isFav(now.key) ? '#ec3013' : '#201e1d',
         favFill: isFav(now.key) ? 'currentColor' : 'none'
       }) : {},
-      // `mini=1`: a bare transport strip (play/scrub/time). The `light=1`
-      // variant also paints the show title and Mixcloud's own favourite /
-      // repost buttons inside the iframe, doubling up our dock title and
-      // Save button. The mini widget shows neither. `hide_cover` +
-      // `hide_artwork` drop the cover thumbnail too - our dock already
-      // shows the art - leaving just the transport and the Mixcloud logo.
+      // Mixcloud gives two layouts: non-mini keeps a small cover thumbnail
+      // even with hide_cover; `mini=1` is the only artwork-free one, at the
+      // cost of a more prominent scrubber strip. hide_cover + hide_artwork
+      // belt-and-braces the thumbnail off; light=1 is the light theme.
       playerSrc: now ? 'https://player-widget.mixcloud.com/widget/iframe/?hide_cover=1&hide_artwork=1&mini=1&light=1&autoplay=' + (this._cold ? '0' : '1') + '&feed=' + encodeURIComponent(now.url.replace('https://www.mixcloud.com', '')) + (this._playerNonce ? '&_r=' + this._playerNonce : '') : '',
       playerRef: (el) => { this._iframe = el; this.bindWidget(); },
       upNextName,
@@ -2616,9 +2644,8 @@ class Component extends React.Component {
             <div className="mri-dockrow" style={css("max-width:1560px;margin:0 auto;padding:10px clamp(16px,3.2vw,32px);display:flex;align-items:center;gap:12px;flex-wrap:wrap")}>
               <ArtBg url={v.now.pic} aria-hidden="true" onClick={v.openMix} data-key={v.now.key} base="width:60px;height:60px;background-size:cover;background-position:center;background-color:#eae9e9;border:1px solid #d7d3d3;flex:none;cursor:pointer" />
               <div className="mri-nowmeta" style={css("min-width:140px;max-width:250px")}>
-                {/* The mix title already shows inside the Mixcloud widget, so
-                    the dock leads with the selector instead. */}
-                <div role="button" tabIndex={0} aria-label={"Show details: " + v.now.name} onClick={v.openMix} onKeyDown={v.openMixKey} data-key={v.now.key} style={css("font:500 12px 'Archivo',sans-serif;color:#444141;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer")}>Selected by <strong style={css("font-weight:700;color:#201e1d")}>{v.now.dj}</strong></div>
+                <div role="button" tabIndex={0} aria-label={"Show details: " + v.now.name} onClick={v.openMix} onKeyDown={v.openMixKey} data-key={v.now.key} style={css("font:600 13px 'Archivo',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer")}>{v.now.name}</div>
+                <div style={css("font:500 10px 'Archivo',sans-serif;letter-spacing:.1em;color:#6a6666;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis")}>Selected by <strong style={css("font-weight:700;color:#201e1d")}>{v.now.dj}</strong></div>
                 {v.upNextName ? <div style={css("font:600 9.5px 'Archivo',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#6c6c6c;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis")}>Next &middot; {v.upNextName}</div> : null}
               </div>
               <div style={css("flex:1;min-width:240px;display:flex;align-items:center;gap:12px")}>
@@ -2663,6 +2690,16 @@ class Component extends React.Component {
             changes, or most screen readers never pick up the announcement.
             Idle state is fully transparent (see .mri-toast in index.html). */}
         <div role="status" aria-live="polite" className="mri-toast" data-show={v.toast ? '1' : '0'} style={css("position:fixed;left:50%;z-index:90;bottom:" + v.toastBottom + ";transform:translateX(-50%);background:#201e1d;color:#f3f2f2;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;padding:12px 20px;border:2px solid #201e1d;white-space:nowrap;pointer-events:none")}>{v.toast}</div>
+
+        {v.playing && v.resumeAt ? (
+          <div role="status" style={css("position:fixed;left:50%;z-index:91;bottom:" + v.resumeBottom + ";transform:translateX(-50%);display:flex;align-items:center;gap:12px;max-width:calc(100vw - 24px);background:#201e1d;color:#f3f2f2;font:600 11px 'Archivo',sans-serif;letter-spacing:.06em;padding:8px 8px 8px 16px;border:2px solid #201e1d;white-space:nowrap")}>
+            <span>Resumed from {v.resumeAtLabel}</span>
+            <button onClick={v.startOver} type="button" style={css("flex:none;border:1px solid #f3f2f2;background:none;color:#f3f2f2;font:inherit;letter-spacing:.1em;text-transform:uppercase;padding:6px 10px;cursor:pointer")}>Start over</button>
+            <button onClick={v.dismissResume} type="button" aria-label="Dismiss" style={css("flex:none;border:0;background:none;color:#f3f2f2;cursor:pointer;padding:4px;display:flex")}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={css("display:block")}><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+            </button>
+          </div>
+        ) : null}
 
       </div>
     );

@@ -29,9 +29,9 @@ class SPAHandler(SimpleHTTPRequestHandler):
         return super().send_head()
 
     def end_headers(self):
-        # Don't let the browser cache stale HTML during development.
-        if self.path.endswith((".html", "/")):
-            self.send_header("Cache-Control", "no-store")
+        # Don't let the browser cache anything during development - a stale
+        # assets/app.js is the classic "my change isn't showing" trap.
+        self.send_header("Cache-Control", "no-store")
         super().end_headers()
 
 

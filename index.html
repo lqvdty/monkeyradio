@@ -265,7 +265,7 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #ec30
 .mri-mp .mp-mini{display:flex;align-items:center;gap:10px;height:60px;padding:0 8px 0 0}
 .mri-mp[data-exp="1"] .mp-mini{display:none}
 /* Art fills the full height of the mini bar, flush to the left edge, so it
-   reads level with the 60px Mixcloud strip. */
+   reads level with the 60px Mixcloud strip in the sheet. */
 .mp-mthumb{width:60px;height:60px;flex:none;border:0;border-right:1px solid #d7d3d3;background-size:cover;background-position:center;background-color:#eae9e9;padding:0;cursor:pointer}
 .mp-mmeta{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:2px;background:none;border:0;padding:0 4px 0 2px;cursor:pointer;text-align:left}
 .mp-mtitle{font-weight:600;font-size:13px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
@@ -274,8 +274,8 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #ec30
    designed; ::after pads out the actual tappable area toward the 44px
    platform minimum (Stop sits right next to Play/Pause here - the real
    cost of a control this size is a mis-tap between the two). */
-.mp-mthumb,.mp-mbtn{position:relative}
-.mp-mthumb::after,.mp-mbtn::after{content:"";position:absolute;inset:-4px}
+.mp-mbtn::after{content:"";position:absolute;inset:-4px}
+.mp-mbtn,.mp-mthumb{position:relative}
 .mp-mbtn{width:40px;height:40px;flex:none;display:flex;align-items:center;justify-content:center;border:1px solid #201e1d;border-radius:0;background:none;color:#201e1d;cursor:pointer;padding:0}
 .mp-mbtn.is-primary{background:#201e1d;color:#f3f2f2}
 .mp-mbtn.is-primary:active{background:#ec3013;border-color:#ec3013}
@@ -342,11 +342,23 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #ec30
 <script type="module" src="assets/shader-bg.js"></script>
 <script>
 /* PWA: register the service worker so the app installs and its shell
-   loads offline. https / localhost only (the API needs a secure context). */
+   loads offline. Production (https) only. On a local dev host we do the
+   opposite - tear down any service worker and its caches - so `npm run
+   build` changes show up on a plain reload instead of being masked by a
+   stale precached bundle. */
 (function () {
   if (!('serviceWorker' in navigator)) return;
-  var ok = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-  if (!ok) return;
+  var isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  if (isLocal) {
+    navigator.serviceWorker.getRegistrations().then(function (rs) {
+      rs.forEach(function (r) { r.unregister(); });
+    }).catch(function () {});
+    if (window.caches && caches.keys) {
+      caches.keys().then(function (ks) { ks.forEach(function (k) { caches.delete(k); }); }).catch(function () {});
+    }
+    return;
+  }
+  if (location.protocol !== 'https:') return;
   window.addEventListener('load', function () {
     navigator.serviceWorker.register('/sw.js').catch(function () {});
   });

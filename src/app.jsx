@@ -298,7 +298,7 @@ class Component extends React.Component {
     // Fire page_viewed only on a genuine page change (pushState), not on
     // every keystroke rewriting the same logical page's query (replaceState).
     if (method === 'pushState') {
-      this.T('page_viewed', {
+      this.T('Page Viewed', {
         view: this.state.ambient ? 'ambient' : this.state.view,
         path: target, is_deeplink: !this._sawFirstView
       });
@@ -396,7 +396,7 @@ class Component extends React.Component {
     this.applyRoute();
     // The landing route never goes through syncUrl's pushState branch (the
     // URL already matches on load), so it needs its own page_viewed.
-    this.T('page_viewed', {
+    this.T('Page Viewed', {
       view: this.state.ambient ? 'ambient' : this.state.view,
       path: location.pathname + location.search, is_deeplink: true
     });
@@ -457,7 +457,7 @@ class Component extends React.Component {
     this._ambientStart = Date.now();
     this._ambientPlaysDuring = 0;
     const m = this.state.nowKey ? this.byKey(this.state.nowKey) : null;
-    this.T('ambient_entered', {
+    this.T('Ambient Mode Entered', {
       entry: entry || 'dock_button', ambient_ref: ref || null,
       was_playing: !!(this.state.nowKey && !this.state.paused),
       genre: m ? this.primaryGenre(m) : null
@@ -467,7 +467,7 @@ class Component extends React.Component {
   }
   exitAmbient(exitMethod) {
     if (this._ambientStart) {
-      this.T('ambient_exited', {
+      this.T('Ambient Mode Exited', {
         duration_sec: Math.round((Date.now() - this._ambientStart) / 1000),
         exit_method: exitMethod || 'close_button',
         plays_during: this._ambientPlaysDuring || 0
@@ -765,7 +765,7 @@ class Component extends React.Component {
         // than the localStorage cache (see bootAndSync) - persist it so a
         // cold visit only ever happens once, not on every load.
         try { localStorage.setItem(this.CACHE_KEY, JSON.stringify({ts: Date.now(), complete: true, items: cached.items})); } catch (e) {}
-        this.T('archive_loaded', {source: 'cache', count: cached.items.length, load_ms: Date.now() - (this._archiveLoadStart || Date.now())});
+        this.T('Archive Loaded', {source: 'cache', count: cached.items.length, load_ms: Date.now() - (this._archiveLoadStart || Date.now())});
         return;
       }
       // Page forward only until a show already in the cache turns up - the
@@ -799,7 +799,7 @@ class Component extends React.Component {
       const complete = overlapped ? !!cached.complete : !(page && page.paging && page.paging.next);
       this.setState({items: all, indexing: false});
       try { localStorage.setItem(this.CACHE_KEY, JSON.stringify({ts: Date.now(), complete, items: all})); } catch (e) {}
-      this.T('archive_loaded', {source: cached ? 'network_refresh' : 'network', count: all.length, load_ms: Date.now() - (this._archiveLoadStart || Date.now())});
+      this.T('Archive Loaded', {source: cached ? 'network_refresh' : 'network', count: all.length, load_ms: Date.now() - (this._archiveLoadStart || Date.now())});
     } catch (e) {
       this.setState({indexing: false});
     }
@@ -1183,7 +1183,7 @@ class Component extends React.Component {
   // key isn't configured - every call site can fire blindly.
   T(name, props) { if (typeof window !== 'undefined' && window.track) window.track(name, props || {}); }
   trackPlayerErr(reason) {
-    this.T('player_error', this.showProps(this.state.nowKey, {reason}));
+    this.T('Player Error', this.showProps(this.state.nowKey, {reason}));
     this.setState({playerErr: true});
   }
   showProps(key, extra) {
@@ -1205,12 +1205,12 @@ class Component extends React.Component {
     // instead - covers every entry point: picks, auto-advance, Prev/Next,
     // Tune in and resume all funnel through here.
     if (typeof navigator !== 'undefined' && navigator.onLine === false) {
-      this.T('play_blocked_offline', this.showProps(key));
+      this.T('Play Blocked Offline', this.showProps(key));
       this.flash('Offline - playback needs a connection');
       return;
     }
     const resumeAt = this.progFor(key);
-    this.T('play_requested', this.showProps(key, {
+    this.T('Play Requested', this.showProps(key, {
       play_source: opts.source || (opts.auto ? 'auto_advance' : opts.nav ? 'nav' : 'unknown'),
       is_resume: resumeAt > 5, resume_pos_sec: resumeAt > 5 ? resumeAt : 0
     }));
@@ -1265,7 +1265,7 @@ class Component extends React.Component {
     if (!this.canPrev()) return;
     if (this.state.nowKey) {
       const mm = this.byKey(this.state.nowKey);
-      this.T('track_skipped', this.showProps(this.state.nowKey, {
+      this.T('Track Skipped', this.showProps(this.state.nowKey, {
         direction: 'prev', pct_complete_at_skip: mm && mm.len ? Math.round(100 * (this._wpos || 0) / mm.len) : null
       }));
     }
@@ -1279,7 +1279,7 @@ class Component extends React.Component {
     if (!this.canFwd()) return;
     if (this.state.nowKey) {
       const mm = this.byKey(this.state.nowKey);
-      this.T('track_skipped', this.showProps(this.state.nowKey, {
+      this.T('Track Skipped', this.showProps(this.state.nowKey, {
         direction: 'next', pct_complete_at_skip: mm && mm.len ? Math.round(100 * (this._wpos || 0) / mm.len) : null
       }));
     }
@@ -1312,7 +1312,7 @@ class Component extends React.Component {
   }
   setSleep(v) {
     clearTimeout(this._sleepT);
-    this.T('sleep_timer_set', {mode: v == null ? 'off' : v === 'show' ? 'end_of_show' : (v + '_min')});
+    this.T('Sleep Timer Set', {mode: v == null ? 'off' : v === 'show' ? 'end_of_show' : (v + '_min')});
     if (v == null) { this.setState({sleep: null}); return; }
     if (v === 'show') { this.setState({sleep: {type: 'show'}}); this.flash('Sleep, stops after this show'); return; }
     this.setState({sleep: {type: 'time', mins: v, at: Date.now() + v * 60000}});
@@ -1330,7 +1330,7 @@ class Component extends React.Component {
     clearTimeout(this._resumePromptT);
     if (this.state.nowKey) {
       const mm = this.byKey(this.state.nowKey);
-      this.T('playback_stopped', this.showProps(this.state.nowKey, {
+      this.T('Playback Stopped', this.showProps(this.state.nowKey, {
         position_sec: Math.floor(this._wpos || 0),
         pct_complete: mm && mm.len ? Math.round(100 * (this._wpos || 0) / mm.len) : null
       }));
@@ -1513,7 +1513,7 @@ class Component extends React.Component {
         if (this.state.nowKey && this._wpos > 5) {
           this.saveResume(this.state.nowKey, this._wpos);
           const mm = this.byKey(this.state.nowKey);
-          this.T('playback_paused', this.showProps(this.state.nowKey, {
+          this.T('Playback Paused', this.showProps(this.state.nowKey, {
             position_sec: Math.floor(this._wpos),
             pct_complete: mm && mm.len ? Math.round(100 * this._wpos / mm.len) : null
           }));
@@ -1524,7 +1524,7 @@ class Component extends React.Component {
         this.markPlayerAlive();
         if (!this._startedFired && this.state.nowKey) {
           this._startedFired = true;
-          this.T('playback_started', this.showProps(this.state.nowKey, {
+          this.T('Playback Started', this.showProps(this.state.nowKey, {
             time_to_play_ms: this._loadAt ? Date.now() - this._loadAt : null
           }));
         }
@@ -1593,7 +1593,7 @@ class Component extends React.Component {
           [10, 25, 50, 75, 90].forEach((ms) => {
             if (pct >= ms && this._milestonesFired && !this._milestonesFired.has(ms)) {
               this._milestonesFired.add(ms);
-              this.T('playback_progress', this.showProps(s.nowKey, {milestone: ms, position_sec: Math.floor(position)}));
+              this.T('Playback Milestone Reached', this.showProps(s.nowKey, {milestone: ms, position_sec: Math.floor(position)}));
             }
           });
         }
@@ -1601,7 +1601,7 @@ class Component extends React.Component {
     } catch (e) {}
     try {
       w.events.ended.on(() => {
-        this.T('playback_completed', this.showProps(this.state.nowKey, {listened_sec: Math.floor(this._wpos || 0)}));
+        this.T('Playback Completed', this.showProps(this.state.nowKey, {listened_sec: Math.floor(this._wpos || 0)}));
         this.clearResume();   // a finished show shouldn't be "resumed"
         this.clearProg(this.state.nowKey);
         if (this.state.sleep && this.state.sleep.type === 'show') {
@@ -1691,7 +1691,7 @@ class Component extends React.Component {
         this._nav = [r.key];
         this._navPos = 0;
         this.setState({nowKey: r.key, paused: true, resumeAt: r.pos > 30 ? r.pos : 0, upNext: this.buildUpNext(r.key, 3)});
-        if (r.pos > 30) this.T('resume_prompt_shown', this.showProps(r.key, {resume_pos_sec: r.pos}));
+        if (r.pos > 30) this.T('Resume Prompt Shown', this.showProps(r.key, {resume_pos_sec: r.pos}));
         this.updateMediaSession(m);
         // The "Start over" pill stays up while the show sits paused on the
         // dock; the play event re-arms a short auto-hide once playback
@@ -1943,7 +1943,7 @@ class Component extends React.Component {
       resumeAtLabel: s.resumeAt ? this.fmtLen(s.resumeAt) : '',
       resumeBottom: s.bp === 'sm' ? (s.playerExpanded ? '124px' : '96px') : '164px',
       startOver: () => {
-        this.T('resume_start_over', this.showProps(s.nowKey));
+        this.T('Resume Start Over', this.showProps(s.nowKey));
         clearTimeout(this._resumePromptT);
         this._resumeSeek = null;
         this._wpos = 0;
@@ -1952,7 +1952,7 @@ class Component extends React.Component {
         this.clearProg(this.state.nowKey);   // wipe the per-show mark too, or the next replay resumes again
         this.setState({resumeAt: 0});
       },
-      dismissResume: () => { this.T('resume_dismissed', this.showProps(s.nowKey)); clearTimeout(this._resumePromptT); this.setState({resumeAt: 0}); },
+      dismissResume: () => { this.T('Resume Dismissed', this.showProps(s.nowKey)); clearTimeout(this._resumePromptT); this.setState({resumeAt: 0}); },
       playing: !!now, paused: s.paused, playerExpanded: s.playerExpanded,
       now: now ? Object.assign({}, this.card(now), {
         url: now.url,
@@ -1989,7 +1989,7 @@ class Component extends React.Component {
         this._widgetPlayed = 0;
         this._loadAt = Date.now();
         this._cold = false;
-        this.T('player_retried', this.showProps(s.nowKey));
+        this.T('Player Retried', this.showProps(s.nowKey));
         this.setState({playerErr: false});
       },
       // Ambient mode.
@@ -2010,7 +2010,7 @@ class Component extends React.Component {
         this._searchDebounce = setTimeout(() => {
           if (!query) return;
           const resultCount = this.filtered({genre: null, mood: null, dj: null, query, sort: this.state.sort}).length;
-          this.T('search_performed', {query, query_length: query.length, result_count: resultCount});
+          this.T('Search Performed', {query, query_length: query.length, result_count: resultCount});
         }, 800);
       },
       // Opening a show remembers the shelf it was opened from (home shelves
@@ -2020,7 +2020,7 @@ class Component extends React.Component {
         const key = e.currentTarget.dataset.key;
         const ctxId = e.currentTarget.dataset.ctx;
         this._detailCtx = this.shelfCtx(ctxId);
-        this.T('show_opened', this.showProps(key, {source: ctxId || 'unknown', surface: s.bp === 'sm' ? 'page' : 'modal'}));
+        this.T('Show Opened', this.showProps(key, {source: ctxId || 'unknown', surface: s.bp === 'sm' ? 'page' : 'modal'}));
         // Remembered so closing the dialog (Escape, the close button, or a
         // click on the backdrop) can hand focus back to whatever opened it.
         this._detailTrigger = e.currentTarget;
@@ -2035,7 +2035,7 @@ class Component extends React.Component {
         const key = e.currentTarget.dataset.key;
         const ctxId = e.currentTarget.dataset.ctx;
         this._detailCtx = this.shelfCtx(ctxId);
-        this.T('show_opened', this.showProps(key, {source: ctxId || 'unknown', surface: s.bp === 'sm' ? 'page' : 'modal'}));
+        this.T('Show Opened', this.showProps(key, {source: ctxId || 'unknown', surface: s.bp === 'sm' ? 'page' : 'modal'}));
         this._detailTrigger = e.currentTarget;
         this.setState({detailKey: key, shared: false});
       },
@@ -2057,19 +2057,19 @@ class Component extends React.Component {
       playDetail: () => this.play(s.detailKey, Object.assign({source: 'detail'}, this._detailCtx ? {ctx: this._detailCtx} : null)),
       queueDetail: () => {
         const nextQueue = s.queue.concat([s.detailKey]).filter((v, i, a) => a.indexOf(v) === i);
-        this.T('show_queued', this.showProps(s.detailKey, {queue_length: nextQueue.length}));
+        this.T('Show Queued', this.showProps(s.detailKey, {queue_length: nextQueue.length}));
         this.savePrefs({queue: nextQueue});
         this.setState({detailKey: null, view: 'library', tab: 'queue'});
       },
       shareDetail: () => {
         const link = shareUrl || location.href;
-        this.T('show_shared', this.showProps(s.detailKey, {channel: 'copy'}));
+        this.T('Show Shared', this.showProps(s.detailKey, {channel: 'copy'}));
         try { navigator.clipboard.writeText(link); } catch (e) {}
         this.setState({shared: true}); this.flash('Link copied');
       },
       shareInstagram: () => {
         if (!shareLinks) return;
-        this.T('show_shared', this.showProps(s.detailKey, {channel: 'instagram'}));
+        this.T('Show Shared', this.showProps(s.detailKey, {channel: 'instagram'}));
         const nav = typeof navigator !== 'undefined' ? navigator : {};
         // Mobile: the OS share sheet is the only real path into Instagram -
         // the user picks Instagram, then Story / Feed / DM.
@@ -2081,7 +2081,7 @@ class Component extends React.Component {
         this.flash('Caption + link copied - opening Instagram for your story');
         try { window.open('https://www.instagram.com/', '_blank', 'noopener'); } catch (e) {}
       },
-      shareNow: () => { this.T('show_shared', this.showProps(s.nowKey, {channel: 'copy_now_playing'})); try { navigator.clipboard.writeText(now ? now.url : ''); } catch (e) {} this.setState({shared: true}); this.flash('Link copied'); },
+      shareNow: () => { this.T('Show Shared', this.showProps(s.nowKey, {channel: 'copy_now_playing'})); try { navigator.clipboard.writeText(now ? now.url : ''); } catch (e) {} this.setState({shared: true}); this.flash('Link copied'); },
       togglePlay: () => {
         if (typeof navigator !== 'undefined' && navigator.onLine === false && !this._widget) { this.flash('Offline - playback needs a connection'); return; }
         if (!this._widget || s.playerErr) { this.flash('Player unavailable - try Open on Mixcloud'); return; }
@@ -2105,7 +2105,7 @@ class Component extends React.Component {
         const k = e.currentTarget.dataset.key;
         if (!k) return;
         const nowFav = !isFav(k);
-        this.T(nowFav ? 'show_saved' : 'show_unsaved', this.showProps(k));
+        this.T(nowFav ? 'Show Saved' : 'Show Unsaved', this.showProps(k));
         if (typeof window !== 'undefined' && window.identifyProp) window.identifyProp('saved_count', (nowFav ? s.favs.length + 1 : s.favs.length - 1));
         this.savePrefs({favs: isFav(k) ? s.favs.filter(x => x !== k) : [k].concat(s.favs)});
       },
@@ -2137,36 +2137,36 @@ class Component extends React.Component {
       pickGenre: (e) => {
         const id = e.currentTarget.dataset.id;
         const turningOn = s.genre !== id;
-        if (turningOn) this.T('genre_filtered', {genre: id, from_view: s.view, result_count: this.filtered({genre: id, mood: null, dj: null, query: '', sort: s.sort}).length});
+        if (turningOn) this.T('Genre Filtered', {genre: id, from_view: s.view, result_count: this.filtered({genre: id, mood: null, dj: null, query: '', sort: s.sort}).length});
         this.setState({genre: turningOn ? id : null, view: 'browse', dj: null, limit: 48});
       },
       pickMood: (e) => {
         const id = e.currentTarget.dataset.id;
         const turningOn = s.mood !== id;
-        if (turningOn) this.T('mood_filtered', {mood: id, from_view: s.view, result_count: this.filtered({genre: null, mood: id, dj: null, query: '', sort: s.sort}).length});
+        if (turningOn) this.T('Mood Filtered', {mood: id, from_view: s.view, result_count: this.filtered({genre: null, mood: id, dj: null, query: '', sort: s.sort}).length});
         this.setState({mood: turningOn ? id : null, view: 'browse', dj: null, limit: 48});
       },
       pickDj: (e) => {
         const id = e.currentTarget.dataset.id;
-        this.T('dj_selected', {dj: id, show_count: this.filtered({genre: null, mood: null, dj: id, query: '', sort: s.sort}).length});
+        this.T('DJ Selected', {dj: id, show_count: this.filtered({genre: null, mood: null, dj: id, query: '', sort: s.sort}).length});
         this.setState({dj: id, view: 'browse', genre: null, mood: null, limit: 48, detailKey: null, menuOpen: false});
       },
       pickDjKey: (e) => {
         if (e.key !== 'Enter' && e.key !== ' ') return;
         e.preventDefault();
         const id = e.currentTarget.dataset.id;
-        this.T('dj_selected', {dj: id, show_count: this.filtered({genre: null, mood: null, dj: id, query: '', sort: s.sort}).length});
+        this.T('DJ Selected', {dj: id, show_count: this.filtered({genre: null, mood: null, dj: id, query: '', sort: s.sort}).length});
         this.setState({dj: id, view: 'browse', genre: null, mood: null, limit: 48, detailKey: null, menuOpen: false});
       },
-      openShelf: (e) => { const id = e.currentTarget.dataset.id; this.T('shelf_expanded', {shelf_id: id}); const g = this.GENRES.find(x => x.id === id); this._scrollTop = true; this.setState({view: 'browse', genre: g ? id : null, mood: null, dj: null, query: '', sort: id === 'long' ? 'longest' : id === 'latest' ? 'latest' : 'plays', limit: 48}); },
-      cycleSort: () => { const order = ['latest', 'plays', 'longest', 'oldest']; const next = order[(order.indexOf(s.sort) + 1) % order.length]; this.T('sort_changed', {sort: next}); this.setState({sort: next}); },
-      clearFilters: () => { this.T('filters_cleared', {}); this.setState({genre: null, mood: null, dj: null, query: '', sort: 'latest', limit: 48}); },
-      showMore: () => { this.T('more_shows_loaded', {page: Math.round((s.limit + 48) / 48), total_shown: s.limit + 48}); this.setState({limit: s.limit + 48}); },
-      setTab: (e) => { const tab = e.currentTarget.dataset.tab; this.T('library_tab_viewed', {tab}); this.setState({tab}); },
+      openShelf: (e) => { const id = e.currentTarget.dataset.id; this.T('Shelf Expanded', {shelf_id: id}); const g = this.GENRES.find(x => x.id === id); this._scrollTop = true; this.setState({view: 'browse', genre: g ? id : null, mood: null, dj: null, query: '', sort: id === 'long' ? 'longest' : id === 'latest' ? 'latest' : 'plays', limit: 48}); },
+      cycleSort: () => { const order = ['latest', 'plays', 'longest', 'oldest']; const next = order[(order.indexOf(s.sort) + 1) % order.length]; this.T('Sort Changed', {sort: next}); this.setState({sort: next}); },
+      clearFilters: () => { this.T('Filters Cleared', {}); this.setState({genre: null, mood: null, dj: null, query: '', sort: 'latest', limit: 48}); },
+      showMore: () => { this.T('More Shows Loaded', {page: Math.round((s.limit + 48) / 48), total_shown: s.limit + 48}); this.setState({limit: s.limit + 48}); },
+      setTab: (e) => { const tab = e.currentTarget.dataset.tab; this.T('Library Tab Viewed', {tab}); this.setState({tab}); },
       scrollShelf: (e) => {
         const shelf = e.currentTarget.dataset.shelf, dir = Number(e.currentTarget.dataset.dir);
         const now = Date.now();
-        if (!this._lastShelfScroll || now - this._lastShelfScroll > 1500) this.T('shelf_scrolled', {shelf_id: shelf, direction: dir > 0 ? 'next' : 'prev'});
+        if (!this._lastShelfScroll || now - this._lastShelfScroll > 1500) this.T('Shelf Scrolled', {shelf_id: shelf, direction: dir > 0 ? 'next' : 'prev'});
         this._lastShelfScroll = now;
         const el = document.getElementById('shelf-' + shelf);
         if (el) el.scrollBy({left: 440 * dir, behavior: 'smooth'});
@@ -2174,8 +2174,8 @@ class Component extends React.Component {
       // Outbound link tracking: `<a target=_blank>` elements carry no
       // handler of their own, so this fires the analytics event and lets
       // the click through to its normal navigation.
-      outboundClick: (dest) => () => this.T('outbound_clicked', {destination: dest, from_view: s.ambient ? 'ambient' : s.view}),
-      shareChannelClick: (channel) => () => this.T('show_shared', this.showProps(s.detailKey || s.nowKey, {channel}))
+      outboundClick: (dest) => () => this.T('Outbound Link Clicked', {destination: dest, from_view: s.ambient ? 'ambient' : s.view}),
+      shareChannelClick: (channel) => () => this.T('Show Shared', this.showProps(s.detailKey || s.nowKey, {channel}))
     };
   }
 

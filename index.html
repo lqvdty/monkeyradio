@@ -410,10 +410,10 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #ec30
     window.navigator.standalone === true;
   if (window.identifyProp) window.identifyProp('is_pwa', isStandalone);
   window.addEventListener('beforeinstallprompt', function () {
-    if (window.track) window.track('pwa_install_prompt', {});
+    if (window.track) window.track('PWA Install Prompt Shown', {});
   });
   window.addEventListener('appinstalled', function () {
-    if (window.track) window.track('pwa_installed', {});
+    if (window.track) window.track('PWA Installed', {});
     if (window.identifyProp) window.identifyProp('is_pwa', true);
   });
 })();

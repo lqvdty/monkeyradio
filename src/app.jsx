@@ -1152,6 +1152,7 @@ class Component extends React.Component {
       this.clearResume();
       this._nowSince = Date.now();   // trailing ticks from the old show don't save
       this._widgetAlive = 0;         // health clock restarts for the new load
+      this._widgetPlayed = 0;        // ...and so does "has this load ever played"
       this._loadAt = Date.now();
       if (this.state.playerErr) this.setState({playerErr: false});
       const at = this.progFor(key);
@@ -1344,7 +1345,21 @@ class Component extends React.Component {
     try {
       const w = window.Mixcloud.PlayerWidget(el);
       this._widget = w;
-      w.ready.then(() => { this.markPlayerAlive(); this.attachWidget(w); },
+      w.ready.then(() => {
+        this.markPlayerAlive(); this.attachWidget(w);
+        // Mobile browsers block cross-origin iframe autoplay, so the `&autoplay=1`
+        // on the widget src silently does nothing and no `play` event ever fires.
+        // That is not a failure - the widget is up and healthy, just waiting for
+        // a tap. If playback hasn't started a few seconds after the widget is
+        // ready, drop the dock into its paused state so the Play button shows;
+        // tapping it runs w.play() inside a real user gesture, which mobile allows.
+        clearTimeout(this._autoplayTimer);
+        if (!this._cold) this._autoplayTimer = setTimeout(() => {
+          if (!this._widgetPlayed && !this.state.paused && !this.state.playerErr) {
+            this.setState({paused: true});
+          }
+        }, 4000);
+      },
                    () => { this.setState({playerErr: true}); });
       // Belt-and-braces: if `ready` never settles (script blocked, CSP,
       // an ad blocker eating the widget frame) nothing above fires, so
@@ -1397,12 +1412,16 @@ class Component extends React.Component {
         // A show switch briefly fires pause on the outgoing stream; that
         // is not a real pause and its position belongs to the old show.
         if (Date.now() - (this._nowSince || 0) < 1500) return;
+        clearTimeout(this._playTapTimer);
         this.setState({ paused: true }); this.setMSState('paused');
         if (this.state.nowKey && this._wpos > 5) this.saveResume(this.state.nowKey, this._wpos);
         this.releaseWakeLock();
       });
       w.events.play.on(() => {
         this.markPlayerAlive();
+        this._widgetPlayed = 1;
+        clearTimeout(this._autoplayTimer);
+        clearTimeout(this._playTapTimer);
         this.setState({ paused: false }); this.setMSState('playing');
         this._cold = false;
         this.requestWakeLock();
@@ -1483,17 +1502,19 @@ class Component extends React.Component {
       clearInterval(this._ambientTick);
       this._ambientTick = null;
     }
-    // The dock / sheet scrubber is now driven by us, not a visible
-    // Mixcloud widget, so it needs its own 1/sec repaint whenever a show
-    // is loaded - on every view, not just home. The same tick runs the
-    // player health check: a playing show that has gone quiet for ~14s
-    // (no progress events, not a cold paused resume) means the hidden
-    // iframe died, so fall back.
+    // A 1/sec heartbeat while a show is loaded, on every view: it keeps the
+    // home "on air" hero bar advancing smoothly between the widget's own
+    // progress ticks, and it runs the player health check - a show that
+    // actually started playing (_widgetPlayed)
+    // and has then gone quiet for ~14s (no progress events, not a cold paused
+    // resume) means the hidden iframe died, so fall back. A load that has never
+    // played is not counted as dead - on mobile that is just autoplay policy
+    // holding until the first tap (see bindWidget's _autoplayTimer).
     if (this.state.nowKey && !this._dockTick) {
       this._dockTick = setInterval(() => {
         if (document.hidden) return;
         const s = this.state;
-        if (s.nowKey && !s.paused && !this._cold && !s.playerErr &&
+        if (s.nowKey && !s.paused && !this._cold && !s.playerErr && this._widgetPlayed &&
             this._widgetAlive && Date.now() - this._widgetAlive > 14000) {
           this.setState({playerErr: true});
         }
@@ -1794,25 +1815,17 @@ class Component extends React.Component {
       // `mini=1`: a bare transport strip (play/scrub/time). The `light=1`
       // variant also paints the show title and Mixcloud's own favourite /
       // repost buttons inside the iframe, doubling up our dock title and
-      // Save button. The mini widget shows neither.
-      playerSrc: now ? 'https://player-widget.mixcloud.com/widget/iframe/?hide_cover=1&mini=1&light=1&autoplay=' + (this._cold ? '0' : '1') + '&feed=' + encodeURIComponent(now.url.replace('https://www.mixcloud.com', '')) + (this._playerNonce ? '&_r=' + this._playerNonce : '') : '',
+      // Save button. The mini widget shows neither. `hide_cover` +
+      // `hide_artwork` drop the cover thumbnail too - our dock already
+      // shows the art - leaving just the transport and the Mixcloud logo.
+      playerSrc: now ? 'https://player-widget.mixcloud.com/widget/iframe/?hide_cover=1&hide_artwork=1&mini=1&light=1&autoplay=' + (this._cold ? '0' : '1') + '&feed=' + encodeURIComponent(now.url.replace('https://www.mixcloud.com', '')) + (this._playerNonce ? '&_r=' + this._playerNonce : '') : '',
       playerRef: (el) => { this._iframe = el; this.bindWidget(); },
       upNextName,
 
-      // ---- Dock / sheet scrubber (replaces the visible Mixcloud strip) ----
-      // Same position math as ambient mode, but always present.
-      dockHasTrack: !!(now && now.len > 0),
-      dockPct: ambientPct,
-      dockElapsed: now ? (ambientElapsed || this.fmtLen(0)) : this.fmtLen(0),
-      dockRuntime: now && now.len > 0 ? ambientRuntime : '',
-      // "Loading" until the first real progress tick lands (or a resume
-      // seek is pending, which already gives us a position to show).
-      dockLoading: !!now && !s.playerErr && !s.paused && this._resumeSeek == null &&
-        (Date.now() - (this._nowSince || 0) < 1500 || !((this._wpos || 0) > 0)),
       playerErr: s.playerErr,
-      // The hidden iframe always paints its own title + art, so it is
-      // clipped out (see .mri-mchide) - `onError` is our only DOM-level
-      // signal that the frame itself failed to load.
+      // `onError` on the visible <iframe> is our only DOM-level signal that
+      // the frame itself failed to load (a widget-API failure trips
+      // playerErr separately, via bindWidget).
       playerIframeError: () => this.setState({playerErr: true}),
       // Fallback action: nudge the widget back to life by forcing a
       // fresh bind on the next tick; if it still won't come up the
@@ -1828,33 +1841,11 @@ class Component extends React.Component {
         // this._bound so bindWidget() runs PlayerWidget() again.
         if (!this._widget) this._bound = null;
         this._widgetAlive = 0;
+        this._widgetPlayed = 0;
         this._loadAt = Date.now();
         this._cold = false;
         this.setState({playerErr: false});
       },
-      seekPct: (e) => {
-        const m = now;
-        if (!m || !(m.len > 0)) return;
-        if (!this._widget) { this.flash('Player still loading'); return; }
-        const r = e.currentTarget.getBoundingClientRect();
-        const frac = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
-        const target = frac * m.len;
-        this._wpos = target;
-        try { this._widget.seek(target); } catch (err) {}
-        this.forceUpdate();
-      },
-      seekKey: (e) => {
-        const m = now;
-        if (!m || !(m.len > 0) || !this._widget) return;
-        const step = e.key === 'ArrowRight' ? 15 : e.key === 'ArrowLeft' ? -15 : 0;
-        if (!step) return;
-        e.preventDefault();
-        const target = Math.max(0, Math.min(m.len, (this._wpos || 0) + step));
-        this._wpos = target;
-        try { this._widget.seek(target); } catch (err) {}
-        this.forceUpdate();
-      },
-
       // Ambient mode.
       ambient: s.ambient,
       ambientPct, ambientElapsed, ambientRuntime,
@@ -1922,6 +1913,17 @@ class Component extends React.Component {
       togglePlay: () => {
         if (typeof navigator !== 'undefined' && navigator.onLine === false && !this._widget) { this.flash('Offline - playback needs a connection'); return; }
         if (!this._widget || s.playerErr) { this.flash('Player unavailable - try Open on Mixcloud'); return; }
+        // If this load has never played yet (autoplay was blocked and this tap
+        // is the first real gesture), arm a watchdog: a healthy widget answers
+        // with a `play` event in a second or two, so if none has arrived after
+        // ~12s the stream is genuinely dead - show the "Open on Mixcloud"
+        // fallback. w.events.play clears this via _widgetPlayed on success.
+        if (!this._widgetPlayed && s.paused) {
+          clearTimeout(this._playTapTimer);
+          this._playTapTimer = setTimeout(() => {
+            if (!this._widgetPlayed && this.state.nowKey) this.setState({playerErr: true});
+          }, 12000);
+        }
         try { this._widget.togglePlay(); } catch (e) { this.setState({playerErr: true}); }
       },
       expandPlayer: () => this.setState({playerExpanded: true}),
@@ -2550,25 +2552,13 @@ class Component extends React.Component {
                       <a href={v.now.url} target="_blank" rel="noopener">Open on Mixcloud ↗</a>
                     </div>
                   </div>
-                ) : (
-                  <React.Fragment>
-                    <div className="mp-scrubrow">
-                      <button onClick={v.togglePlay} type="button" aria-label={v.paused ? 'Resume' : 'Pause'} className="mp-scrubplay">
-                        {v.paused
-                          ? <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none" style={css("display:block")}><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
-                          : <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none" style={css("display:block")}><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>}
-                      </button>
-                      <div className="mp-track" role="slider" tabIndex={v.dockHasTrack ? 0 : -1} aria-label="Seek" aria-valuemin={0} aria-valuemax={100} aria-valuenow={parseInt(v.dockPct, 10) || 0} onClick={v.seekPct} onKeyDown={v.seekKey}>
-                        <span style={css("width:" + (v.dockLoading ? '0%' : v.dockPct))}></span>
-                      </div>
-                    </div>
-                    <div className="mp-scrubtime">
-                      <span>{v.dockLoading ? 'Loading…' : v.dockElapsed}</span>
-                      <span>{v.dockRuntime}</span>
-                    </div>
-                  </React.Fragment>
-                )}
-                <iframe ref={v.playerRef} title="Mixcloud player" src={v.playerSrc} className="mri-mchide" width="100%" height="60" frameBorder="0" allow="autoplay" onError={v.playerIframeError}></iframe>
+                ) : null}
+                {/* Mixcloud's own mini widget is the transport - play/scrub/time
+                    and the Mixcloud logo + click-through, kept visible and
+                    unmodified as their embed terms require. Our progress bars
+                    (home slides, ambient mode, lock screen) are driven off the
+                    widget's JS events, not this element's visibility. */}
+                <iframe ref={v.playerRef} title="Mixcloud player" src={v.playerSrc} className={"mp-mc" + (v.playerErr ? " is-off" : "")} width="100%" height="60" frameBorder="0" allow="autoplay" onError={v.playerIframeError}></iframe>
               </div>
               <button onClick={v.cycleSleep} className="mp-radio" data-on={v.sleepOn ? '1' : '0'} aria-label="Sleep timer" title="Stop playback after this show or a set time">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none")}><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
@@ -2622,35 +2612,28 @@ class Component extends React.Component {
             </div>
           </div>
         ) : (
-          <div style={css("position:fixed;left:0;right:0;bottom:0;z-index:70;background:#f3f2f2;border-top:2px solid #201e1d")}>
+          <div style={css("position:fixed;left:0;right:0;bottom:0;z-index:70;background:#fff;border-top:2px solid #201e1d")}>
             <div className="mri-dockrow" style={css("max-width:1560px;margin:0 auto;padding:10px clamp(16px,3.2vw,32px);display:flex;align-items:center;gap:12px;flex-wrap:wrap")}>
-              <ArtBg url={v.now.pic} aria-hidden="true" onClick={v.openMix} data-key={v.now.key} base="width:48px;height:48px;background-size:cover;background-position:center;background-color:#eae9e9;border:1px solid #d7d3d3;flex:none;cursor:pointer" />
+              <ArtBg url={v.now.pic} aria-hidden="true" onClick={v.openMix} data-key={v.now.key} base="width:60px;height:60px;background-size:cover;background-position:center;background-color:#eae9e9;border:1px solid #d7d3d3;flex:none;cursor:pointer" />
               <div className="mri-nowmeta" style={css("min-width:140px;max-width:250px")}>
-                <div role="button" tabIndex={0} aria-label={"Show details: " + v.now.name} onClick={v.openMix} onKeyDown={v.openMixKey} data-key={v.now.key} style={css("font:600 13px 'Archivo',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer")}>{v.now.name}</div>
-                <div style={css("font:500 10px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#6a6666;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis")}>{v.now.dj}</div>
+                {/* The mix title already shows inside the Mixcloud widget, so
+                    the dock leads with the selector instead. */}
+                <div role="button" tabIndex={0} aria-label={"Show details: " + v.now.name} onClick={v.openMix} onKeyDown={v.openMixKey} data-key={v.now.key} style={css("font:500 12px 'Archivo',sans-serif;color:#444141;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer")}>Selected by <strong style={css("font-weight:700;color:#201e1d")}>{v.now.dj}</strong></div>
                 {v.upNextName ? <div style={css("font:600 9.5px 'Archivo',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#6c6c6c;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis")}>Next &middot; {v.upNextName}</div> : null}
               </div>
               <div style={css("flex:1;min-width:240px;display:flex;align-items:center;gap:12px")}>
                 {v.playerErr ? (
-                  <div style={css("flex:1;min-width:0;display:flex;align-items:center;gap:12px;font:600 10px 'Archivo',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#6a6666")}>
+                  <div style={css("flex:none;display:flex;align-items:center;gap:12px;font:600 10px 'Archivo',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#6a6666")}>
                     <span style={css("white-space:nowrap")}>Player couldn't load</span>
                     <button onClick={v.retryPlayer} type="button" className="h-accent-text" style={css("border:0;background:none;color:#201e1d;font:inherit;letter-spacing:inherit;text-transform:inherit;cursor:pointer;padding:0;text-decoration:underline")}>Retry</button>
                     <a href={v.now.url} target="_blank" rel="noopener" style={css("white-space:nowrap")}>Open on Mixcloud ↗</a>
                   </div>
-                ) : (
-                  <React.Fragment>
-                    <button onClick={v.togglePlay} type="button" aria-label={v.paused ? 'Resume' : 'Pause'} className="mri-dockbtn" style={css("width:36px;height:36px;flex:none;display:flex;align-items:center;justify-content:center;border:1px solid #201e1d;background:#201e1d;color:#f3f2f2;border-radius:0;cursor:pointer")}>
-                      {v.paused
-                        ? <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="none" style={css("display:block")}><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
-                        : <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="none" style={css("display:block")}><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>}
-                    </button>
-                    <div role="slider" tabIndex={v.dockHasTrack ? 0 : -1} aria-label="Seek" aria-valuemin={0} aria-valuemax={100} aria-valuenow={parseInt(v.dockPct, 10) || 0} onClick={v.seekPct} onKeyDown={v.seekKey} style={css("flex:1;min-width:0;cursor:pointer;padding:9px 0")}>
-                      <div style={css("height:4px;background:#ded9d9;overflow:hidden")}><span style={css("display:block;height:100%;background:#201e1d;width:" + (v.dockLoading ? '0%' : v.dockPct))}></span></div>
-                    </div>
-                    <div style={css("flex:none;font:600 10px 'Archivo',sans-serif;letter-spacing:.06em;color:#6a6666;white-space:nowrap;font-variant-numeric:tabular-nums")}>{v.dockLoading ? 'Loading…' : (v.dockElapsed + (v.dockRuntime ? ' / ' + v.dockRuntime : ''))}</div>
-                  </React.Fragment>
-                )}
-                <iframe ref={v.playerRef} title="Mixcloud player" src={v.playerSrc} className="mri-mchide" width="100%" height="60" frameBorder="0" allow="autoplay" onError={v.playerIframeError}></iframe>
+                ) : null}
+                {/* Mixcloud's own mini widget is the transport - visible and
+                    unmodified per their embed terms (logo + click-through
+                    intact). The home-slide / ambient / lock-screen progress
+                    bars run off the widget's JS events, not this node. */}
+                <iframe ref={v.playerRef} title="Mixcloud player" src={v.playerSrc} className={"mp-mc" + (v.playerErr ? " is-off" : "")} width="100%" height="60" frameBorder="0" allow="autoplay" onError={v.playerIframeError}></iframe>
               </div>
               <button onClick={v.cycleSleep} aria-label="Sleep timer" title="Stop after this show or a set time" className="mri-sleepbtn" style={css("display:flex;align-items:center;gap:9px;border:1px solid #201e1d;background:" + (v.sleepOn ? "#201e1d" : "transparent") + ";color:" + (v.sleepOn ? "#f3f2f2" : "#201e1d") + ";border-radius:0;padding:10px 13px;font:600 10.5px 'Archivo',sans-serif;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;white-space:nowrap")}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none")}><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>

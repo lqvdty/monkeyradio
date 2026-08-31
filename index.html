@@ -65,6 +65,45 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js" crossorigin></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js" crossorigin></script>
 <script src="https://widget.mixcloud.com/media/js/widgetApi.js"></script>
+<!-- Amplitude: privacy-light product analytics. No cookies (device id lives
+     in localStorage only), IP address dropped after coarse geo resolution,
+     autocapture off - only the explicit events named in src/app.jsx fire.
+     See the Privacy Policy (/legal) for what this collects. -->
+<script src="https://cdn.amplitude.com/libs/analytics-browser-2.11.1-min.js.gz"></script>
+<script>
+(function () {
+  var API_KEY = "a0aa7ef8fded0b622fada53f004d1955";
+  var dnt = navigator.doNotTrack === "1" || window.doNotTrack === "1" || navigator.msDoNotTrack === "1";
+  if (!dnt && window.amplitude && API_KEY && API_KEY.indexOf("REPLACE_WITH") !== 0) {
+    window.amplitude.init(API_KEY, {
+      autocapture: false,
+      defaultTracking: false,
+      identityStorage: "localStorage",
+      trackingOptions: { ipAddress: false },
+      // The Amplitude project is provisioned with EU data residency, so
+      // events must ship to the EU ingestion endpoint, not the US default.
+      serverZone: "EU"
+    });
+  }
+  // Global shim used throughout src/app.jsx - a classic script with no
+  // module system, so this is the seam every handler calls through.
+  // Safe to call even if the CDN script was blocked or DNT is set.
+  window.track = function (name, props) {
+    try {
+      if (dnt || !window.amplitude || !API_KEY || API_KEY.indexOf("REPLACE_WITH") === 0) return;
+      window.amplitude.track(name, props || {});
+    } catch (e) {}
+  };
+  window.identifyProp = function (key, value) {
+    try {
+      if (dnt || !window.amplitude || !window.amplitude.Identify) return;
+      var id = new window.amplitude.Identify();
+      id.set(key, value);
+      window.amplitude.identify(id);
+    } catch (e) {}
+  };
+})();
+</script>
 <style>
 html,body{margin:0;padding:0}
 body{background:#f3f2f2;color:#201e1d;font-family:"Archivo",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
@@ -361,6 +400,21 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #ec30
   if (location.protocol !== 'https:') return;
   window.addEventListener('load', function () {
     navigator.serviceWorker.register('/sw.js').catch(function () {});
+  });
+})();
+
+/* PWA install funnel + standalone-mode segmentation - neither existed
+   before this was added alongside the Amplitude bootstrap above. */
+(function () {
+  var isStandalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+    window.navigator.standalone === true;
+  if (window.identifyProp) window.identifyProp('is_pwa', isStandalone);
+  window.addEventListener('beforeinstallprompt', function () {
+    if (window.track) window.track('PWA Install Prompt Shown', {});
+  });
+  window.addEventListener('appinstalled', function () {
+    if (window.track) window.track('PWA Installed', {});
+    if (window.identifyProp) window.identifyProp('is_pwa', true);
   });
 })();
 </script>

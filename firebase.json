@@ -29,6 +29,7 @@
       { "source": "/saved", "destination": "/index.html" },
       { "source": "/ambient", "destination": "/index.html" },
       { "source": "/about", "destination": "/index.html" },
+      { "source": "/legal", "destination": "/index.html" },
       { "source": "/show/**", "destination": "/index.html" }
     ]
   }

@@ -257,14 +257,16 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #ec30
    Mixcloud <iframe>) is never display:none. Collapsed, it is
    clipped to nothing so audio keeps running without a reload.
    ============================================================ */
-.mri-mp{position:fixed;left:0;right:0;bottom:0;z-index:75;background:#f3f2f2;border-top:2px solid #201e1d;color:#201e1d}
+.mri-mp{position:fixed;left:0;right:0;bottom:0;z-index:75;background:#fff;border-top:2px solid #201e1d;color:#201e1d}
 .mri-mp[data-exp="1"]{top:0;border-top:0;display:flex;flex-direction:column}
 .mri-mp button{font-family:'Archivo',sans-serif}
 
 /* mini bar */
-.mri-mp .mp-mini{display:flex;align-items:center;gap:6px;height:60px;padding:0 8px}
+.mri-mp .mp-mini{display:flex;align-items:center;gap:10px;height:60px;padding:0 8px 0 0}
 .mri-mp[data-exp="1"] .mp-mini{display:none}
-.mp-mthumb{width:40px;height:40px;flex:none;border:1px solid #d7d3d3;background-size:cover;background-position:center;background-color:#eae9e9;padding:0;cursor:pointer}
+/* Art fills the full height of the mini bar, flush to the left edge, so it
+   reads level with the 60px Mixcloud strip. */
+.mp-mthumb{width:60px;height:60px;flex:none;border:0;border-right:1px solid #d7d3d3;background-size:cover;background-position:center;background-color:#eae9e9;padding:0;cursor:pointer}
 .mp-mmeta{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:2px;background:none;border:0;padding:0 4px 0 2px;cursor:pointer;text-align:left}
 .mp-mtitle{font-weight:600;font-size:13px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .mp-mdj{font-weight:500;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#6a6666;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
@@ -279,8 +281,8 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #ec30
 .mp-mbtn.is-primary:active{background:#ec3013;border-color:#ec3013}
 .mp-mbtn.is-close{margin-left:2px}
 @media (max-width:360px){
-  .mri-mp .mp-mini{gap:5px;padding:0 6px}
-  .mp-mthumb,.mp-mbtn{width:34px;height:34px}
+  .mri-mp .mp-mini{gap:8px;padding:0 6px 0 0}
+  .mp-mbtn{width:34px;height:34px}
 }
 
 /* sheet header */
@@ -299,20 +301,16 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #ec30
 .mp-dj strong{font-weight:700;color:#201e1d}
 .mp-next{font-weight:600;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#6a6666;margin-top:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mp-scrub{border-top:2px solid #201e1d;padding-top:16px}
-/* Our own scrubber (the Mixcloud <iframe> is clipped away via .mri-mchide -
-   it always paints its own title + artwork, which the sheet already shows). */
-.mp-scrubrow{display:flex;align-items:center;gap:14px}
-.mp-scrubplay{width:44px;height:44px;flex:none;display:flex;align-items:center;justify-content:center;border:1px solid #201e1d;background:#201e1d;color:#f3f2f2;cursor:pointer;padding:0}
-.mp-scrubplay:active{background:#ec3013;border-color:#ec3013}
-.mp-track{flex:1;min-width:0;height:6px;background:#ded9d9;position:relative;cursor:pointer}
-.mp-track::after{content:"";position:absolute;inset:-16px 0}
-.mp-track>span{display:block;height:100%;background:#201e1d;max-width:100%}
-.mp-scrubtime{display:flex;justify-content:space-between;margin-top:10px;font:600 10px "Archivo",sans-serif;letter-spacing:.08em;color:#6a6666;font-variant-numeric:tabular-nums}
-.mp-scruberr{display:flex;flex-direction:column;gap:10px;font:600 11px "Archivo",sans-serif;letter-spacing:.04em;color:#6a6666}
+/* The Mixcloud mini widget itself is the transport now - shown as-is
+   (play/scrub/time, Mixcloud logo, click-through) per their embed terms.
+   The sheet's own title + artwork sit above it. */
+.mp-mc{display:block;width:100%;height:60px;border:0;background:#fff}
+/* Error state: the widget API is already dead and Retry reloads the frame
+   via a fresh src, so it is safe to drop the broken strip from view. */
+.mp-mc.is-off{position:absolute;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none;clip:rect(0 0 0 0);border:0}
+.mp-scruberr{display:flex;flex-direction:column;gap:10px;font:600 11px "Archivo",sans-serif;letter-spacing:.04em;color:#6a6666;margin-bottom:12px}
 .mp-scruberr-act{display:flex;gap:16px;align-items:center}
 .mp-scruberr-act button{border:0;background:none;color:#ae1800;font:inherit;letter-spacing:inherit;cursor:pointer;padding:0;text-decoration:underline}
-/* Kept in the DOM for playback + the widget API, removed from view. */
-.mri-mchide{position:absolute!important;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none;clip:rect(0 0 0 0)}
 .mp-radio{display:flex;align-items:center;gap:10px;width:100%;border:1px solid #201e1d;background:none;color:#201e1d;padding:14px 16px;font-weight:600;font-size:11px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
 .mp-radio[data-on="1"]{background:#201e1d;color:#f3f2f2}
 .mp-row3{display:flex;gap:8px;flex-wrap:wrap}

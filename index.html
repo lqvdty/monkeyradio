@@ -226,6 +226,14 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #ec30
   .mri-sleepbtn{padding:10px !important}
   .mri-sleeplabel{display:none}
   .mri-dockbtn{width:32px !important;height:32px !important}
+
+  /* Header bar: same story as the dock row. Below desktop width the
+     trailing search + Tune in wrap onto an orphaned second row, leaving
+     the button floating at the far left with no tie to the header. Keep
+     everything on one line; the nav (scrolls) and search field give up
+     width instead. */
+  .mri-headbar{flex-wrap:nowrap !important;gap:14px !important}
+  .mri-headbar [role="search"]{flex-basis:150px !important;min-width:110px !important}
 }
 
 /* ---- Phone ( <= 720px ) ---- */
@@ -234,6 +242,7 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #ec30
      desktop-only scroll arrows (touch users swipe). */
   .mri-shelfhead{flex-wrap:wrap !important;gap:8px 14px !important}
   .mri-shelfhead h2{font-size:17px !important}
+  .mri-shelfsub{display:none !important}
   .mri-shelfarrow{display:none !important}
   .mri-seeall{margin-left:auto !important;padding:0 !important}
 
@@ -270,6 +279,10 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #ec30
   .mri-filterbar{gap:8px !important}
   .mri-filterbar .mri-spacer{display:none !important}
 
+  /* Browse view starts higher - the filters are collapsed behind a
+     disclosure here, so the grid shouldn't sit a full header's gap down. */
+  .mri-browsesec{padding-top:14px !important}
+
   /* Selectors list: once a row wraps, the numeric columns
      shouldn't sit hard-right on their own line, and an empty
      tag slot shouldn't hold space. */
@@ -291,10 +304,12 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #ec30
 
 /* ============================================================
    Mobile Now-Playing player. Rendered only at bp:sm. One node,
-   two states via [data-exp]: a 60px mini bar, or a full-screen
-   sheet. The .mp-body wrapper (which holds the single, persistent
-   Mixcloud <iframe>) is never display:none. Collapsed, it is
-   clipped to nothing so audio keeps running without a reload.
+   two states via [data-exp]: a mini bar (60px meta/controls row
+   + 60px Mixcloud strip under it), or a full-screen sheet. The
+   Mixcloud <iframe> lives in .mp-scrub at the bottom of the dock
+   and stays visible in BOTH states, so playing a show never needs
+   the sheet opened first. .mp-body (cover/title/secondary
+   controls) is clipped to nothing when collapsed.
    ============================================================ */
 .mri-mp{position:fixed;left:0;right:0;bottom:0;z-index:75;background:#fff;border-top:2px solid #201e1d;color:#201e1d}
 .mri-mp[data-exp="1"]{top:0;border-top:0;display:flex;flex-direction:column}
@@ -330,7 +345,8 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #ec30
 .mp-hbtn{width:34px;height:34px;flex:none;display:flex;align-items:center;justify-content:center;border:1px solid #201e1d;background:none;color:#201e1d;cursor:pointer}
 .mp-kicker{flex:1;font-weight:600;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#6a6666}
 
-/* body (persistent iframe host) */
+/* body: cover, title, sleep + secondary controls. Clipped to nothing
+   when collapsed (the Mixcloud strip in .mp-scrub is separate, above). */
 .mri-mp .mp-body{position:absolute;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none;clip:rect(0 0 0 0)}
 .mri-mp[data-exp="1"] .mp-body{position:static;width:auto;height:auto;overflow-y:auto;opacity:1;pointer-events:auto;clip:auto;flex:1;display:flex;flex-direction:column;gap:16px;padding:clamp(16px,4vw,22px);padding-bottom:calc(28px + env(safe-area-inset-bottom));animation:mri-sheet .22s ease-out}
 .mp-cover{width:100%;max-width:min(74vw,360px)}
@@ -339,10 +355,13 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #ec30
 .mp-dj{font-weight:500;font-size:14px;color:#444141}
 .mp-dj strong{font-weight:700;color:#201e1d}
 .mp-next{font-weight:600;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#6a6666;margin-top:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mp-scrub{border-top:2px solid #201e1d;padding-top:16px}
-/* The Mixcloud mini widget itself is the transport now - shown as-is
-   (play/scrub/time, Mixcloud logo, click-through) per their embed terms.
-   The sheet's own title + artwork sit above it. */
+/* Mixcloud strip: pinned at the bottom of the dock (below our meta +
+   controls row) in both the collapsed bar and the expanded sheet.
+   Full-bleed, hairline above it, safe-area pad below so it clears a
+   home indicator. */
+.mp-scrub{flex:none;border-top:1px solid #d7d3d3;padding-bottom:env(safe-area-inset-bottom)}
+/* The Mixcloud mini widget itself is the transport - shown as-is
+   (play/scrub/time, Mixcloud logo, click-through) per their embed terms. */
 .mp-mc{display:block;width:100%;height:60px;border:0;background:#fff}
 /* Error state: the widget API is already dead and Retry reloads the frame
    via a fresh src, so it is safe to drop the broken strip from view. */

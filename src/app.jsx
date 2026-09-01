@@ -165,6 +165,12 @@ class Component extends React.Component {
     if (!width) return;
     const b = width <= 720 ? 'sm' : width <= 1080 ? 'md' : 'lg';
     if (b !== this.state.bp) this.setState({bp: b});
+    // The full desktop header (brand + 5-item nav + search + Tune in) only
+    // fits above ~940px. Below that - but still wider than a phone - collapse
+    // the nav and search into the slide-out menu, without tripping the rest
+    // of the sm-only mobile layout.
+    const hMenu = width <= 940;
+    if (hMenu !== this.state.hMenu) this.setState({hMenu});
     if (this._headEl) {
       const h = this._headEl.offsetHeight;
       if (h && h !== this.state.headH) this.setState({headH: h});
@@ -190,7 +196,7 @@ class Component extends React.Component {
   state = {
     items: [], indexing: false, view: 'home', query: '', genre: null, mood: null, dj: null,
     sort: 'latest', limit: 48, detailKey: null, descs: {}, secs: {}, nowKey: null, tab: 'favs', headH: 0,
-    favs: [], queue: [], history: [], shared: false, bp: 'lg', menuOpen: false,
+    favs: [], queue: [], history: [], shared: false, bp: 'lg', hMenu: false, menuOpen: false, filtersOpen: false,
     paused: false, playerExpanded: false, toast: '', heroIdx: 0,
     // Set when the hidden Mixcloud <iframe> fails to come up (blocked,
     // offline, widget API never resolves). Swaps the custom scrubber for
@@ -1876,14 +1882,20 @@ class Component extends React.Component {
       rootRef: this.attachRoot,
       headRef: (el) => { this._headEl = el; },
       detailOffset: (detail && s.bp !== 'sm') ? (s.headH || 0) : 0,
-      isSm: s.bp === 'sm', navInline: s.bp !== 'sm', menuOpen: s.bp === 'sm' && s.menuOpen,
-      searchOrder: s.bp === 'sm' ? 3 : 0,
+      isSm: s.bp === 'sm', headMenu: s.hMenu, navInline: !s.hMenu, menuOpen: s.hMenu && s.menuOpen,
       tuneText: 'Tune in',
-      tunePadX: s.bp === 'sm' ? '13px' : '16px',
-      tuneGap: s.bp === 'sm' ? '7px' : '10px',
+      tunePadX: s.bp === 'sm' ? '12px' : '16px',
+      tuneGap: s.bp === 'sm' ? '6px' : '10px',
       tuneLS: s.bp === 'sm' ? '.1em' : '.14em',
+      // Mobile trims the header: the search field moves into the slide-out
+      // menu (no header icon for now), and the bar's own controls hold the
+      // 44px minimum touch target while shedding bulk.
+      headPadY: s.bp === 'sm' ? '8px' : '12px',
+      ctlSize: s.bp === 'sm' ? '44px' : '42px',
+      menuSearchKey: (e) => { if (e.key === 'Enter') this.setState({menuOpen: false}); },
       menuBg: s.menuOpen ? '#201e1d' : 'transparent', menuFg: s.menuOpen ? '#f3f2f2' : '#201e1d',
-      padBottom: (s.nowKey ? (s.bp === 'sm' ? 72 : s.bp === 'md' ? 170 : 120) : 40) + 'px',
+      // sm collapsed dock is now ~124px tall (60px Mixcloud strip + 60px bar).
+      padBottom: (s.nowKey ? (s.bp === 'sm' ? 134 : s.bp === 'md' ? 170 : 120) : 40) + 'px',
       toggleMenu: () => this.setState({menuOpen: !s.menuOpen}),
       navHome: navOn('home'), navHomeBar: navBar('home'),
       navBrowse: navOn('browse'), navBrowseBar: navBar('browse'),
@@ -1920,6 +1932,17 @@ class Component extends React.Component {
       djCount: djs.length || '0', djs, unattributed,
       browseTitle: s.dj ? s.dj : s.query ? 'Results for "' + s.query + '"' : s.genre ? (this.GENRES.find(g => g.id === s.genre) || {}).label : s.mood ? (this.MOODS.find(m => m.id === s.mood) || {}).label : 'Full archive',
       browseCount: list.length, sortLabel, genreChips, moodChips,
+      // Mobile buries the genre / mood chip walls behind a "Filters" disclosure
+      // so the show grid isn't pushed below several rows of chips; desktop keeps
+      // them inline. The active filter's name rides on the toggle for context.
+      filtersCollapsible: s.bp === 'sm',
+      filtersOpen: !!s.filtersOpen,
+      activeFilterLabel: s.genre ? (this.GENRES.find(g => g.id === s.genre) || {}).label : s.mood ? (this.MOODS.find(m => m.id === s.mood) || {}).label : '',
+      toggleFilters: () => this.setState({filtersOpen: !s.filtersOpen}),
+      backToHome: () => {
+        this._scrollTop = true;
+        this.setState({view: 'home', genre: null, mood: null, dj: null, query: '', detailKey: null, filtersOpen: false});
+      },
       gridItems: list.slice(0, s.limit).map(m => this.card(m)),
       hasMore: list.length > s.limit, gridEmpty: !list.length && !s.indexing,
       libItems, libEmpty: !libItems.length,
@@ -1940,11 +1963,11 @@ class Component extends React.Component {
       }) : {tags: []},
       related, shareLinks, shareLabel: s.shared ? 'Link copied' : 'Share', shared: s.shared,
       toast: s.toast,
-      toastBottom: !s.nowKey ? '28px' : s.bp === 'sm' ? (s.playerExpanded ? '112px' : '84px') : '150px',
+      toastBottom: !s.nowKey ? '28px' : s.bp === 'sm' ? (s.playerExpanded ? '112px' : '146px') : '150px',
       // "Resumed from mm:ss · Start over" pill - sits just above the toast slot.
       resumeAt: s.resumeAt,
       resumeAtLabel: s.resumeAt ? this.fmtLen(s.resumeAt) : '',
-      resumeBottom: s.bp === 'sm' ? (s.playerExpanded ? '124px' : '96px') : '164px',
+      resumeBottom: s.bp === 'sm' ? (s.playerExpanded ? '124px' : '158px') : '164px',
       startOver: () => {
         this.T('Resume Start Over', this.showProps(s.nowKey));
         clearTimeout(this._resumePromptT);
@@ -2016,6 +2039,9 @@ class Component extends React.Component {
           this.T('Search Performed', {query, query_length: query.length, result_count: resultCount});
         }, 800);
       },
+      // Click-level signal so search engagement can be compared head to head
+      // with "Tune In Clicked" when deciding which keeps the mobile header slot.
+      searchFocus: () => this.T('Search Opened', {bp: s.bp, in_menu: s.hMenu}),
       // Opening a show remembers the shelf it was opened from (home shelves
       // carry data-ctx), so playing it pins auto-advance to that shelf's
       // list instead of the whole archive.
@@ -2027,6 +2053,9 @@ class Component extends React.Component {
         // Remembered so closing the dialog (Escape, the close button, or a
         // click on the backdrop) can hand focus back to whatever opened it.
         this._detailTrigger = e.currentTarget;
+        // On mobile the detail is a full page, not a modal - land at the top
+        // instead of inheriting the scroll position of the list behind it.
+        if (s.bp === 'sm') this._scrollTop = true;
         this.setState({detailKey: key, shared: false});
       },
       // Show cards are non-native controls (a div, not a button - the design
@@ -2040,6 +2069,7 @@ class Component extends React.Component {
         this._detailCtx = this.shelfCtx(ctxId);
         this.T('Show Opened', this.showProps(key, {source: ctxId || 'unknown', surface: s.bp === 'sm' ? 'page' : 'modal'}));
         this._detailTrigger = e.currentTarget;
+        if (s.bp === 'sm') this._scrollTop = true;
         this.setState({detailKey: key, shared: false});
       },
       closeDetail: () => this.setState({detailKey: null}),
@@ -2132,22 +2162,28 @@ class Component extends React.Component {
       // drops the needle on a deep-shuffled pick from the current pool.
       // Never stops it once running.
       tuneIn: () => {
-        if (s.nowKey) { if (s.paused) { try { this._widget && this._widget.play(); } catch (e) {} } return; }
+        if (s.nowKey) {
+          const resuming = s.paused;
+          this.T('Tune In Clicked', {action: resuming ? 'resume' : 'noop', view: s.view, bp: s.bp});
+          if (resuming) { try { this._widget && this._widget.play(); } catch (e) {} }
+          return;
+        }
         const pool = list.length ? list : items;
         const k = this.smartPick(pool);
+        this.T('Tune In Clicked', {action: 'start', view: s.view, bp: s.bp, has_pick: !!k, pool_size: pool.length});
         if (k) this.play(k, {source: 'tune_in'});
       },
       pickGenre: (e) => {
         const id = e.currentTarget.dataset.id;
         const turningOn = s.genre !== id;
         if (turningOn) this.T('Genre Filtered', {genre: id, from_view: s.view, result_count: this.filtered({genre: id, mood: null, dj: null, query: '', sort: s.sort}).length});
-        this.setState({genre: turningOn ? id : null, view: 'browse', dj: null, limit: 48});
+        this.setState({genre: turningOn ? id : null, view: 'browse', dj: null, limit: 48, filtersOpen: false});
       },
       pickMood: (e) => {
         const id = e.currentTarget.dataset.id;
         const turningOn = s.mood !== id;
         if (turningOn) this.T('Mood Filtered', {mood: id, from_view: s.view, result_count: this.filtered({genre: null, mood: id, dj: null, query: '', sort: s.sort}).length});
-        this.setState({mood: turningOn ? id : null, view: 'browse', dj: null, limit: 48});
+        this.setState({mood: turningOn ? id : null, view: 'browse', dj: null, limit: 48, filtersOpen: false});
       },
       pickDj: (e) => {
         const id = e.currentTarget.dataset.id;
@@ -2254,7 +2290,7 @@ class Component extends React.Component {
         )}
 
         <header ref={v.headRef} style={css("position:sticky;top:0;z-index:62;background:#f3f2f2;border-bottom:2px solid #201e1d")}>
-          <div className="mri-headbar" style={css("max-width:1560px;margin:0 auto;padding:12px clamp(16px,3.2vw,32px);display:flex;align-items:center;gap:clamp(12px,2vw,26px);flex-wrap:wrap")}>
+          <div className="mri-headbar" style={css("max-width:1560px;margin:0 auto;padding:" + v.headPadY + " clamp(16px,3.2vw,32px);display:flex;align-items:center;gap:clamp(12px,2vw,26px);flex-wrap:wrap")}>
             <button onClick={v.goHome} style={css("display:flex;align-items:center;gap:10px;background:none;border:0;padding:0;cursor:pointer;color:inherit")}>
               <img src="assets/logo.png" alt="Monkey Radio India" style={css("width:34px;height:32px;object-fit:contain;display:block")} />
               <span className="mri-brand" style={css("font-weight:800;font-size:14px;letter-spacing:.02em;white-space:nowrap;text-transform:uppercase")}>Monkey Radio India</span>
@@ -2272,18 +2308,20 @@ class Component extends React.Component {
 
             <div style={css("flex:1 1 20px;min-width:0")}></div>
 
-            <div role="search" style={css("display:flex;align-items:center;gap:8px;border-bottom:2px solid #201e1d;padding:5px 0;min-width:150px;flex:1 1 220px;order:" + v.searchOrder)}>
-              <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none;color:#605d5d")}><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
-              <input type="search" aria-label="Search shows" value={v.query} onChange={v.onSearch} placeholder={v.searchHint} style={css("flex:1;min-width:0;background:none;border:0;padding:2px 0;color:#201e1d;font:500 13px 'Archivo',sans-serif;outline:none;-webkit-appearance:none;appearance:none")} />
-            </div>
+            {!v.headMenu && (
+              <div role="search" style={css("display:flex;align-items:center;gap:8px;border-bottom:2px solid #201e1d;padding:5px 0;min-width:150px;flex:1 1 220px")}>
+                <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none;color:#605d5d")}><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+                <input type="search" aria-label="Search shows" value={v.query} onChange={v.onSearch} onFocus={v.searchFocus} placeholder={v.searchHint} style={css("flex:1;min-width:0;background:none;border:0;padding:2px 0;color:#201e1d;font:500 13px 'Archivo',sans-serif;outline:none;-webkit-appearance:none;appearance:none")} />
+              </div>
+            )}
 
-            <button onClick={v.tuneIn} className="h-accent-bg" style={css("display:flex;align-items:center;justify-content:center;gap:" + v.tuneGap + ";background:#ec3013;color:#fff;border:0;border-radius:0;height:42px;padding:0 " + v.tunePadX + ";font:600 11px 'Archivo',sans-serif;letter-spacing:" + v.tuneLS + ";text-transform:uppercase;cursor:pointer;white-space:nowrap")}>
+            <button onClick={v.tuneIn} className="h-accent-bg" style={css("display:flex;align-items:center;justify-content:center;gap:" + v.tuneGap + ";background:#ec3013;color:#fff;border:0;border-radius:0;height:" + v.ctlSize + ";padding:0 " + v.tunePadX + ";font:600 11px 'Archivo',sans-serif;letter-spacing:" + v.tuneLS + ";text-transform:uppercase;cursor:pointer;white-space:nowrap")}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none")}><path d="m18 14 4 4-4 4"></path><path d="m18 2 4 4-4 4"></path><path d="M2 18h1.973a4 4 0 0 0 3.3-1.7l5.454-8.6a4 4 0 0 1 3.3-1.7H22"></path><path d="M2 6h1.972a4 4 0 0 1 3.6 2.2"></path><path d="M22 18h-6.041a4 4 0 0 1-3.3-1.8l-.359-.45"></path></svg>
               <span>{v.tuneText}</span>
             </button>
 
-            {v.isSm && (
-              <button onClick={v.toggleMenu} aria-label="Menu" style={css("width:42px;height:42px;display:flex;align-items:center;justify-content:center;border:1px solid #201e1d;background:" + v.menuBg + ";color:" + v.menuFg + ";cursor:pointer;border-radius:0;flex:none")}>
+            {v.headMenu && (
+              <button onClick={v.toggleMenu} aria-label="Menu" style={css("width:" + v.ctlSize + ";height:" + v.ctlSize + ";display:flex;align-items:center;justify-content:center;border:1px solid #201e1d;background:" + v.menuBg + ";color:" + v.menuFg + ";cursor:pointer;border-radius:0;flex:none")}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block")}><path d="M4 6h16"></path><path d="M4 12h16"></path><path d="M4 18h16"></path></svg>
               </button>
             )}
@@ -2291,6 +2329,10 @@ class Component extends React.Component {
 
           {v.menuOpen && (
             <nav style={css("border-top:1px solid #d7d3d3;padding:0 clamp(16px,3.2vw,32px) 8px")}>
+              <div role="search" style={css("display:flex;align-items:center;gap:10px;border-bottom:2px solid #201e1d;padding:12px 0")}>
+                <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none;color:#605d5d")}><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+                <input type="search" aria-label="Search shows" value={v.query} onChange={v.onSearch} onKeyDown={v.menuSearchKey} onFocus={v.searchFocus} placeholder={v.searchHint} style={css("flex:1;min-width:0;background:none;border:0;padding:8px 0;color:#201e1d;font:500 16px 'Archivo',sans-serif;outline:none;-webkit-appearance:none;appearance:none")} />
+              </div>
               <button onClick={v.nav} data-view="home" style={css("display:block;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid #d7d3d3;padding:15px 0;cursor:pointer;font:600 12px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:" + v.navHome)}>Home</button>
               <button onClick={v.nav} data-view="browse" style={css("display:block;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid #d7d3d3;padding:15px 0;cursor:pointer;font:600 12px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:" + v.navBrowse)}>Archive</button>
               <button onClick={v.nav} data-view="djs" style={css("display:block;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid #d7d3d3;padding:15px 0;cursor:pointer;font:600 12px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:" + v.navDjs)}>Selectors</button>
@@ -2445,7 +2487,7 @@ class Component extends React.Component {
                 <div key={shelf.id} style={css("padding:34px 0 30px;border-bottom:1px solid #d7d3d3")}>
                   <div className="mri-shelfhead" style={css("display:flex;align-items:baseline;gap:16px;margin-bottom:20px")}>
                     <h2 style={css("font-weight:700;font-size:19px;letter-spacing:-.015em;margin:0")}>{shelf.title}</h2>
-                    <span style={css("font:500 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#6a6666")}>{shelf.sub}</span>
+                    <span className="mri-shelfsub" style={css("font:500 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#6a6666")}>{shelf.sub}</span>
                     <div className="mri-spacer" style={css("flex:1")}></div>
                     <button onClick={v.openShelf} data-id={shelf.id} className="h-accent-text mri-seeall" style={css("display:flex;align-items:center;gap:7px;background:none;border:0;color:#201e1d;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;padding:6px 0")}>
                       See all
@@ -2476,15 +2518,24 @@ class Component extends React.Component {
           )}
 
           {v.isBrowse && (
-            <section style={css("padding:44px 0 0")}>
+            <section className="mri-browsesec" style={css("padding:44px 0 0")}>
+              {v.filtersCollapsible && (
+                <button onClick={v.backToHome} style={css("display:flex;align-items:center;gap:9px;background:none;border:0;padding:8px 0;margin-bottom:12px;cursor:pointer;color:#201e1d;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase")}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none")}><path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path></svg>
+                  Back
+                </button>
+              )}
               <h1 style={css("font-weight:800;font-size:clamp(28px,3.4vw,44px);letter-spacing:-.035em;margin:0 0 10px")}>{v.browseTitle}</h1>
               <p style={css("margin:0 0 28px;font:500 11px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#6a6666")}>{v.browseCount} shows, sorted by {v.sortLabel}</p>
 
+              {!v.filtersCollapsible && (
               <div style={css("display:flex;flex-wrap:wrap;gap:8px;padding-bottom:12px")}>
                 {v.genreChips.map((g) => (
                   <button key={g.id} onClick={v.pickGenre} data-id={g.id} className="h-accent-border" style={css("border:1px solid " + g.border + ";background:" + g.bg + ";color:" + g.fg + ";border-radius:0;padding:8px 13px;font:600 11px 'Archivo',sans-serif;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;display:flex;gap:8px;align-items:center")}>{g.label}<span style={css("opacity:.55;font-weight:500")}>{g.count}</span></button>
                 ))}
               </div>
+              )}
+              {!v.filtersCollapsible && (
               <div className="mri-filterbar" style={css("display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding-bottom:24px;border-bottom:2px solid #201e1d")}>
                 {v.moodChips.map((mo) => (
                   <button key={mo.id} onClick={v.pickMood} data-id={mo.id} className="h-accent-border" style={css("border:1px solid " + mo.border + ";background:" + mo.bg + ";color:" + mo.fg + ";border-radius:0;padding:8px 13px;font:600 11px 'Archivo',sans-serif;letter-spacing:.1em;text-transform:uppercase;cursor:pointer")}>{mo.label}</button>
@@ -2496,6 +2547,36 @@ class Component extends React.Component {
                 </button>
                 <button onClick={v.clearFilters} className="h-accent-text" style={css("border:0;background:none;color:#6a6666;font:600 11px 'Archivo',sans-serif;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;padding:8px 4px")}>Clear</button>
               </div>
+              )}
+              {v.filtersCollapsible && (
+              <div style={css("border-bottom:2px solid #201e1d;padding-bottom:14px")}>
+                <div style={css("display:flex;flex-wrap:wrap;gap:8px;align-items:center")}>
+                  <button onClick={v.toggleFilters} aria-expanded={v.filtersOpen} className="h-invert" style={css("display:flex;align-items:center;gap:8px;border:1px solid #201e1d;background:" + (v.filtersOpen ? "#201e1d" : "none") + ";color:" + (v.filtersOpen ? "#f3f2f2" : "#201e1d") + ";border-radius:0;padding:11px 14px;font:600 11px 'Archivo',sans-serif;letter-spacing:.1em;text-transform:uppercase;cursor:pointer")}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none")}><line x1="4" x2="4" y1="21" y2="14"></line><line x1="4" x2="4" y1="10" y2="3"></line><line x1="12" x2="12" y1="21" y2="12"></line><line x1="12" x2="12" y1="8" y2="3"></line><line x1="20" x2="20" y1="21" y2="16"></line><line x1="20" x2="20" y1="12" y2="3"></line><line x1="2" x2="6" y1="14" y2="14"></line><line x1="10" x2="14" y1="8" y2="8"></line><line x1="18" x2="22" y1="16" y2="16"></line></svg>
+                    Filters{v.activeFilterLabel ? " · " + v.activeFilterLabel : ""}
+                  </button>
+                  <button onClick={v.cycleSort} className="h-invert" style={css("display:flex;align-items:center;gap:8px;border:1px solid #201e1d;background:none;color:#201e1d;border-radius:0;padding:11px 14px;font:600 11px 'Archivo',sans-serif;letter-spacing:.1em;text-transform:uppercase;cursor:pointer")}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none")}><path d="m21 16-4 4-4-4"></path><path d="M17 20V4"></path><path d="m3 8 4-4 4 4"></path><path d="M7 4v16"></path></svg>
+                    {v.sortLabel}
+                  </button>
+                  <button onClick={v.clearFilters} className="h-accent-text" style={css("border:0;background:none;color:#6a6666;font:600 11px 'Archivo',sans-serif;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;padding:11px 6px")}>Clear</button>
+                </div>
+                {v.filtersOpen && (
+                <div style={css("padding-top:14px")}>
+                  <div style={css("display:flex;flex-wrap:wrap;gap:8px")}>
+                    {v.genreChips.map((g) => (
+                      <button key={g.id} onClick={v.pickGenre} data-id={g.id} className="h-accent-border" style={css("border:1px solid " + g.border + ";background:" + g.bg + ";color:" + g.fg + ";border-radius:0;padding:9px 13px;font:600 11px 'Archivo',sans-serif;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;display:flex;gap:8px;align-items:center")}>{g.label}<span style={css("opacity:.55;font-weight:500")}>{g.count}</span></button>
+                    ))}
+                  </div>
+                  <div style={css("display:flex;flex-wrap:wrap;gap:8px;padding-top:8px")}>
+                    {v.moodChips.map((mo) => (
+                      <button key={mo.id} onClick={v.pickMood} data-id={mo.id} className="h-accent-border" style={css("border:1px solid " + mo.border + ";background:" + mo.bg + ";color:" + mo.fg + ";border-radius:0;padding:9px 13px;font:600 11px 'Archivo',sans-serif;letter-spacing:.1em;text-transform:uppercase;cursor:pointer")}>{mo.label}</button>
+                    ))}
+                  </div>
+                </div>
+                )}
+              </div>
+              )}
 
               <div style={css("display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,150px),1fr));gap:clamp(22px,3vw,34px) clamp(12px,2vw,22px);padding:30px 0 0")}>
                 {v.gridItems.map((m, i) => (
@@ -2621,9 +2702,11 @@ class Component extends React.Component {
           <div style={css("max-width:1560px;margin:0 auto;padding:0 clamp(16px,3.2vw,32px)")}>
             <div style={css("display:flex;gap:" + (v.isSm ? "36px" : "56px") + ";flex-direction:" + (v.isSm ? "column" : "row") + ";padding:56px 0 40px")}>
 
-              <div style={css("flex:none;order:" + (v.isSm ? "0" : "2") + ";display:flex;flex-direction:column;align-items:" + (v.isSm ? "flex-start" : "center"))}>
+              <div style={css("flex:none;order:" + (v.isSm ? "0" : "2") + ";display:flex;flex-direction:column;align-items:center")}>
                 <div role="img" aria-label="The Monkey Sound System, a hand-built dub speaker stack" style={css("aspect-ratio:460/421;pointer-events:none;user-select:none;background:center/contain no-repeat " + SOUND_SYSTEM_BG + ";width:" + (v.isSm ? "min(280px,66%)" : "236px"))}></div>
-                <div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#6a6666;margin-top:12px")}>Monkey Sound System</div>
+                {!v.isSm && (
+                  <div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#6a6666;margin-top:12px")}>Monkey Sound System</div>
+                )}
               </div>
 
               <div style={css("flex:1;min-width:0")}>
@@ -2633,7 +2716,7 @@ class Component extends React.Component {
                 </div>
                 <p style={css("font:400 14px/1.6 'Archivo',sans-serif;color:#444141;margin:0 0 26px;max-width:52ch")}>Community radio and sound system culture, broadcasting from Hyderabad. Public, non-profit and free of commercials since 25 October 2011, run by the Monkey Foundation.</p>
 
-                <div style={css("display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:24px 32px")}>
+                <div style={css("display:grid;grid-template-columns:" + (v.isSm ? "1fr" : "repeat(auto-fit,minmax(150px,1fr))") + ";gap:24px 32px")}>
                   <div>
                     <div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#6a6666;margin-bottom:11px")}>Follow</div>
                     <a href="https://www.instagram.com/monkeyradioindia" target="_blank" rel="noopener" onClick={v.outboundClick('instagram')} style={css("display:block;font:600 14px 'Archivo',sans-serif;margin-bottom:8px")}>Instagram</a>
@@ -2642,15 +2725,15 @@ class Component extends React.Component {
                   </div>
                   <div>
                     <div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#6a6666;margin-bottom:11px")}>Contact</div>
-                    <a href="mailto:monkeyradio.in@gmail.com" style={css("display:block;font:600 14px 'Archivo',sans-serif;margin-bottom:8px;word-break:break-all")}>monkeyradio.in@gmail.com</a>
-                    <button onClick={v.goSubmit} style={css("display:block;background:none;border:0;padding:0;margin-bottom:8px;cursor:pointer;text-align:left;font:600 14px 'Archivo',sans-serif;color:#201e1d")}>Submit a show</button>
-                    <a href="http://www.monkeyradio.in" target="_blank" rel="noopener" onClick={v.outboundClick('monkeyradio_in')} style={css("display:block;font:600 14px 'Archivo',sans-serif")}>monkeyradio.in</a>
+                    <a href="mailto:monkeyradio.in@gmail.com" style={css("display:block;font:600 14px 'Archivo',sans-serif;margin-bottom:8px;white-space:nowrap")}>monkeyradio.in@gmail.com</a>
+                    <button onClick={v.goSubmit} style={css("display:block;background:none;border:0;padding:0;cursor:pointer;text-align:left;font:600 14px 'Archivo',sans-serif;color:#201e1d")}>Submit a show</button>
                   </div>
                   <div>
                     <div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#6a6666;margin-bottom:11px")}>Explore</div>
                     <button onClick={v.nav} data-view="browse" style={css("display:block;background:none;border:0;padding:0;margin-bottom:8px;cursor:pointer;text-align:left;font:600 14px 'Archivo',sans-serif;color:#201e1d")}>Archive</button>
                     <button onClick={v.nav} data-view="djs" style={css("display:block;background:none;border:0;padding:0;margin-bottom:8px;cursor:pointer;text-align:left;font:600 14px 'Archivo',sans-serif;color:#201e1d")}>Selectors</button>
-                    <button onClick={v.nav} data-view="about" style={css("display:block;background:none;border:0;padding:0;cursor:pointer;text-align:left;font:600 14px 'Archivo',sans-serif;color:#201e1d")}>About the station</button>
+                    <button onClick={v.nav} data-view="about" style={css("display:block;background:none;border:0;padding:0;margin-bottom:8px;cursor:pointer;text-align:left;font:600 14px 'Archivo',sans-serif;color:#201e1d")}>About the station</button>
+                    <button onClick={v.nav} data-view="legal" style={css("display:block;background:none;border:0;padding:0;cursor:pointer;text-align:left;font:600 14px 'Archivo',sans-serif;color:#201e1d")}>Terms &amp; Privacy</button>
                   </div>
                 </div>
               </div>
@@ -2658,7 +2741,6 @@ class Component extends React.Component {
 
             <div style={css("border-top:1px solid #d7d3d3;padding:16px 0 8px;display:flex;gap:10px 20px;flex-wrap:wrap;align-items:center;justify-content:space-between")}>
               <span style={css("font:500 11px 'Archivo',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#6a6666")}>&copy; {new Date().getFullYear()} Monkey Foundation</span>
-              <button onClick={v.nav} data-view="legal" className="h-accent-text" style={css("background:none;border:0;padding:0;cursor:pointer;font:500 11px 'Archivo',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#6a6666")}>Terms &amp; Privacy</button>
               <span style={css("font:500 11px 'Archivo',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#6a6666")}>Hyderabad, India</span>
             </div>
           </div>
@@ -2754,23 +2836,6 @@ class Component extends React.Component {
                 <div className="mp-dj">Selected by <strong>{v.now.dj}</strong></div>
                 {v.upNextName ? <div className="mp-next">Up next &middot; {v.upNextName}</div> : null}
               </div>
-              <div className="mp-scrub">
-                {v.playerErr ? (
-                  <div className="mp-scruberr">
-                    <span>Player couldn't load.</span>
-                    <div className="mp-scruberr-act">
-                      <button onClick={v.retryPlayer} type="button">Retry</button>
-                      <a href={v.now.url} target="_blank" rel="noopener">Open on Mixcloud ↗</a>
-                    </div>
-                  </div>
-                ) : null}
-                {/* Mixcloud's own mini widget is the transport - play/scrub/time
-                    and the Mixcloud logo + click-through, kept visible and
-                    unmodified as their embed terms require. Our progress bars
-                    (home slides, ambient mode, lock screen) are driven off the
-                    widget's JS events, not this element's visibility. */}
-                <iframe ref={v.playerRef} title="Mixcloud player" src={v.playerSrc} className={"mp-mc" + (v.playerErr ? " is-off" : "")} width="100%" height="60" frameBorder="0" allow="autoplay" onError={v.playerIframeError}></iframe>
-              </div>
               <button onClick={v.cycleSleep} className="mp-radio" data-on={v.sleepOn ? '1' : '0'} aria-label="Sleep timer" title="Stop playback after this show or a set time">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none")}><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
                 {v.sleepLabel}
@@ -2812,14 +2877,29 @@ class Component extends React.Component {
               <button onClick={v.playNext} aria-label="Next show" className="mp-mbtn">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block")}><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" x2="19" y1="5" y2="19"></line></svg>
               </button>
-              <button onClick={v.togglePlay} aria-label={v.paused ? 'Resume' : 'Pause'} className="mp-mbtn is-primary">
-                {v.paused
-                  ? <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" stroke="none" style={css("display:block")}><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
-                  : <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" stroke="none" style={css("display:block")}><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>}
-              </button>
               <button onClick={v.stopPlaying} aria-label="Stop playback" className="mp-mbtn is-close">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block")}><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
               </button>
+            </div>
+            <div className="mp-scrub">
+              {v.playerErr ? (
+                <div className="mp-scruberr">
+                  <span>Player couldn't load.</span>
+                  <div className="mp-scruberr-act">
+                    <button onClick={v.retryPlayer} type="button">Retry</button>
+                    <a href={v.now.url} target="_blank" rel="noopener">Open on Mixcloud ↗</a>
+                  </div>
+                </div>
+              ) : null}
+              {/* Mixcloud's own mini widget is the transport - play/scrub/time
+                  and the Mixcloud logo + click-through, kept visible and
+                  unmodified as their embed terms require. Pinned at the bottom
+                  of the dock so it stays on screen in both the collapsed bar
+                  and the expanded sheet - playing a show never needs the sheet
+                  opened first. Our progress bars (home slides, ambient mode,
+                  lock screen) are driven off the widget's JS events, not this
+                  element's visibility. */}
+              <iframe ref={v.playerRef} title="Mixcloud player" src={v.playerSrc} className={"mp-mc" + (v.playerErr ? " is-off" : "")} width="100%" height="60" frameBorder="0" allow="autoplay" onError={v.playerIframeError}></iframe>
             </div>
           </div>
         ) : (

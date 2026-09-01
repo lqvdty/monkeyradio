@@ -38,3 +38,22 @@ for (const file of SOURCES) {
 
   console.log(`${file}: ${kb(src)} PNG -> ${kb(avifOut)} AVIF, ${kb(webpOut)} WebP`);
 }
+
+// The About-page "Hyderabad Dub Club" wordmark. Its master is a large,
+// full-resolution export; unlike the sound-system pair above we resize it
+// down to the 1x / 2x sizes the page paints and emit PNG/AVIF/WebP for
+// each. Referenced via CSS image-set() (DUB_CLUB_BG) in src/app.jsx.
+const DUB_CLUB_MASTER = 'hyderabad-dub-club-master.png';
+for (const [width, suffix] of [[600, ''], [1200, '@2x']]) {
+  const src = join(ASSETS, DUB_CLUB_MASTER);
+  const stem = `hyderabad-dub-club${suffix}`;
+  const pngOut = join(ASSETS, `${stem}.png`);
+  const avifOut = join(ASSETS, `${stem}.avif`);
+  const webpOut = join(ASSETS, `${stem}.webp`);
+
+  await sharp(src).resize({ width }).png({ compressionLevel: 9, palette: true }).toFile(pngOut);
+  await sharp(src).resize({ width }).avif({ quality: 55 }).toFile(avifOut);
+  await sharp(src).resize({ width }).webp({ quality: 82 }).toFile(webpOut);
+
+  console.log(`${stem}: ${kb(pngOut)} PNG, ${kb(avifOut)} AVIF, ${kb(webpOut)} WebP`);
+}

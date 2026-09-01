@@ -1166,7 +1166,10 @@ class Component extends React.Component {
       if (f.genre && !this.inGenre(m, f.genre)) return false;
       if (f.mood && !this.inMood(m, f.mood)) return false;
       if (f.dj && this.djKey(m.dj) !== this.djKey(f.dj)) return false;
-      if (q && !(m.name.toLowerCase().includes(q) || m.dj.toLowerCase().includes(q) || m.tags.some(t => t.includes(q)))) return false;
+      if (q) {
+        const hay = (m.name + ' ' + m.dj + ' ' + m.tags.join(' ')).toLowerCase();
+        if (!q.split(/\s+/).every(tok => hay.includes(tok))) return false;
+      }
       return true;
     });
     const sort = f.sort || s.sort;

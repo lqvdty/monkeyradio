@@ -2604,15 +2604,23 @@ class Component extends React.Component {
           {v.isDjs && (
             <section style={css("padding:44px 0 0")}>
               <h1 style={css("font-weight:800;font-size:clamp(28px,3.4vw,44px);letter-spacing:-.035em;margin:0 0 10px")}>Selectors</h1>
-              <p style={css("margin:0 0 30px;font:500 11px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#6a6666")}>{v.djCount} residents and guests, plus {v.unattributed} shows credited to the station</p>
+              <p style={css("margin:0 0 30px;font:500 11px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#6a6666")}>{v.djCount} residents and guests</p>
               <div style={css("border-top:2px solid #201e1d")}>
                 {v.djs.map((d) => (
-                  <div key={d.name} role="button" tabIndex={0} aria-label={"Shows by " + d.name} onClick={v.pickDj} onKeyDown={v.pickDjKey} data-id={d.name} className="h-row mri-djrow" style={css("display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding:14px 0;border-bottom:1px solid #d7d3d3;cursor:pointer")}>
+                  <div key={d.name} role="button" tabIndex={0} aria-label={"Shows by " + d.name} onClick={v.pickDj} onKeyDown={v.pickDjKey} data-id={d.name} className="h-row mri-djrow" style={css("display:flex;flex-wrap:" + (v.isSm ? "nowrap" : "wrap") + ";gap:8px 20px;align-items:center;padding:14px 0;border-bottom:1px solid #d7d3d3;cursor:pointer")}>
                     <ArtImg src={d.pic} alt="" loading="lazy" style={css("width:52px;height:52px;object-fit:cover;flex:none;border:1px solid #d7d3d3;display:block")} />
-                    <div style={css("flex:1 1 220px;min-width:0;font:600 15px 'Archivo',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis")}>{d.name}</div>
-                    <div style={css("flex:1 1 180px;min-width:0;font:500 12px 'Archivo',sans-serif;color:#6a6666;white-space:nowrap;overflow:hidden;text-overflow:ellipsis")}>{d.tags}</div>
-                    <div style={css("flex:none;min-width:78px;text-align:right;font:600 12px 'Archivo',sans-serif;letter-spacing:.08em;text-transform:uppercase")}>{d.count} {d.count === 1 ? 'show' : 'shows'}</div>
-                    <div style={css("flex:none;min-width:52px;text-align:right;font:500 12px 'Archivo',sans-serif;color:#6a6666")}>{d.hours} h</div>
+                    <div style={css("flex:1 1 " + (v.isSm ? "auto" : "220px") + ";min-width:0;font:600 15px 'Archivo',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis")}>{d.name}</div>
+                    {v.isSm ? (
+                      // Phone: the genre tags are dropped and the two numeric
+                      // columns collapse into one nowrap unit, pinned right.
+                      <div style={css("flex:none;white-space:nowrap;font:600 12px 'Archivo',sans-serif;letter-spacing:.04em;text-transform:uppercase;color:#6a6666")}>{d.count} {d.count === 1 ? 'show' : 'shows'} &middot; {d.hours} h</div>
+                    ) : (
+                      <React.Fragment>
+                        <div style={css("flex:1 1 180px;min-width:0;font:500 12px 'Archivo',sans-serif;color:#6a6666;white-space:nowrap;overflow:hidden;text-overflow:ellipsis")}>{d.tags}</div>
+                        <div style={css("flex:none;min-width:78px;text-align:right;font:600 12px 'Archivo',sans-serif;letter-spacing:.08em;text-transform:uppercase")}>{d.count} {d.count === 1 ? 'show' : 'shows'}</div>
+                        <div style={css("flex:none;min-width:52px;text-align:right;font:500 12px 'Archivo',sans-serif;color:#6a6666")}>{d.hours} h</div>
+                      </React.Fragment>
+                    )}
                   </div>
                 ))}
               </div>

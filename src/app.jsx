@@ -43,6 +43,16 @@ const SOUND_SYSTEM_BG = "image-set(" +
   "url(assets/monkey-sound-system.png) 1x, " +
   "url(assets/monkey-sound-system@2x.png) 2x)";
 
+// Hyderabad Dub Club wordmark - the About-page "night" section, same
+// AVIF/WebP-ahead-of-PNG treatment as the sound-system illustration.
+const DUB_CLUB_BG = "image-set(" +
+  "url(assets/hyderabad-dub-club.avif) type('image/avif') 1x, " +
+  "url(assets/hyderabad-dub-club@2x.avif) type('image/avif') 2x, " +
+  "url(assets/hyderabad-dub-club.webp) type('image/webp') 1x, " +
+  "url(assets/hyderabad-dub-club@2x.webp) type('image/webp') 2x, " +
+  "url(assets/hyderabad-dub-club.png) 1x, " +
+  "url(assets/hyderabad-dub-club@2x.png) 2x)";
+
 /* Album art (every show cover) is fetched from Mixcloud's CDN and can take
    a moment to arrive. Painting an empty <img>/tile in the meantime is what
    made the layout look broken - the box has no content, borders and
@@ -3113,7 +3123,7 @@ class Component extends React.Component {
                 <div style={css("padding:20px;border-left:1px solid #d7d3d3")}><div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#6a6666;margin-bottom:8px")}>Social</div><a href="https://www.instagram.com/monkeyradioindia" target="_blank" rel="noopener" onClick={v.outboundClick('instagram')} style={css("font:600 15px 'Archivo',sans-serif")}>@monkeyradioindia</a></div>
               </div>
 
-              <div style={css("margin-top:64px;display:flex;align-items:flex-start;gap:" + (v.isSm ? "0" : "48px") + ";flex-direction:" + (v.isSm ? "column" : "row"))}>
+              <div style={css("margin-top:64px;display:flex;align-items:" + (v.isSm ? "flex-start" : "center") + ";gap:" + (v.isSm ? "0" : "48px") + ";flex-direction:" + (v.isSm ? "column" : "row"))}>
                 <div style={css("flex:1;min-width:0")}>
                   <div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#ae1800;margin-bottom:14px")}>The rig</div>
                   <h2 style={css("font-weight:800;font-size:clamp(24px,3vw,40px);line-height:1.02;letter-spacing:-.03em;margin:0 0 22px")}>Monkey Sound System</h2>
@@ -3123,6 +3133,21 @@ class Component extends React.Component {
                   <p style={css("font:400 17px/1.6 'Archivo',sans-serif;color:#444141;margin:0;max-width:68ch")}>We call the boxes “Balasub”, named for Dakta Dub and his long endeavour to build a sound system for Hyderabad, and to put the city on the global map of sound system culture.</p>
                 </div>
                 <div role="img" aria-label="The Monkey Sound System, a hand-built dub speaker stack" style={css("flex:none;aspect-ratio:460/421;pointer-events:none;user-select:none;background:center/contain no-repeat " + SOUND_SYSTEM_BG + ";width:" + (v.isSm ? "min(420px,100%);margin-top:32px" : "340px;margin-top:2px"))}></div>
+              </div>
+
+              <div style={css("margin-top:64px;display:flex;align-items:" + (v.isSm ? "flex-start" : "center") + ";gap:" + (v.isSm ? "0" : "48px") + ";flex-direction:" + (v.isSm ? "column" : "row"))}>
+                <div style={css("flex:1;min-width:0")}>
+                  <div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#ae1800;margin-bottom:14px")}>The night</div>
+                  <h2 style={css("font-weight:800;font-size:clamp(24px,3vw,40px);line-height:1.02;letter-spacing:-.03em;margin:0 0 22px")}>Hyderabad Dub Club</h2>
+                  <div style={css("height:2px;background:#201e1d;margin-bottom:24px")}></div>
+                  <p style={css("font:400 17px/1.6 'Archivo',sans-serif;color:#444141;margin:0 0 18px;max-width:68ch")}>Hyderabad Dub Club is a night built around the Monkey Sound System. One room, the full stack, and a run of selectors playing dub, roots and steppers the way the boxes were made to carry it.</p>
+                  <p style={css("font:400 17px/1.6 'Archivo',sans-serif;color:#444141;margin:0 0 26px;max-width:68ch")}>It comes out of the same circle as the station, put on together with Bass Sanskriti, and turns up in the city when the room and the records line up rather than on a fixed calendar.</p>
+                  <a href="https://basssanskriti.com" target="_blank" rel="noopener" onClick={v.outboundClick('bass_sanskriti')} className="h-invert" style={css("display:inline-flex;align-items:center;gap:10px;border:2px solid #201e1d;color:#201e1d;padding:12px 18px;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase")}>
+                    Bass Sanskriti
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none")}><path d="M7 17 17 7"></path><path d="M7 7h10v10"></path></svg>
+                  </a>
+                </div>
+                <div role="img" aria-label="Hyderabad Dub Club" style={css("flex:none;aspect-ratio:2730/1786;pointer-events:none;user-select:none;background:center/contain no-repeat " + DUB_CLUB_BG + ";width:" + (v.isSm ? "min(420px,100%);margin-top:32px" : "340px;margin-top:6px"))}></div>
               </div>
 
               <div id="mri-submit" style={css("margin-top:64px;border-top:1px solid #d7d3d3;padding-top:40px;scroll-margin-top:90px")}>

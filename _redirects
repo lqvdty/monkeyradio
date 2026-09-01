@@ -7,4 +7,5 @@
 /ambient     /index.html      200
 /legal       /index.html      200
 /show/*      /index.html      200
+/playlist/*  /index.html      200
 /*           /404.html        404

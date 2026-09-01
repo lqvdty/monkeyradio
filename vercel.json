@@ -3,6 +3,7 @@
   "rewrites": [
     { "source": "/", "destination": "/index.html" },
     { "source": "/(archive|selectors|saved|about|ambient|legal)", "destination": "/index.html" },
-    { "source": "/show/(.*)", "destination": "/index.html" }
+    { "source": "/show/(.*)", "destination": "/index.html" },
+    { "source": "/playlist/(.*)", "destination": "/index.html" }
   ]
 }

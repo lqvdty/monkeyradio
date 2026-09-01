@@ -264,6 +264,14 @@ class Component extends React.Component {
     // link - a read-only preview, never written to prefs unless the visitor
     // taps "Add to my playlists" (importSharedPlaylist).
     sharedPlaylist: null,
+    // True only for the very first paint of a /playlist/<id> deep link.
+    // Computed synchronously from the URL (not in componentDidMount) so the
+    // *first* render already knows to show a small loading placeholder
+    // instead of the full Home page while the snapshot - and for a café
+    // (?ambient=1) link, the archive and the ambient hand-off too - are
+    // still being fetched. Cleared by loadSharedPlaylist once there's
+    // something real to show (the preview, or ambient already entered).
+    sharedPlaylistLoading: typeof location !== 'undefined' && /^https?:$/.test(location.protocol) && /^\/playlist\//.test(location.pathname),
     paused: false, playerExpanded: false, toast: '', heroIdx: 0,
     // Set when the hidden Mixcloud <iframe> fails to come up (blocked,
     // offline, widget API never resolves). Swaps the custom scrubber for
@@ -837,13 +845,21 @@ class Component extends React.Component {
   loadSharedPlaylist(shareId, opts) {
     opts = opts || {};
     this._pendingPlaylist = null;
-    fetch(this.SHARE_DB + '/p/' + encodeURIComponent(shareId) + '.json')
+    // A slow/unreachable database would otherwise leave the loading
+    // placeholder up forever - fail it out after a few seconds instead.
+    const timeout = new Promise((_, reject) => setTimeout(() => reject('timeout'), 8000));
+    Promise.race([fetch(this.SHARE_DB + '/p/' + encodeURIComponent(shareId) + '.json'), timeout])
       .then(r => r.ok ? r.json() : Promise.reject(r.status))
       .then(data => {
         if (!data || typeof data !== 'object' || !Array.isArray(data.k)) return Promise.reject('bad');
         const pl = {id: shareId, name: (data.n || 'Shared playlist'), keys: data.k.filter(k => typeof k === 'string'), shared: true};
-        this.setState({sharedPlaylist: pl, view: 'library', tab: 'playlists', openPlaylist: null, detailKey: null, ambient: false});
+        // Reveal everything (preview state + the loading flag) in one go,
+        // and only once the archive is actually ready too - a café link
+        // goes straight from the loading placeholder into Ambient with no
+        // preview flash in between, and a plain link's rows are already
+        // resolved on first paint instead of briefly reading "unavailable".
         const finish = () => {
+          this.setState({sharedPlaylist: pl, view: 'library', tab: 'playlists', openPlaylist: null, detailKey: null, ambient: false, sharedPlaylistLoading: false});
           const resolved = pl.keys.filter(k => this.byKey(k)).length;
           this.T('Shared Playlist Opened', {share_id: shareId, resolved_count: resolved, total: pl.keys.length, autoplay: !!opts.autoplay, ambient: !!opts.ambient});
           if (opts.autoplay) this.startPlaylist(pl);
@@ -852,7 +868,7 @@ class Component extends React.Component {
         if (this.state.items.length) finish();
         else this._pendingPlaylist = {pl, opts, finish};
       })
-      .catch(() => { this.flash('That playlist link is invalid or expired'); this.setState({sharedPlaylist: null, view: 'home'}); });
+      .catch(() => { this.flash('That playlist link is invalid or expired'); this.setState({sharedPlaylist: null, view: 'home', sharedPlaylistLoading: false}); });
   }
 
   importSharedPlaylist() {
@@ -2281,7 +2297,8 @@ class Component extends React.Component {
 
     return {
       indexing: s.indexing, loadedCount: items.length,
-      isHome: s.view === 'home' && !detail, isBrowse: s.view === 'browse' && !detail,
+      sharedPlaylistLoading: s.sharedPlaylistLoading,
+      isHome: s.view === 'home' && !detail && !s.sharedPlaylistLoading, isBrowse: s.view === 'browse' && !detail,
       isDjs: s.view === 'djs' && !detail,
       isLibrary: s.view === 'library' && !detail, isAbout: s.view === 'about' && !detail,
       isLegal: s.view === 'legal' && !detail,
@@ -2806,16 +2823,16 @@ class Component extends React.Component {
           <div className="mri-headbar" style={css("max-width:1560px;margin:0 auto;padding:" + v.headPadY + " clamp(16px,3.2vw,32px);display:flex;align-items:center;gap:clamp(12px,2vw,26px);flex-wrap:wrap")}>
             <button onClick={v.goHome} style={css("display:flex;align-items:center;gap:10px;background:none;border:0;padding:0;cursor:pointer;color:inherit")}>
               <img src="assets/logo.png" alt="Monkey Radio India" style={css("width:34px;height:32px;object-fit:contain;display:block")} />
-              <span className="mri-brand" style={css("font-weight:800;font-size:14px;letter-spacing:.02em;white-space:nowrap;text-transform:uppercase")}>Monkey Radio India</span>
+              <span className="mri-brand" style={css("font-weight:800;font-size:14px;line-height:1.2;letter-spacing:.02em;white-space:nowrap;text-transform:uppercase")}>Monkey Radio India</span>
             </button>
 
             {v.navInline && (
               <nav className="mri-row" style={css("display:flex;gap:clamp(14px,1.8vw,22px);overflow-x:auto;min-width:0;flex:0 1 auto")}>
-                <button onClick={v.nav} data-view="home" style={css("background:none;border:0;padding:6px 0;cursor:pointer;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;color:" + v.navHome + ";border-bottom:2px solid " + v.navHomeBar)}>Home</button>
-                <button onClick={v.nav} data-view="browse" style={css("background:none;border:0;padding:6px 0;cursor:pointer;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;color:" + v.navBrowse + ";border-bottom:2px solid " + v.navBrowseBar)}>Archive</button>
-                <button onClick={v.nav} data-view="djs" style={css("background:none;border:0;padding:6px 0;cursor:pointer;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;color:" + v.navDjs + ";border-bottom:2px solid " + v.navDjsBar)}>Selectors</button>
-                <button onClick={v.nav} data-view="library" style={css("background:none;border:0;padding:6px 0;cursor:pointer;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;color:" + v.navLib + ";border-bottom:2px solid " + v.navLibBar)}>Saved</button>
-                <button onClick={v.nav} data-view="about" style={css("background:none;border:0;padding:6px 0;cursor:pointer;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;color:" + v.navAbout + ";border-bottom:2px solid " + v.navAboutBar)}>About</button>
+                <button onClick={v.nav} data-view="home" style={css("background:none;border:2px solid transparent;padding:6px 0;cursor:pointer;font:600 11px/1.2 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;color:" + v.navHome + ";border-bottom-color:" + v.navHomeBar)}>Home</button>
+                <button onClick={v.nav} data-view="browse" style={css("background:none;border:2px solid transparent;padding:6px 0;cursor:pointer;font:600 11px/1.2 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;color:" + v.navBrowse + ";border-bottom-color:" + v.navBrowseBar)}>Archive</button>
+                <button onClick={v.nav} data-view="djs" style={css("background:none;border:2px solid transparent;padding:6px 0;cursor:pointer;font:600 11px/1.2 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;color:" + v.navDjs + ";border-bottom-color:" + v.navDjsBar)}>Selectors</button>
+                <button onClick={v.nav} data-view="library" style={css("background:none;border:2px solid transparent;padding:6px 0;cursor:pointer;font:600 11px/1.2 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;color:" + v.navLib + ";border-bottom-color:" + v.navLibBar)}>Saved</button>
+                <button onClick={v.nav} data-view="about" style={css("background:none;border:2px solid transparent;padding:6px 0;cursor:pointer;font:600 11px/1.2 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;color:" + v.navAbout + ";border-bottom-color:" + v.navAboutBar)}>About</button>
               </nav>
             )}
 
@@ -2865,6 +2882,13 @@ class Component extends React.Component {
         )}
 
         <main style={css("max-width:1560px;margin:0 auto;padding:0 clamp(16px,3.2vw,32px)")}>
+
+          {v.sharedPlaylistLoading && (
+            <section style={css("min-height:60vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px")}>
+              <span style={css("display:inline-block;width:22px;height:22px;border:3px solid #d7d3d3;border-top-color:#ec3013;border-radius:50%;animation:mri-spin .8s linear infinite")}></span>
+              <div style={css("font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#6a6666")}>Loading playlist&hellip;</div>
+            </section>
+          )}
 
           {v.detailPage && (
             <section style={css("padding:18px 0 0")}>

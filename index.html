@@ -140,7 +140,6 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #ec30
 .h-invert:hover{background:#201e1d !important;color:#f3f2f2 !important}
 .h-fade:hover{opacity:.72}
 .h-row:hover{background:#eae9e9 !important}
-.h-close:hover{background:#ec3013 !important;border-color:#ec3013 !important;color:#fff !important}
 /* Ambient-mode exit: a bare X, no chrome. Quiet by default, full strength
    on hover / keyboard focus. */
 .mri-ambclose{opacity:.6;transition:opacity .15s ease}
@@ -156,24 +155,13 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #ec30
 .mri-art .mri-artimg{transition:transform .5s cubic-bezier(.2,.7,.2,1),opacity .35s ease}
 .mri-card:hover .mri-art img{transform:scale(1.06)}
 .mri-card:hover .mri-arttag{background:#ec3013 !important}
-/* Vinyl-sleeve treatment: a translucent orange wash (the "Tune in"
-   accent) tints — not masks — the cover art. */
-.mri-card .mri-art::before{
-  content:"";position:absolute;inset:0;pointer-events:none;
-  background:#ec3013;opacity:.20;
-  transition:none;
-}
-/* on hover the wash eases away so the true cover art comes through;
-   on mouse-out it snaps straight back (transition lives on :hover only) */
-.mri-card:hover .mri-art::before{opacity:0;transition:opacity .5s cubic-bezier(.2,.7,.2,1)}
-/* keep the runtime chip legible above the wash */
+/* keep the runtime chip above the cover art */
 .mri-card .mri-art .mri-arttag{z-index:2}
 @media (prefers-reduced-motion:reduce){
   .mri-art img{transition:none}
   .mri-artimg,.mri-art .mri-artimg{transition:none}
   .mri-artimg[data-art="wait"]{opacity:1}
   .mri-card:hover .mri-art img{transform:none}
-  .mri-card .mri-art::before{transition:none}
   .mri-heroart,.mri-heroart-m{animation:none}
 }
 #root{min-height:100vh;min-height:100dvh}
@@ -213,10 +201,6 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #ec30
 
 /* ---- Tablet ( <= 1080px ) ---- */
 @media (max-width:1080px){
-  .mri-backdrop{padding:16px !important}
-  .mri-modalhead{padding:24px !important;gap:24px !important}
-  .mri-modalhead h2{font-size:24px !important}
-
   /* Player dock: this row was authored for desktop's 1560px max-width and
      wraps its trailing controls onto an orphaned second row well before
      tablet width. Narrow every element that can afford it instead of

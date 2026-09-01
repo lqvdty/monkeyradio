@@ -122,30 +122,66 @@ function ArtBg(props) {
 class Component extends React.Component {
   // Show/DJ/station branding tags, never treated as genres.
   STOP = ['monkey radio india','monkeyradioindia','monkey radio','hyderabad','india','daktadub','dakta dub','dakta-dub','roots unwired','dub vibration','mr nobody','mrnobody','tune inn','souls of sound','psylenz','selekta chakkra','music manthan','disco freak','bass sanskriti','hyderabad underground movement','dj amul','dj def hawk','funk assassin','monkey sound system','radio','radio show','mix','dj mix','podcast','live','guest mix','india radio','underground'];
+  // `id` is the short internal key used everywhere in the code; `slug` is the
+  // reader-friendly token that appears in the URL (?genre=techno, not ?genre=house).
+  // routeToPath()/routeFromLocation() translate between the two; old ?genre=<id>
+  // links still resolve.
   GENRES = [
-    {id:'hiphop', label:'Hip Hop & Rap', tags:['hip hop','hip-hop','hiphop','rap','boom bap','boombap','old school hip hop','underground hip hop','g-funk','g funk','west coast hip hop','east coast hip hop','instrumental hip hop','turntablism','trap','conscious hip hop','90s hip hop','golden era','scratch']},
-    {id:'funk', label:'Funk, Soul & Disco', tags:['funk','soul','r&b','rnb','r and b','disco','nu disco','motown','northern soul','boogie','rare groove','neo soul','soul funk','funk soul','1970s','1980s','70s','80s soul']},
-    {id:'afro', label:'Indian Classical & World', tags:['indian classical','carnatic','hindustani','raga','raag','sitar','tabla','sarod','bansuri','classical indian','desi','bhangra','bollywood','sufi','qawwali','folk','afrobeat','afrobeats','afro house','afro','afrofunk','world','world music','latin','cumbia','reggaeton','salsa','arabic','balkan','ethiopian','ethio jazz','highlife','tropical','global bass','fusion']},
-    {id:'house', label:'Techno', tags:['house','techno','deep house','tech house','minimal','minimal techno','electro','edm','dance','acid','acid house','disco house','progressive house','electronica','electronic','melodic techno','dub techno','dubtechno','italo','detroit techno']},
-    {id:'psy', label:'Psychedelic', tags:['psychill','psy chill','psydub','psy dub','psybient','psytrance','psy trance','goa','goa trance','ambient','ambient dub','chillgressive','forest psy','organic house','ethnic ambient','dark psy','downtempo psy','indie','psychedelic','psychedelia','pszichedelia','psyamb','psy amb','psybass','psystep','psy glitchstep']},
-    {id:'reggae', label:'Dub & Reggae', tags:['reggae','dub','dancehall','ska','roots reggae','rocksteady','riddim','dub reggae','steppers','lovers rock','ragga','reggae roots','uk dub','sound system']},
-    {id:'chill', label:'Downtempo & Chill', tags:['lofi','lo-fi','lo fi','chillout','chill','chill out','downtempo','trip hop','triphop','jazz hop','beats','lounge','balearic']},
-    {id:'jazz', label:'Jazz & Blues', tags:['jazz','blues','bossa nova','bossa','latin jazz','swing','soul jazz','spiritual jazz','free jazz','jazz funk','nu jazz','afro jazz']},
-    {id:'bass', label:'Jungle, D&B & Bass', tags:['drum and bass','drum & bass','drum n bass','dnb','d&b','jungle','breakbeat','breaks','garage','uk garage','dubstep','bass','bass music','grime','footwork','halftime','neurofunk']},
-    {id:'experimental', label:'Experimental', tags:['experimental','experimental ambient','experimental electronic','experimental dub','drone','dark ambient','idm','glitch','musique concrete','avant-garde','avant garde','leftfield','noise','abstract','field recording','field recordings','sound art','sound collage','plunderphonics','tape music','microsound','chidakasha','transmission','transmissions','swatantram','by velugu']},
-    {id:'vinyl', label:'Vinyl Only', tags:['vinyl only','vinyl','all vinyl','45s','7 inch','vinyl mix','vinyl set','wax']},
-    {id:'pop', label:'Pop & Classics', tags:['pop','90s','classics','oldies','retro','1990s','throwback','mashup','party','synthpop','city pop','80s pop']}
+    {id:'hiphop', slug:'hip-hop', label:'Hip Hop & Rap', tags:['hip hop','hip-hop','hiphop','rap','boom bap','boombap','old school hip hop','underground hip hop','g-funk','g funk','west coast hip hop','east coast hip hop','instrumental hip hop','turntablism','trap','conscious hip hop','90s hip hop','golden era','scratch']},
+    {id:'funk', slug:'funk-soul-disco', label:'Funk, Soul & Disco', tags:['funk','soul','r&b','rnb','r and b','disco','nu disco','motown','northern soul','boogie','rare groove','neo soul','soul funk','funk soul','1970s','1980s','70s','80s soul']},
+    {id:'afro', slug:'world', label:'Indian Classical & World', tags:['indian classical','carnatic','hindustani','raga','raag','sitar','tabla','sarod','bansuri','classical indian','desi','bhangra','bollywood','sufi','qawwali','folk','afrobeat','afrobeats','afro house','afro','afrofunk','world','world music','latin','cumbia','reggaeton','salsa','arabic','balkan','ethiopian','ethio jazz','highlife','tropical','global bass','fusion']},
+    {id:'house', slug:'techno', label:'Techno', tags:['house','techno','deep house','tech house','minimal','minimal techno','electro','edm','dance','acid','acid house','disco house','progressive house','electronica','electronic','melodic techno','dub techno','dubtechno','italo','detroit techno']},
+    {id:'psy', slug:'psychedelic', label:'Psychedelic', tags:['psychill','psy chill','psydub','psy dub','psybient','psytrance','psy trance','goa','goa trance','ambient','ambient dub','chillgressive','forest psy','organic house','ethnic ambient','dark psy','downtempo psy','indie','psychedelic','psychedelia','pszichedelia','psyamb','psy amb','psybass','psystep','psy glitchstep']},
+    {id:'reggae', slug:'dub-reggae', label:'Dub & Reggae', tags:['reggae','dub','dancehall','ska','roots reggae','rocksteady','riddim','dub reggae','steppers','lovers rock','ragga','reggae roots','uk dub','sound system']},
+    {id:'chill', slug:'downtempo', label:'Downtempo & Chill', tags:['lofi','lo-fi','lo fi','chillout','chill','chill out','downtempo','trip hop','triphop','jazz hop','beats','lounge','balearic']},
+    {id:'jazz', slug:'jazz-blues', label:'Jazz & Blues', tags:['jazz','blues','bossa nova','bossa','latin jazz','swing','soul jazz','spiritual jazz','free jazz','jazz funk','nu jazz','afro jazz']},
+    {id:'bass', slug:'jungle-dnb-bass', label:'Jungle, D&B & Bass', tags:['drum and bass','drum & bass','drum n bass','dnb','d&b','jungle','breakbeat','breaks','garage','uk garage','dubstep','bass','bass music','grime','footwork','halftime','neurofunk']},
+    {id:'experimental', slug:'experimental', label:'Experimental', tags:['experimental','experimental ambient','experimental electronic','experimental dub','drone','dark ambient','idm','glitch','musique concrete','avant-garde','avant garde','leftfield','noise','abstract','field recording','field recordings','sound art','sound collage','plunderphonics','tape music','microsound','chidakasha','transmission','transmissions','swatantram','by velugu']},
+    {id:'vinyl', slug:'vinyl-only', label:'Vinyl Only', tags:['vinyl only','vinyl','all vinyl','45s','7 inch','vinyl mix','vinyl set','wax']},
+    {id:'pop', slug:'pop-classics', label:'Pop & Classics', tags:['pop','90s','classics','oldies','retro','1990s','throwback','mashup','party','synthpop','city pop','80s pop']}
   ];
-  // One-off shows the tag-scoring in primaryGenre() gets wrong (missing tag
+  // Shows the tag-scoring in primaryGenre() gets wrong (missing tag
   // vocabulary, or a genuine tie the score can't break). Title pattern ->
-  // genre id; checked before scoring. First match wins.
+  // genre id; checked before scoring. First match wins. Also carries a few
+  // whole-series rules where the tags drift genre to genre across episodes.
   GENRE_OVERRIDES = [
     [/indiearth\s*-\s*monkey radio india\s*-\s*cloudcast\s*-\s*march 2014/i, 'afro'],
     [/5th anniversary.*showcase\s*-\s*papa 31\.10\.2017/i, 'psy'],
-    [/^disco freak 14\.01\.2013$/i, 'funk'],
-    [/^09-06-2014__disco freak feat amul/i, 'funk'],
+    [/di+sco freak/i, 'funk'],
+    [/^roots unwired 22\.11\.2014$/i, 'reggae'],
+    [/^souls of sound 14\.08\.2013$/i, 'psy'],
+    [/^funk assassin episode 10\b/i, 'bass'],
     [/\bmalz\b/i, 'bass'],
-    [/^transmission 13\.05\.2015$/i, 'psy']
+    [/^transmission 13\.05\.2015$/i, 'psy'],
+    [/^sunday special ft dj na 12\.11\.2017$/i, 'funk'],
+    [/^hyderabad hi fi 23\.09\.2016$/i, 'hiphop']
+  ];
+  // Fallback bucketing, checked only when tag-scoring finds nothing (unlike
+  // GENRE_OVERRIDES, which wins outright). These recurring shows are dub /
+  // reggae / sound-system sets end to end, but many early episodes are tagged
+  // with station / show branding only (all in STOP), so they score zero. An
+  // episode of the same series that does score a genre from its tags keeps it.
+  // Series name matched in any spelling / word order.
+  GENRE_FALLBACKS = [
+    [/dub\s*vibr/i, 'reggae'],
+    [/roots\s*unwired/i, 'reggae'],
+    [/tune\s*inn/i, 'reggae'],
+    [/music manthan/i, 'reggae'],
+    [/hi[\s-]*fi hyderabad|hyderabad hi[\s-]*fi/i, 'reggae'],
+    [/steppin.? outta babylon/i, 'reggae'],
+    [/dr\.?dub/i, 'reggae'],
+    [/dub chakra/i, 'reggae'],
+    [/rain dub/i, 'reggae'],
+    [/hip hop mix by dj def hawk/i, 'hiphop'],
+    [/souls of sound/i, 'psy'],
+    [/deep space travellers/i, 'psy'],
+    [/puri juggernaut/i, 'psy'],
+    [/swatantram/i, 'experimental'],
+    [/ziggy.{0,3}blunts/i, 'reggae'],
+    // Catch-all: anything still unscored is a station one-off, guest slot or
+    // untagged upload - park it on Indian Classical & World rather than
+    // leaving it out of every shelf. Must stay last.
+    [/(?:)/, 'afro']
   ];
   MOODS = [
     {id:'latenight', label:'Late night', tags:['deep house','techno','downtempo','ambient','dub','trip hop','triphop','minimal','lofi','psydub','dub techno','underground hip hop','melodic techno']},
@@ -231,7 +267,7 @@ class Component extends React.Component {
 
   // ---- URL routing -------------------------------------------------
   // The bits of state that name a "page" get mirrored into a real path
-  // (/about, /selectors, /saved, /archive?genre=house, /show/<slug>) so
+  // (/about, /selectors, /saved, /archive?genre=techno, /show/<slug>) so
   // pages are linkable, bookmarkable and back/forward works. Every handler
   // still just calls setState; componentDidUpdate pushes the URL after.
   // Internal view ids stay short; the URL slug matches the menu label.
@@ -243,11 +279,20 @@ class Component extends React.Component {
 
   slugOf(key) { return (key || '').replace(/^\/+|\/+$/g, '').split('/').pop(); }
 
+  // genre id (internal) <-> genre slug (URL). Unknown values pass through, so a
+  // legacy ?genre=<id> link still resolves and a bad slug just yields no match.
+  genreSlug(id) { const g = this.GENRES.find(x => x.id === id); return g ? g.slug : id; }
+  genreId(slug) {
+    if (!slug) return slug;
+    const g = this.GENRES.find(x => x.slug === slug || x.id === slug);
+    return g ? g.id : slug;
+  }
+
   routeToPath(s) {
     if (s.ambient) return '/ambient' + (s.ambientRef ? '?ref=' + encodeURIComponent(s.ambientRef) : '');
     if (s.detailKey) return '/show/' + this.slugOf(s.detailKey);
     const qs = new URLSearchParams();
-    if (s.genre) qs.set('genre', s.genre);
+    if (s.genre) qs.set('genre', this.genreSlug(s.genre));
     if (s.mood) qs.set('mood', s.mood);
     if (s.dj) qs.set('dj', s.dj);
     if (s.query) qs.set('q', s.query);
@@ -262,7 +307,7 @@ class Component extends React.Component {
     if (parts[0] === 'ambient') return {_ambient: true, ambientRef: q.get('ref') || null};
     if (parts[0] === 'show' && parts[1]) return {_showSlug: decodeURIComponent(parts[1])};
     const view = this.SLUG_TO_VIEW[parts[0]] || (this.ROUTE_VIEWS.indexOf(parts[0]) >= 0 ? parts[0] : 'home');
-    return {view, detailKey: null, genre: q.get('genre'), mood: q.get('mood'), dj: q.get('dj'), query: q.get('q') || ''};
+    return {view, detailKey: null, genre: this.genreId(q.get('genre')), mood: q.get('mood'), dj: q.get('dj'), query: q.get('q') || ''};
   }
 
   resolveShowSlug(slug) {
@@ -274,6 +319,12 @@ class Component extends React.Component {
     if (!this._routing) return;
     const r = this.routeFromLocation();
     this._pendingShowSlug = null;
+    // Back/forward hop: if the entry we're landing on carries a scroll position
+    // (stamped by syncUrl when we navigated away from it), restore it once the
+    // view re-renders. Leaving a detail with nothing stamped -> top.
+    const savedY = (history.state && typeof history.state.scrollY === 'number') ? history.state.scrollY : null;
+    if (savedY != null) this._pendingScroll = savedY;
+    else if (this.state.detailKey && !r._showSlug && !r._ambient) this._scrollTop = true;
     if (r._ambient) {
       if (!this.state.ambient) this.enterAmbient(r.ambientRef, 'direct_url');
       else this.setState({ambient: true, ambientRef: r.ambientRef});
@@ -291,6 +342,11 @@ class Component extends React.Component {
 
   syncUrl() {
     if (!this._routing) return;
+    // A deep-linked /show/<slug> is still waiting for the archive to load
+    // before detailKey can be set. Don't rewrite the URL to the placeholder
+    // home state in the meantime - it would leave a bogus history entry that
+    // Back then walks into.
+    if (this._pendingShowSlug) return;
     const target = this.routeToPath(this.state);
     if (target === location.pathname + location.search) return;
     // New keystrokes in the search box only rewrite the query, not the
@@ -304,6 +360,10 @@ class Component extends React.Component {
     // Fire page_viewed only on a genuine page change (pushState), not on
     // every keystroke rewriting the same logical page's query (replaceState).
     if (method === 'pushState') {
+      // Stamp the outgoing entry with the reader's scroll position, so
+      // returning to it (Back from a show, or any back/forward hop) lands
+      // where they left off.
+      this._stampScroll();
       this.T('Page Viewed', {
         view: this.state.ambient ? 'ambient' : this.state.view,
         path: target, is_deeplink: !this._sawFirstView
@@ -311,7 +371,39 @@ class Component extends React.Component {
       this._sawFirstView = true;
     }
     this._routeKey = key;
-    try { history[method](null, '', target); } catch (e) {}
+    // Track how many pushState hops deep into the app this session is, stored
+    // on the history entry itself so it survives reloads and forward/back.
+    // A cold-loaded entry (shared link, bookmark) has no state -> depth 0,
+    // which is how _backFromDetail knows there's no in-app origin to return to.
+    const prevDepth = (history.state && history.state.d) || 0;
+    const depth = method === 'pushState' ? prevDepth + 1 : prevDepth;
+    try { history[method]({d: depth}, '', target); } catch (e) {}
+  }
+
+  // Record the reader's scroll position on the current history entry. Uses the
+  // last value seen by the scroll listener rather than a live read - by the
+  // time this runs the DOM may have shrunk and clamped window.scrollY.
+  _stampScroll() {
+    if (!this._routing) return;
+    const y = (typeof this._lastScrollY === 'number') ? this._lastScrollY : (window.scrollY || window.pageYOffset || 0);
+    try { history.replaceState(Object.assign({}, history.state, {scrollY: y}), ''); } catch (e) {}
+  }
+
+  // The show detail's Back control. When this session reached the show from
+  // somewhere else in the app (landing, a selector's page, the filtered
+  // archive), the previous history entry *is* that origin - walk back to it so
+  // Back behaves like every other page and restores the origin's filters and
+  // scroll position (syncUrl stamps it on the entry; applyRoute reads it back).
+  // A show opened cold has no such entry, so fall back to the top of the archive.
+  // Shared by the Back button and the Escape key.
+  _backFromDetail(method) {
+    const key = this.state.detailKey;
+    if (!key) return;
+    this.T('Show Closed', this.showProps(key, {method, surface: 'page'}));
+    const depth = (typeof history !== 'undefined' && history.state && history.state.d) || 0;
+    if (this._routing && depth > 0) { history.back(); return; }
+    this._scrollTop = true;
+    this.setState({detailKey: null, view: 'browse', genre: null, mood: null, dj: null, query: '', limit: 48});
   }
 
   // Swap the document title + OG/Twitter tags to match the open show, so a
@@ -381,13 +473,27 @@ class Component extends React.Component {
       // Ambient mode is a plain in-page overlay (no OS Fullscreen API), so
       // the page always receives this keydown - one press is enough.
       if (this.state.ambient) { this.exitAmbient('escape'); return; }
-      this.setState({detailKey: null, playerExpanded: false});
+      if (this.state.detailKey) { this._backFromDetail('escape'); return; }
+      this.setState({playerExpanded: false});
     };
     window.addEventListener('keydown', this._onKey);
     // Persist the playhead when the tab is hidden or closed, not just on
     // the throttled progress tick.
-    this._onHide = () => { if (this.state.nowKey && this._wpos > 5) this.saveResume(this.state.nowKey, this._wpos); };
+    this._onHide = () => {
+      if (this.state.nowKey && this._wpos > 5) this.saveResume(this.state.nowKey, this._wpos);
+      // Keep the current entry's stamped scroll fresh, so a reload or a
+      // return via Back lands where the reader actually was (scrollRestoration
+      // is 'manual', so nothing else does this).
+      this._stampScroll();
+    };
     window.addEventListener('pagehide', this._onHide);
+    // Track the last real scroll position. Read by syncUrl when it stamps the
+    // outgoing history entry: by the time syncUrl runs the view has often
+    // re-rendered shorter (opening a show unmounts the list), so window.scrollY
+    // is already clamped - this variable still holds where the reader was.
+    this._lastScrollY = 0;
+    this._onScroll = () => { this._lastScrollY = window.scrollY || window.pageYOffset || 0; };
+    window.addEventListener('scroll', this._onScroll, {passive: true});
     // The Wake Lock API silently releases whenever the tab is hidden (e.g.
     // the OS locks the screen), even if playback continues in the
     // background. Re-request it on return so a long unattended session
@@ -397,6 +503,12 @@ class Component extends React.Component {
       if (document.hidden) this._onHide();
       else if (!this.state.paused && this.state.nowKey) this.requestWakeLock();
     });
+    // Scroll position on back/forward is handled explicitly (syncUrl stamps
+    // each entry, applyRoute restores it), so stop the browser's own guess
+    // from fighting it - the SPA rebuilds the DOM after the browser has tried.
+    if (this._routing && 'scrollRestoration' in history) {
+      try { history.scrollRestoration = 'manual'; } catch (e) {}
+    }
     this._onPop = () => this.applyRoute();
     window.addEventListener('popstate', this._onPop);
     this.applyRoute();
@@ -425,6 +537,7 @@ class Component extends React.Component {
     window.removeEventListener('popstate', this._onPop);
     window.removeEventListener('resize', this._onResize);
     window.removeEventListener('pagehide', this._onHide);
+    if (this._onScroll) window.removeEventListener('scroll', this._onScroll);
     if (this._ro) this._ro.disconnect();
     if (this._heroRotate) clearInterval(this._heroRotate);
     clearTimeout(this._toastT);
@@ -1130,10 +1243,16 @@ class Component extends React.Component {
     let best = null, bestSc = 0.5;
     const ov = this.GENRE_OVERRIDES.find(([re]) => re.test(m.name || ''));
     if (ov) best = ov[1];
-    else this.GENRES.forEach(g => {
-      const sc = this.genreScore(m, g);
-      if (sc > bestSc) { bestSc = sc; best = g.id; }
-    });
+    else {
+      this.GENRES.forEach(g => {
+        const sc = this.genreScore(m, g);
+        if (sc > bestSc) { bestSc = sc; best = g.id; }
+      });
+      if (!best) {
+        const fb = this.GENRE_FALLBACKS.find(([re]) => re.test(m.name || ''));
+        if (fb) best = fb[1];
+      }
+    }
     this._pgMap.set(m, best);
     return best;
   }
@@ -1672,18 +1791,15 @@ class Component extends React.Component {
         window.MRIShaderBG.setVariant(variant);
       }
     }
-    // Keep the measured header height current so the show-detail modal can
-    // sit below it (header stays visible while the modal is open).
     this._measure();
-    // Lock the page behind the full-screen show detail so the body's
-    // scrollbar disappears while it's open.
-    document.body.style.overflow =
-      (this.state.detailKey && this.state.bp !== 'sm') ? 'hidden' : '';
     if (this.state.detailKey) this.fetchDesc(this.state.detailKey);
     if (this._pendingShowSlug && this.state.items.length) {
       const key = this.resolveShowSlug(this._pendingShowSlug);
-      this._pendingShowSlug = null;
-      if (key) this.setState({detailKey: key});
+      // Keep _pendingShowSlug set until detailKey has actually applied, so the
+      // syncUrl guard below suppresses a placeholder-state URL push in the gap
+      // between "items loaded" and "detailKey set".
+      if (key && this.state.detailKey !== key) this.setState({detailKey: key});
+      else this._pendingShowSlug = null;
     }
     // Restore the pre-reload show onto the dock, paused, at its saved
     // position. Autoplay policies forbid resuming with sound on load, so
@@ -1720,23 +1836,19 @@ class Component extends React.Component {
     }
     this.syncUrl();
     if (this._metaKey !== (this.state.detailKey || '')) { this._metaKey = this.state.detailKey || ''; this.syncMeta(); }
-    // Dialog focus: the desktop/tablet detail view is a real modal
-    // (role="dialog" in the render below) - opening it moves focus inside
-    // (to Close, so a screen reader lands in it immediately, the way a
-    // native dialog would), and closing it hands focus back to whatever
-    // card opened it, same as any other modal. The mobile view is a plain
-    // page, not a modal, so this only applies at bp !== 'sm'.
+    // Show detail is its own page (every breakpoint). Opening it moves focus
+    // to the Back control so a keyboard/screen-reader user lands at the top of
+    // the new page; closing it hands focus back to whatever card opened it.
     if (this._focusKey !== (this.state.detailKey || '')) {
       const wasOpen = !!this._focusKey;
       const isOpen = !!this.state.detailKey;
-      const isModal = this.state.bp !== 'sm';
       this._focusKey = this.state.detailKey || '';
-      if (isOpen && isModal) {
-        if (this._detailCloseBtn) this._detailCloseBtn.focus();
+      if (isOpen) {
+        if (this._detailCloseBtn) { try { this._detailCloseBtn.focus({preventScroll: true}); } catch (e) { this._detailCloseBtn.focus(); } }
       } else if (wasOpen && !isOpen) {
         const trigger = this._detailTrigger;
         this._detailTrigger = null;
-        if (trigger && document.contains(trigger)) trigger.focus();
+        if (trigger && document.contains(trigger)) { try { trigger.focus({preventScroll: true}); } catch (e) { trigger.focus(); } }
       }
     }
     // Deferred scroll to a section (e.g. footer "Submit a show" -> the
@@ -1744,6 +1856,16 @@ class Component extends React.Component {
     if (this._scrollTo) {
       const el = document.getElementById(this._scrollTo);
       if (el) { this._scrollTo = null; el.scrollIntoView({behavior: 'smooth', block: 'start'}); }
+    }
+    // Back from a show detail: drop the view back to the exact scroll position
+    // the list had when the show was opened. Re-assert on the next frame too,
+    // since artwork/late layout can still be growing the document height.
+    if (this._pendingScroll != null) {
+      const y = this._pendingScroll;
+      this._pendingScroll = null;
+      this._scrollTop = false;
+      window.scrollTo(0, y);
+      if (typeof requestAnimationFrame === 'function') requestAnimationFrame(() => { try { window.scrollTo(0, y); } catch (e) {} });
     }
     // A top-nav / footer link jumps to the top of the freshly rendered page
     // rather than keeping the scroll position of the view left behind.
@@ -1880,14 +2002,14 @@ class Component extends React.Component {
 
     return {
       indexing: s.indexing, loadedCount: items.length,
-      isHome: s.view === 'home' && !(detail && s.bp === 'sm'), isBrowse: s.view === 'browse' && !(detail && s.bp === 'sm'),
-      isDjs: s.view === 'djs' && !(detail && s.bp === 'sm'),
-      isLibrary: s.view === 'library' && !(detail && s.bp === 'sm'), isAbout: s.view === 'about' && !(detail && s.bp === 'sm'),
-      isLegal: s.view === 'legal' && !(detail && s.bp === 'sm'),
+      isHome: s.view === 'home' && !detail, isBrowse: s.view === 'browse' && !detail,
+      isDjs: s.view === 'djs' && !detail,
+      isLibrary: s.view === 'library' && !detail, isAbout: s.view === 'about' && !detail,
+      isLegal: s.view === 'legal' && !detail,
       detailPage: !!detail && s.bp === 'sm',
+      detailWide: !!detail && s.bp !== 'sm',
       rootRef: this.attachRoot,
       headRef: (el) => { this._headEl = el; },
-      detailOffset: (detail && s.bp !== 'sm') ? (s.headH || 0) : 0,
       isSm: s.bp === 'sm', headMenu: s.hMenu, navInline: !s.hMenu, menuOpen: s.hMenu && s.menuOpen,
       tuneText: 'Tune in',
       tunePadX: s.bp === 'sm' ? '12px' : '16px',
@@ -1962,8 +2084,6 @@ class Component extends React.Component {
       libItems, libEmpty: !libItems.length,
       libEmptyMsg: s.tab === 'favs' ? 'Nothing saved yet. Use the save button on any show.' : s.tab === 'queue' ? 'The queue is empty. Add shows from a mix card.' : 'No listening history yet.',
       tabFavBg: tf.bg, tabFavFg: tf.fg, tabQueueBg: tq.bg, tabQueueFg: tq.fg, tabHistBg: th.bg, tabHistFg: th.fg,
-      detailOpen: !!detail && s.bp !== 'sm',
-      detailBottom: now ? (s.bp === 'md' ? '170px' : '120px') : '0px',
       detail: detail ? Object.assign({}, this.card(detail), {
         tags: detail.tags.filter(t => this.STOP.indexOf(t) < 0).slice(0, 8), favs: this.fmtNum(detail.favs),
         favLabel: isFav(detail.key) ? 'Saved' : 'Save',
@@ -2063,13 +2183,13 @@ class Component extends React.Component {
         const key = e.currentTarget.dataset.key;
         const ctxId = e.currentTarget.dataset.ctx;
         this._detailCtx = this.shelfCtx(ctxId);
-        this.T('Show Opened', this.showProps(key, {source: ctxId || 'unknown', surface: s.bp === 'sm' ? 'page' : 'modal'}));
-        // Remembered so closing the dialog (Escape, the close button, or a
-        // click on the backdrop) can hand focus back to whatever opened it.
+        this.T('Show Opened', this.showProps(key, {source: ctxId || 'unknown', surface: 'page'}));
+        // Remembered so leaving the detail page (Back, Escape) can hand focus
+        // back to whatever opened it.
         this._detailTrigger = e.currentTarget;
-        // On mobile the detail is a full page, not a modal - land at the top
-        // instead of inheriting the scroll position of the list behind it.
-        if (s.bp === 'sm') this._scrollTop = true;
+        // The detail page opens at the top; Back restores the list's scroll
+        // position from the history entry (see syncUrl / applyRoute).
+        this._scrollTop = true;
         this.setState({detailKey: key, shared: false});
       },
       // Show cards are non-native controls (a div, not a button - the design
@@ -2081,26 +2201,13 @@ class Component extends React.Component {
         const key = e.currentTarget.dataset.key;
         const ctxId = e.currentTarget.dataset.ctx;
         this._detailCtx = this.shelfCtx(ctxId);
-        this.T('Show Opened', this.showProps(key, {source: ctxId || 'unknown', surface: s.bp === 'sm' ? 'page' : 'modal'}));
+        this.T('Show Opened', this.showProps(key, {source: ctxId || 'unknown', surface: 'page'}));
         this._detailTrigger = e.currentTarget;
-        if (s.bp === 'sm') this._scrollTop = true;
+        this._scrollTop = true;
         this.setState({detailKey: key, shared: false});
       },
-      closeDetail: () => this.setState({detailKey: null}),
-      detailDialogRef: (el) => { this._detailDialogEl = el; },
+      closeDetail: () => this._backFromDetail('button'),
       detailCloseBtnRef: (el) => { this._detailCloseBtn = el; },
-      // The desktop/tablet detail view is a real modal (role="dialog"
-      // below) - Tab has to stay inside it while it's open rather than
-      // leaking out to the page underneath.
-      detailTrapKey: (e) => {
-        if (e.key !== 'Tab' || !this._detailDialogEl) return;
-        const focusables = this._detailDialogEl.querySelectorAll('a[href],button:not([disabled]),input,[tabindex]:not([tabindex="-1"])');
-        if (!focusables.length) return;
-        const first = focusables[0], last = focusables[focusables.length - 1];
-        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-      },
-      stop: (e) => e.stopPropagation(),
       playDetail: () => this.play(s.detailKey, Object.assign({source: 'detail'}, this._detailCtx ? {ctx: this._detailCtx} : null)),
       queueDetail: () => {
         const nextQueue = s.queue.concat([s.detailKey]).filter((v, i, a) => a.indexOf(v) === i);
@@ -2371,7 +2478,7 @@ class Component extends React.Component {
 
           {v.detailPage && (
             <section style={css("padding:18px 0 0")}>
-              <button onClick={v.closeDetail} style={css("display:flex;align-items:center;gap:9px;background:none;border:0;padding:8px 0;margin-bottom:14px;cursor:pointer;color:#201e1d;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase")}>
+              <button ref={v.detailCloseBtnRef} onClick={v.closeDetail} style={css("display:flex;align-items:center;gap:9px;background:none;border:0;padding:8px 0;margin-bottom:14px;cursor:pointer;color:#201e1d;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase")}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none")}><path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path></svg>
                 Back
               </button>
@@ -2429,6 +2536,74 @@ class Component extends React.Component {
                 {v.related.map((m) => (
                   <div key={m.key} role="button" tabIndex={0} aria-label={m.name + ', selected by ' + m.dj} onClick={v.openMix} onKeyDown={v.openMixKey} data-key={m.key} style={css("flex:none;width:124px;cursor:pointer")}>
                     <ArtImg src={m.pic} alt="" loading="lazy" style={css("width:124px;height:124px;object-fit:cover;border:1px solid #d7d3d3;display:block")} />
+                    <div style={css("font:600 11.5px/1.3 'Archivo',sans-serif;margin-top:9px;height:30px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden")}>{m.name}</div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {v.detailWide && (
+            <section style={css("padding:18px 0 48px;max-width:960px")}>
+              <button ref={v.detailCloseBtnRef} onClick={v.closeDetail} style={css("display:flex;align-items:center;gap:9px;background:none;border:0;padding:8px 0;margin-bottom:18px;cursor:pointer;color:#201e1d;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase")}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none")}><path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path></svg>
+                Back
+              </button>
+              <div className="mri-detailhead" style={css("display:flex;gap:40px;flex-wrap:wrap;align-items:flex-start")}>
+                <ArtBg url={v.detail.pic} role="img" aria-label="Album art" base="width:min(320px,100%);aspect-ratio:1;background-size:cover;background-position:center;background-color:#eae9e9;border:1px solid #d7d3d3;flex:none" />
+                <div style={css("flex:1;min-width:280px")}>
+                  <div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#ae1800;margin-bottom:12px")}>{v.detail.when} / Monkey Radio India</div>
+                  <h1 style={css("font-weight:800;font-size:clamp(24px,3.4vw,32px);line-height:1.06;letter-spacing:-.03em;margin:0 0 12px;text-wrap:pretty")}>{v.detail.name}</h1>
+                  <div style={css("font:500 14px 'Archivo',sans-serif;color:#444141;margin-bottom:20px")}>Selected by {/^monkey radio india$/i.test(v.detail.dj)
+                    ? <strong style={css("font-weight:700;color:#201e1d")}>{v.detail.dj}</strong>
+                    : <button onClick={v.pickDj} data-id={v.detail.dj} aria-label={"All shows selected by " + v.detail.dj} style={css("font:inherit;font-weight:700;color:#201e1d;background:none;border:0;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:3px")}>{v.detail.dj}</button>}</div>
+                  {this.notesBlock(v.detail, false)}
+                  <div style={css("display:flex;flex-wrap:wrap;gap:6px;margin-bottom:22px")}>
+                    {v.detail.tags.map((t, i) => (
+                      <span key={i} style={css("font:500 10.5px 'Archivo',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#605d5d;border:1px solid #d7d3d3;padding:5px 9px")}>{t}</span>
+                    ))}
+                  </div>
+                  <div style={css("display:flex;gap:34px;margin-bottom:24px")}>
+                    <div><div style={css("font-weight:800;font-size:20px;letter-spacing:-.02em")}>{v.detail.len}</div><div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#6a6666;margin-top:4px")}>Runtime</div></div>
+                    <div><div style={css("font-weight:800;font-size:20px;letter-spacing:-.02em")}>{v.detail.plays}</div><div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#6a6666;margin-top:4px")}>Plays</div></div>
+                    <div><div style={css("font-weight:800;font-size:20px;letter-spacing:-.02em")}>{v.detail.favs}</div><div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#6a6666;margin-top:4px")}>Favourites</div></div>
+                  </div>
+                  <div style={css("display:flex;flex-wrap:wrap;gap:8px")}>
+                    <button onClick={v.playDetail} className="h-dark-accent" style={css("display:flex;align-items:center;gap:10px;background:#201e1d;color:#f3f2f2;border:0;border-radius:0;padding:12px 18px;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer")}>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="none" style={css("display:block;flex:none")}><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
+                      Play now
+                    </button>
+                    <button onClick={v.queueDetail} className="h-invert" style={css("display:flex;align-items:center;gap:10px;background:none;color:#201e1d;border:1px solid #201e1d;border-radius:0;padding:12px 16px;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer")}>
+                      {iconQueue}
+                      Queue
+                    </button>
+                    <button onClick={v.toggleFav} data-key={v.detail.key} style={css("display:flex;align-items:center;gap:10px;background:" + v.detail.favBg + ";color:" + v.detail.favFg + ";border:1px solid #201e1d;border-radius:0;padding:12px 16px;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer")}>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill={v.detail.favFill} stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none")}><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>
+                      {v.detail.favLabel}
+                    </button>
+                    <button onClick={v.shareDetail} className="h-invert" style={css("display:flex;align-items:center;gap:10px;background:none;color:#201e1d;border:1px solid #201e1d;border-radius:0;padding:12px 16px;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer")}>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none")}><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" x2="12" y1="2" y2="15"></line></svg>
+                      {v.shareLabel}
+                    </button>
+                  </div>
+                  {v.shareLinks && (
+                    <div style={css("margin-top:16px")}>
+                      <div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#6a6666;margin-bottom:10px")}>Share this show</div>
+                      <div style={css("display:flex;gap:8px")}>
+                        <a href={v.shareLinks.facebook} target="_blank" rel="noopener" onClick={v.shareChannelClick('facebook')} className="h-invert" aria-label="Share on Facebook" style={shareNetStyle}>{iconFacebook}</a>
+                        <button onClick={v.shareInstagram} className="h-invert" aria-label="Copy caption for Instagram" style={shareNetStyle}>{iconInstagram}</button>
+                        <a href={v.shareLinks.twitter} target="_blank" rel="noopener" onClick={v.shareChannelClick('twitter')} className="h-invert" aria-label="Share on X (Twitter)" style={shareNetStyle}>{iconTwitter}</a>
+                        <a href={v.shareLinks.whatsapp} target="_blank" rel="noopener" onClick={v.shareChannelClick('whatsapp')} className="h-invert" aria-label="Share on WhatsApp" style={shareNetStyle}>{iconWhatsApp}</a>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#6a6666;margin:34px 0 14px;border-top:2px solid #201e1d;padding-top:18px")}>More in this vein</div>
+              <div className="mri-row" style={css("display:flex;gap:16px;overflow-x:auto;padding-bottom:6px")}>
+                {v.related.map((m) => (
+                  <div key={m.key} role="button" tabIndex={0} aria-label={m.name + ', selected by ' + m.dj} onClick={v.openMix} onKeyDown={v.openMixKey} data-key={m.key} className="h-fade" style={css("flex:none;width:132px;cursor:pointer")}>
+                    <ArtImg src={m.pic} alt="" loading="lazy" style={css("width:132px;height:132px;object-fit:cover;border:1px solid #d7d3d3;display:block")} />
                     <div style={css("font:600 11.5px/1.3 'Archivo',sans-serif;margin-top:9px;height:30px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden")}>{m.name}</div>
                   </div>
                 ))}
@@ -2771,77 +2946,6 @@ class Component extends React.Component {
             </div>
           </div>
         </footer>
-
-        {v.detailOpen && (
-          <div role="dialog" aria-modal="true" aria-labelledby="mri-detail-title" ref={v.detailDialogRef} onKeyDown={v.detailTrapKey} style={css("position:fixed;left:0;right:0;top:" + v.detailOffset + "px;bottom:0;z-index:60;background:#f3f2f2;overflow-y:auto;-webkit-overflow-scrolling:touch")}>
-            <div style={css("min-height:100%;max-width:940px;margin:0 auto;background:#f3f2f2;padding-bottom:" + v.detailBottom)}>
-              <div className="mri-modalhead" style={css("position:relative;display:flex;gap:32px;padding:32px;flex-wrap:wrap;border-bottom:1px solid #d7d3d3")}>
-                <ArtBg url={v.detail.pic} role="img" aria-label="Album art" base="width:min(238px,100%);aspect-ratio:1;background-size:cover;background-position:center;background-color:#eae9e9;border:1px solid #d7d3d3;flex:none" />
-                <div style={css("flex:1;min-width:260px")}>
-                  <div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#ae1800;margin-bottom:12px")}>{v.detail.when} / Monkey Radio India</div>
-                  <h2 id="mri-detail-title" style={css("font-weight:800;font-size:27px;line-height:1.06;letter-spacing:-.03em;margin:0 0 12px;text-wrap:pretty;padding-right:40px")}>{v.detail.name}</h2>
-                  <div style={css("font:500 14px 'Archivo',sans-serif;color:#444141;margin-bottom:20px")}>Selected by {/^monkey radio india$/i.test(v.detail.dj)
-                ? <strong style={css("font-weight:700;color:#201e1d")}>{v.detail.dj}</strong>
-                : <button onClick={v.pickDj} data-id={v.detail.dj} aria-label={"All shows selected by " + v.detail.dj} style={css("font:inherit;font-weight:700;color:#201e1d;background:none;border:0;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:3px")}>{v.detail.dj}</button>}</div>
-                  {this.notesBlock(v.detail, false)}
-                  <div style={css("display:flex;flex-wrap:wrap;gap:6px;margin-bottom:22px")}>
-                    {v.detail.tags.map((t, i) => (
-                      <span key={i} style={css("font:500 10.5px 'Archivo',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#605d5d;border:1px solid #d7d3d3;padding:5px 9px")}>{t}</span>
-                    ))}
-                  </div>
-                  <div style={css("display:flex;gap:34px;margin-bottom:24px")}>
-                    <div><div style={css("font-weight:800;font-size:20px;letter-spacing:-.02em")}>{v.detail.len}</div><div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#6a6666;margin-top:4px")}>Runtime</div></div>
-                    <div><div style={css("font-weight:800;font-size:20px;letter-spacing:-.02em")}>{v.detail.plays}</div><div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#6a6666;margin-top:4px")}>Plays</div></div>
-                    <div><div style={css("font-weight:800;font-size:20px;letter-spacing:-.02em")}>{v.detail.favs}</div><div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#6a6666;margin-top:4px")}>Favourites</div></div>
-                  </div>
-                  <div style={css("display:flex;flex-wrap:wrap;gap:8px")}>
-                    <button onClick={v.playDetail} className="h-dark-accent" style={css("display:flex;align-items:center;gap:10px;background:#201e1d;color:#f3f2f2;border:0;border-radius:0;padding:12px 18px;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer")}>
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="none" style={css("display:block;flex:none")}><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
-                      Play now
-                    </button>
-                    <button onClick={v.queueDetail} className="h-invert" style={css("display:flex;align-items:center;gap:10px;background:none;color:#201e1d;border:1px solid #201e1d;border-radius:0;padding:12px 16px;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer")}>
-                      {iconQueue}
-                      Queue
-                    </button>
-                    <button onClick={v.toggleFav} data-key={v.detail.key} style={css("display:flex;align-items:center;gap:10px;background:" + v.detail.favBg + ";color:" + v.detail.favFg + ";border:1px solid #201e1d;border-radius:0;padding:12px 16px;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer")}>
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill={v.detail.favFill} stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none")}><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>
-                      {v.detail.favLabel}
-                    </button>
-                    <button onClick={v.shareDetail} className="h-invert" style={css("display:flex;align-items:center;gap:10px;background:none;color:#201e1d;border:1px solid #201e1d;border-radius:0;padding:12px 16px;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer")}>
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none")}><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" x2="12" y1="2" y2="15"></line></svg>
-                      {v.shareLabel}
-                    </button>
-                  </div>
-                  {v.shareLinks && (
-                    <div style={css("margin-top:16px")}>
-                      <div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#6a6666;margin-bottom:10px")}>Share this show</div>
-                      <div style={css("display:flex;gap:8px")}>
-                        <a href={v.shareLinks.facebook} target="_blank" rel="noopener" onClick={v.shareChannelClick('facebook')} className="h-invert" aria-label="Share on Facebook" style={shareNetStyle}>{iconFacebook}</a>
-                        <button onClick={v.shareInstagram} className="h-invert" aria-label="Copy caption for Instagram" style={shareNetStyle}>{iconInstagram}</button>
-                        <a href={v.shareLinks.twitter} target="_blank" rel="noopener" onClick={v.shareChannelClick('twitter')} className="h-invert" aria-label="Share on X (Twitter)" style={shareNetStyle}>{iconTwitter}</a>
-                        <a href={v.shareLinks.whatsapp} target="_blank" rel="noopener" onClick={v.shareChannelClick('whatsapp')} className="h-invert" aria-label="Share on WhatsApp" style={shareNetStyle}>{iconWhatsApp}</a>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <button ref={v.detailCloseBtnRef} onClick={v.closeDetail} aria-label="Close" className="h-close" style={css("position:fixed;top:" + (v.detailOffset + 16) + "px;right:16px;z-index:61;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:1px solid #201e1d;background:#f3f2f2;color:#201e1d;cursor:pointer;border-radius:0")}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block")}><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
-                </button>
-              </div>
-              <div style={css("padding:24px 32px 30px")}>
-                <div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#6a6666;margin-bottom:16px")}>More in this vein</div>
-                <div className="mri-row" style={css("display:flex;gap:16px;overflow-x:auto;padding-bottom:4px")}>
-                  {v.related.map((m) => (
-                    <div key={m.key} role="button" tabIndex={0} aria-label={m.name + ', selected by ' + m.dj} onClick={v.openMix} onKeyDown={v.openMixKey} data-key={m.key} className="h-fade" style={css("flex:none;width:124px;cursor:pointer")}>
-                      <ArtImg src={m.pic} alt="" loading="lazy" style={css("width:124px;height:124px;object-fit:cover;border:1px solid #d7d3d3;display:block")} />
-                      <div style={css("font:600 11.5px/1.3 'Archivo',sans-serif;margin-top:9px;height:30px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden")}>{m.name}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
         {v.playing && (v.isSm ? (
           <div className="mri-mp" data-exp={v.playerExpanded ? '1' : '0'}>

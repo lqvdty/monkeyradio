@@ -822,6 +822,18 @@ class Component extends React.Component {
     else { window.prompt('Copy this playlist link', sh.url); done(); }
   }
 
+  // Same snapshot, but the link itself carries the params that make it
+  // open hands-free: autoplay straight into the first show, dropped into
+  // fullscreen Ambient - a café or venue screen just needs this bookmarked.
+  plShareCopyCafeLink() {
+    const sh = this.state.plShareSheet;
+    if (!sh) return;
+    const url = sh.url + '?autoplay=1&ambient=1';
+    const done = () => { this.flash('Café-mode link copied'); this.plShareTrack('cafe_link'); };
+    if (navigator.clipboard) navigator.clipboard.writeText(url).then(done).catch(() => { window.prompt('Copy this café-mode link', url); done(); });
+    else { window.prompt('Copy this café-mode link', url); done(); }
+  }
+
   loadSharedPlaylist(shareId, opts) {
     opts = opts || {};
     this._pendingPlaylist = null;
@@ -2367,6 +2379,7 @@ class Component extends React.Component {
       plShareSheet: plSh, plShLinks,
       plShareClose: () => this.setState({plShareSheet: null}),
       plShareCopyLink: () => this.plShareCopyLink(),
+      plShareCopyCafeLink: () => this.plShareCopyCafeLink(),
       plShareChannel: (channel) => () => this.plShareTrack(channel),
       // Shared-playlist preview
       sharedPlaylist: shp ? {id: shp.id, name: shp.name, count: shp.keys.length} : null,
@@ -2719,10 +2732,17 @@ class Component extends React.Component {
                   <button onClick={v.plShareCopyLink} style={css("flex:none;background:#201e1d;color:#f3f2f2;border:0;border-radius:0;padding:0 16px;font:600 11px 'Archivo',sans-serif;letter-spacing:.1em;text-transform:uppercase;cursor:pointer")}>Copy</button>
                 </div>
                 <div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#6a6666;margin-bottom:10px")}>Share to</div>
-                <div style={css("display:flex;gap:8px")}>
+                <div style={css("display:flex;gap:8px;margin-bottom:20px")}>
                   <a href={v.plShLinks.facebook} target="_blank" rel="noopener" onClick={v.plShareChannel('facebook')} className="h-invert" aria-label="Share on Facebook" style={shareNetStyle}>{iconFacebook}</a>
                   <a href={v.plShLinks.twitter} target="_blank" rel="noopener" onClick={v.plShareChannel('twitter')} className="h-invert" aria-label="Share on X (Twitter)" style={shareNetStyle}>{iconTwitter}</a>
                   <a href={v.plShLinks.whatsapp} target="_blank" rel="noopener" onClick={v.plShareChannel('whatsapp')} className="h-invert" aria-label="Share on WhatsApp" style={shareNetStyle}>{iconWhatsApp}</a>
+                </div>
+                <div style={css("border-top:1px solid #d7d3d3;padding-top:16px")}>
+                  <button onClick={v.plShareCopyCafeLink} style={css("display:flex;align-items:center;gap:9px;width:100%;background:none;color:#201e1d;border:1px solid #201e1d;border-radius:0;padding:13px 14px;font:600 11px 'Archivo',sans-serif;letter-spacing:.1em;text-transform:uppercase;cursor:pointer")}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none")}><polygon points="6 3 20 12 6 21 6 3" fill="currentColor" stroke="none"></polygon><path d="M2 2v20"></path></svg>
+                    Copy caf&eacute;-mode link
+                  </button>
+                  <div style={css("font:500 11px/1.4 'Archivo',sans-serif;color:#6a6666;margin-top:8px")}>Opens straight into autoplay and fullscreen visuals - bookmark it on a venue screen.</div>
                 </div>
               </div>
             </div>

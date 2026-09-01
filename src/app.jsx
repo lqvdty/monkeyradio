@@ -150,6 +150,7 @@ class Component extends React.Component {
     [/di+sco freak/i, 'funk'],
     [/^roots unwired 22\.11\.2014$/i, 'reggae'],
     [/^souls of sound 14\.08\.2013$/i, 'psy'],
+    [/^tune inn features délibáb 24\.11\.2013$/i, 'psy'],
     [/^funk assassin episode 10\b/i, 'bass'],
     [/\bmalz\b/i, 'bass'],
     [/^transmission 13\.05\.2015$/i, 'psy'],
@@ -233,6 +234,12 @@ class Component extends React.Component {
     items: [], indexing: false, view: 'home', query: '', genre: null, mood: null, dj: null,
     sort: 'latest', limit: 48, detailKey: null, descs: {}, secs: {}, nowKey: null, tab: 'favs', headH: 0,
     favs: [], queue: [], history: [], shared: false, bp: 'lg', hMenu: false, menuOpen: false, filtersOpen: false,
+    // User-built playlists: [{id, name, keys:[showKey], created}]. Persisted
+    // in the mri.prefs.v1 blob alongside favs/queue/history. `openPlaylist`
+    // (a playlist id or null) is the ephemeral "which one is open in the
+    // Saved > Playlists tab"; `plSheet` ({key} or null) drives the
+    // add-to-playlist overlay; `plCreating` toggles its new-playlist input.
+    playlists: [], openPlaylist: null, plSheet: null, plCreating: false,
     paused: false, playerExpanded: false, toast: '', heroIdx: 0,
     // Set when the hidden Mixcloud <iframe> fails to come up (blocked,
     // offline, widget API never resolves). Swaps the custom scrubber for
@@ -452,7 +459,7 @@ class Component extends React.Component {
   componentDidMount() {
     try {
       const p = JSON.parse(localStorage.getItem(this.PREF_KEY) || '{}');
-      this.setState({favs: p.favs || [], queue: p.queue || [], history: p.history || []});
+      this.setState({favs: p.favs || [], queue: p.queue || [], history: p.history || [], playlists: Array.isArray(p.playlists) ? p.playlists : []});
     } catch (e) {}
     let cached = null;
     try { cached = JSON.parse(localStorage.getItem(this.CACHE_KEY) || 'null'); } catch (e) {}
@@ -470,6 +477,7 @@ class Component extends React.Component {
     } catch (e) {}
     this._onKey = (e) => {
       if (e.key !== 'Escape') return;
+      if (this.state.plSheet) { this.setState({plSheet: null, plCreating: false}); return; }
       // Ambient mode is a plain in-page overlay (no OS Fullscreen API), so
       // the page always receives this keydown - one press is enough.
       if (this.state.ambient) { this.exitAmbient('escape'); return; }
@@ -625,9 +633,85 @@ class Component extends React.Component {
   }
 
   savePrefs(patch) {
-    const next = {favs: this.state.favs, queue: this.state.queue, history: this.state.history, ...patch};
+    const next = {favs: this.state.favs, queue: this.state.queue, history: this.state.history, playlists: this.state.playlists, ...patch};
     this.setState(patch);
     try { localStorage.setItem(this.PREF_KEY, JSON.stringify(next)); } catch (e) {}
+  }
+
+  // ---- User playlists -------------------------------------------------
+  // Named, ordered lists of show keys the listener builds by hand. Stored
+  // in the prefs blob (see savePrefs). Playback pins this._ctx to a copy
+  // of the key list so auto-advance walks it and wraps at the end - an
+  // infinite loop with no extra machinery (see stationPool / buildUpNext).
+
+  playlistById(id) { return (this.state.playlists || []).find(p => p.id === id) || null; }
+
+  createPlaylist(name, firstKey) {
+    const nm = (name || '').trim() || 'My playlist';
+    const pl = {id: 'pl_' + Date.now().toString(36), name: nm, keys: firstKey ? [firstKey] : [], created: Date.now()};
+    this.savePrefs({playlists: [pl].concat(this.state.playlists || [])});
+    this.T('Playlist Created', {playlist_id: pl.id, name_length: nm.length, from_show: !!firstKey});
+    if (firstKey) this.T('Playlist Show Added', this.showProps(firstKey, {playlist_id: pl.id, playlist_length: 1}));
+    if (window.identifyProp) window.identifyProp('playlist_count', (this.state.playlists || []).length + 1);
+    return pl.id;
+  }
+
+  addToPlaylist(id, key) {
+    const pl = this.playlistById(id);
+    if (!pl || !key || pl.keys.indexOf(key) >= 0) return;
+    const playlists = this.state.playlists.map(p => p.id === id ? {...p, keys: p.keys.concat([key])} : p);
+    this.savePrefs({playlists});
+    this.T('Playlist Show Added', this.showProps(key, {playlist_id: id, playlist_length: pl.keys.length + 1}));
+    this.flash('Added to ' + pl.name);
+  }
+
+  removeFromPlaylist(id, key) {
+    const pl = this.playlistById(id);
+    if (!pl) return;
+    const playlists = this.state.playlists.map(p => p.id === id ? {...p, keys: p.keys.filter(k => k !== key)} : p);
+    this.savePrefs({playlists});
+    this.T('Playlist Show Removed', this.showProps(key, {playlist_id: id, playlist_length: Math.max(0, pl.keys.length - 1)}));
+    this.flash('Removed');
+  }
+
+  movePlaylistItem(id, key, dir) {
+    const pl = this.playlistById(id);
+    if (!pl) return;
+    const ks = pl.keys.slice();
+    const i = ks.indexOf(key);
+    const j = i + dir;
+    if (i < 0 || j < 0 || j >= ks.length) return;
+    ks[i] = ks[j]; ks[j] = key;
+    this.savePrefs({playlists: this.state.playlists.map(p => p.id === id ? {...p, keys: ks} : p)});
+    this.T('Playlist Reordered', {playlist_id: id, playlist_length: ks.length, direction: dir < 0 ? 'up' : 'down'});
+  }
+
+  renamePlaylist(id, name) {
+    const nm = (name || '').trim();
+    if (!nm) return;
+    this.savePrefs({playlists: this.state.playlists.map(p => p.id === id ? {...p, name: nm} : p)});
+    this.T('Playlist Renamed', {playlist_id: id, name_length: nm.length});
+  }
+
+  deletePlaylist(id) {
+    const pl = this.playlistById(id);
+    this.savePrefs({playlists: this.state.playlists.filter(p => p.id !== id)});
+    this.setState({openPlaylist: null});
+    this.T('Playlist Deleted', {playlist_id: id, playlist_length: pl ? pl.keys.length : 0});
+    if (window.identifyProp) window.identifyProp('playlist_count', Math.max(0, (this.state.playlists || []).length - 1));
+    this.flash('Playlist deleted');
+  }
+
+  // Start a playlist: pin the station context to a copy of its key list so
+  // auto-advance (ended -> advance -> nextKey/buildUpNext) rolls through it
+  // and wraps past the end forever. Never touches state.queue, so the
+  // manual queue stays independent and the playlist itself isn't mutated.
+  playPlaylist(id, startKey) {
+    const pl = this.playlistById(id);
+    if (!pl || !pl.keys.length) return;
+    const first = startKey && pl.keys.indexOf(startKey) >= 0 ? startKey : pl.keys[0];
+    this.T('Playlist Played', {playlist_id: id, playlist_length: pl.keys.length, start_source: startKey ? 'row' : 'header'});
+    this.play(first, {source: 'playlist', ctx: {keys: pl.keys.slice(), playlist: id, loop: true}});
   }
 
   // Remember what's on the dock and how far in, so a refresh can pick the
@@ -1283,16 +1367,21 @@ class Component extends React.Component {
   // results). Pass a context snapshot ({genre, mood, dj, query, sort}) to
   // filter the archive the same way the station lineup was pinned at play
   // time, so auto-advance stays inside the list the show was picked from.
+  // Diacritic-insensitive fold: "Délibáb" -> "delibab", so a search for
+  // "delibab" matches the accented title. NFD splits each base letter from
+  // its combining marks, then the marks (U+0300-U+036F) are dropped.
+  fold(s) { return (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); }
+
   filtered(ctx) {
     const s = this.state;
     const f = ctx || s;
-    const q = (f.query || '').trim().toLowerCase();
+    const q = this.fold(f.query || '').trim();
     let out = s.items.filter(m => {
       if (f.genre && !this.inGenre(m, f.genre)) return false;
       if (f.mood && !this.inMood(m, f.mood)) return false;
       if (f.dj && this.djKey(m.dj) !== this.djKey(f.dj)) return false;
       if (q) {
-        const hay = (m.name + ' ' + m.dj + ' ' + m.tags.join(' ')).toLowerCase();
+        const hay = this.fold(m.name + ' ' + m.dj + ' ' + m.tags.join(' '));
         if (!q.split(/\s+/).every(tok => hay.includes(tok))) return false;
       }
       return true;
@@ -1526,6 +1615,9 @@ class Component extends React.Component {
     const c = this._ctx;
     if (c && c.keys) {
       const pool = c.keys.map(k => this.byKey(k)).filter(Boolean);
+      // A user playlist loops as-is even when short; other key lists fall
+      // back to the full archive so auto-advance doesn't dead-end.
+      if (c.playlist) return pool.length ? pool : this.state.items;
       return pool.length > 3 ? pool : this.state.items;
     }
     const f = this.filtered(c);
@@ -1971,11 +2063,18 @@ class Component extends React.Component {
     }
     const isFav = k => s.favs.indexOf(k) >= 0;
 
-    const libSrc = s.tab === 'favs' ? s.favs : s.tab === 'queue' ? s.queue : s.history;
+    const libSrc = s.tab === 'favs' ? s.favs : s.tab === 'queue' ? s.queue : s.tab === 'history' ? s.history : [];
     const libItems = libSrc.map(k => this.byKey(k)).filter(Boolean).map(m => this.card(m));
+    // Playlists tab: either the index (list of playlists) or one opened playlist's shows.
+    const openPl = s.tab === 'playlists' && s.openPlaylist ? this.playlistById(s.openPlaylist) : null;
+    const plList = (s.playlists || []).map(p => {
+      const first = p.keys.map(k => this.byKey(k)).filter(Boolean)[0];
+      return {id: p.id, name: p.name, count: p.keys.length, pic: first ? first.pic : ''};
+    });
+    const plRows = openPl ? openPl.keys.map(k => this.byKey(k)).filter(Boolean).map(m => Object.assign(this.card(m), {key: m.key})) : [];
     const sortLabel = {latest: 'newest', oldest: 'oldest', plays: 'most played', longest: 'longest'}[s.sort];
     const tab = on => on ? {bg: '#201e1d', fg: '#f3f2f2'} : {bg: 'transparent', fg: '#6a6666'};
-    const tf = tab(s.tab === 'favs'), tq = tab(s.tab === 'queue'), th = tab(s.tab === 'history');
+    const tf = tab(s.tab === 'favs'), tq = tab(s.tab === 'queue'), th = tab(s.tab === 'history'), tp = tab(s.tab === 'playlists');
     const navOn = v => s.view === v ? '#201e1d' : '#6a6666';
     const navBar = v => s.view === v ? '#ec3013' : 'transparent';
     const related = detail ? items.filter(m => m.key !== detail.key && m.tags.some(t => this.STOP.indexOf(t) < 0 && detail.tags.includes(t))).slice(0, 12).map(m => this.card(m)) : [];
@@ -2083,7 +2182,31 @@ class Component extends React.Component {
       hasMore: list.length > s.limit, gridEmpty: !list.length && !s.indexing,
       libItems, libEmpty: !libItems.length,
       libEmptyMsg: s.tab === 'favs' ? 'Nothing saved yet. Use the save button on any show.' : s.tab === 'queue' ? 'The queue is empty. Add shows from a mix card.' : 'No listening history yet.',
-      tabFavBg: tf.bg, tabFavFg: tf.fg, tabQueueBg: tq.bg, tabQueueFg: tq.fg, tabHistBg: th.bg, tabHistFg: th.fg,
+      tabFavBg: tf.bg, tabFavFg: tf.fg, tabQueueBg: tq.bg, tabQueueFg: tq.fg, tabHistBg: th.bg, tabHistFg: th.fg, tabPlBg: tp.bg, tabPlFg: tp.fg,
+      // Playlists tab
+      isPlaylistsTab: s.tab === 'playlists',
+      plList, plOpen: openPl ? {id: openPl.id, name: openPl.name, count: openPl.keys.length} : null,
+      plRows, plCreating: s.plCreating,
+      plSheet: s.plSheet, plSheetInPl: s.plSheet ? (s.playlists || []).map(p => ({id: p.id, name: p.name, count: p.keys.length, has: p.keys.indexOf(s.plSheet.key) >= 0})) : [],
+      openPlaylist: (e) => this.setState({openPlaylist: e.currentTarget.dataset.id, plCreating: false}),
+      closePlaylist: () => this.setState({openPlaylist: null}),
+      playPlaylistNow: (e) => this.playPlaylist(e.currentTarget.dataset.id),
+      plMove: (e) => { e.stopPropagation(); const b = e.currentTarget.dataset; this.movePlaylistItem(b.pl, b.key, b.dir === 'up' ? -1 : 1); },
+      plRemove: (e) => { e.stopPropagation(); const b = e.currentTarget.dataset; this.removeFromPlaylist(b.pl, b.key); },
+      plRename: (e) => { const id = e.currentTarget.dataset.id; const cur = (this.playlistById(id) || {}).name || ''; const nm = window.prompt('Rename playlist', cur); if (nm != null) this.renamePlaylist(id, nm); },
+      plDelete: (e) => { const id = e.currentTarget.dataset.id; if (window.confirm('Delete this playlist? The shows themselves stay in the archive.')) this.deletePlaylist(id); },
+      plSheetOpen: (e) => { e.stopPropagation(); this.setState({plSheet: {key: e.currentTarget.dataset.key}, plCreating: false}); },
+      plSheetClose: () => this.setState({plSheet: null, plCreating: false}),
+      plSheetAdd: (e) => { const id = e.currentTarget.dataset.id; if (s.plSheet) this.addToPlaylist(id, s.plSheet.key); this.setState({plSheet: null, plCreating: false}); },
+      plSheetNew: () => this.setState({plCreating: true}),
+      plSheetNewEmpty: () => this.setState({plSheet: {key: null}, plCreating: true}),
+      plSheetCreate: (e) => {
+        e.preventDefault();
+        const nm = (this._plNameEl && this._plNameEl.value) || '';
+        this.createPlaylist(nm, s.plSheet ? s.plSheet.key : null);
+        this.setState({plSheet: null, plCreating: false});
+      },
+      plNameRef: (el) => { this._plNameEl = el; },
       detail: detail ? Object.assign({}, this.card(detail), {
         tags: detail.tags.filter(t => this.STOP.indexOf(t) < 0).slice(0, 8), favs: this.fmtNum(detail.favs),
         favLabel: isFav(detail.key) ? 'Saved' : 'Save',
@@ -2324,7 +2447,7 @@ class Component extends React.Component {
       cycleSort: () => { const order = ['latest', 'plays', 'longest', 'oldest']; const next = order[(order.indexOf(s.sort) + 1) % order.length]; this.T('Sort Changed', {sort: next}); this.setState({sort: next}); },
       clearFilters: () => { this.T('Filters Cleared', {}); this.setState({genre: null, mood: null, dj: s.dj, query: '', sort: 'latest', limit: 48}); },
       showMore: () => { this.T('More Shows Loaded', {page: Math.round((s.limit + 48) / 48), total_shown: s.limit + 48}); this.setState({limit: s.limit + 48}); },
-      setTab: (e) => { const tab = e.currentTarget.dataset.tab; this.T('Library Tab Viewed', {tab}); this.setState({tab}); },
+      setTab: (e) => { const tab = e.currentTarget.dataset.tab; this.T('Library Tab Viewed', {tab}); this.setState({tab, openPlaylist: null}); },
       scrollShelf: (e) => {
         const shelf = e.currentTarget.dataset.shelf, dir = Number(e.currentTarget.dataset.dir);
         const now = Date.now();
@@ -2348,6 +2471,7 @@ class Component extends React.Component {
     const iconQueue = <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none")}><path d="M11 12H3"></path><path d="M16 6H3"></path><path d="M16 18H3"></path><path d="M18 9v6"></path><path d="M21 12h-6"></path></svg>;
     const iconShare = <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block")}><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" x2="12" y1="2" y2="15"></line></svg>;
     const iconArrow = <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none")}><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>;
+    const iconListPlus = <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none")}><path d="M21 15V6"></path><path d="M18.5 18a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"></path><path d="M12 12H3"></path><path d="M16 6H3"></path><path d="M12 18H3"></path></svg>;
     // Brand marks for the per-show share row (single-path, currentColor).
     const brandSvg = (d) => <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" stroke="none" style={css("display:block;flex:none")}><path d={d}></path></svg>;
     const iconFacebook = brandSvg("M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z");
@@ -2358,6 +2482,43 @@ class Component extends React.Component {
 
     return (
       <div ref={v.rootRef} className="mri-app" style={css("min-height:100vh;background:#f3f2f2;padding-bottom:" + v.padBottom)}>
+
+        {/* Add-to-playlist overlay. Bespoke (no shared modal component) -
+            reuses the ambient fixed-overlay recipe. Scrim click and Esc
+            both close it (see _onKey). */}
+        {v.plSheet && (
+          <div role="dialog" aria-label="Add to playlist" onClick={v.plSheetClose} style={css("position:fixed;inset:0;z-index:410;background:rgba(32,30,29,.55);display:flex;align-items:center;justify-content:center;padding:20px")}>
+            <div onClick={(e) => e.stopPropagation()} style={css("width:100%;max-width:420px;max-height:80vh;overflow-y:auto;background:#f3f2f2;border:2px solid #201e1d;color:#201e1d")}>
+              <div style={css("display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:2px solid #201e1d")}>
+                <span style={css("font:700 12px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase")}>Add to playlist</span>
+                <button onClick={v.plSheetClose} aria-label="Close" style={css("background:none;border:0;padding:4px;cursor:pointer;color:#201e1d;display:flex")}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={css("display:block")}><path d="M18 6 6 18M6 6l12 12"></path></svg>
+                </button>
+              </div>
+              {(v.plCreating || !v.plSheet.key) ? (
+                <form onSubmit={v.plSheetCreate} style={css("padding:18px")}>
+                  <label style={css("display:block;font:600 10px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#6a6666;margin-bottom:8px")}>Playlist name</label>
+                  <input ref={v.plNameRef} autoFocus defaultValue="" placeholder="Late night dub" style={css("width:100%;box-sizing:border-box;background:#fff;border:1px solid #201e1d;border-radius:0;padding:12px 14px;font:500 14px 'Archivo',sans-serif;color:#201e1d;margin-bottom:14px")} />
+                  <button type="submit" style={css("width:100%;background:#201e1d;color:#f3f2f2;border:0;border-radius:0;padding:14px 18px;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer")}>{v.plSheet.key ? 'Create & add' : 'Create playlist'}</button>
+                </form>
+              ) : (
+                <div style={css("padding:8px 0")}>
+                  {v.plSheetInPl.map((p) => (
+                    <button key={p.id} onClick={v.plSheetAdd} data-id={p.id} disabled={p.has} style={css("display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid #d7d3d3;padding:14px 18px;font:600 13px 'Archivo',sans-serif;color:#201e1d;cursor:" + (p.has ? 'default' : 'pointer') + ";opacity:" + (p.has ? '.55' : '1'))}>
+                      <span style={css("flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis")}>{p.name}</span>
+                      <span style={css("flex:none;font:500 11px 'Archivo',sans-serif;color:#6a6666")}>{p.has ? 'Added' : p.count + (p.count === 1 ? ' show' : ' shows')}</span>
+                      {p.has && <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none")}><path d="M20 6 9 17l-5-5"></path></svg>}
+                    </button>
+                  ))}
+                  <button onClick={v.plSheetNew} style={css("display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:0;padding:16px 18px;font:700 11px 'Archivo',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#201e1d;cursor:pointer")}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={css("display:block")}><path d="M12 5v14M5 12h14"></path></svg>
+                    New playlist
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Ambient mode: a fullscreen overlay, not a separate view - the
             normal app (header, browse UI, and critically the persistent
@@ -2499,6 +2660,10 @@ class Component extends React.Component {
                   {iconPlay}
                   Play now
                 </button>
+                <button onClick={v.plSheetOpen} data-key={v.detail.key} style={css("display:flex;align-items:center;gap:9px;width:100%;background:none;color:#201e1d;border:1px solid #201e1d;border-radius:0;padding:14px 14px;font:600 11px 'Archivo',sans-serif;letter-spacing:.12em;text-transform:uppercase;cursor:pointer")}>
+                  {iconListPlus}
+                  Add to playlist
+                </button>
                 <div style={css("display:flex;gap:8px")}>
                   <button onClick={v.queueDetail} style={css("flex:1;display:flex;align-items:center;gap:9px;background:none;color:#201e1d;border:1px solid #201e1d;border-radius:0;padding:14px 14px;font:600 11px 'Archivo',sans-serif;letter-spacing:.12em;text-transform:uppercase;cursor:pointer")}>
                     {iconQueue}
@@ -2572,6 +2737,10 @@ class Component extends React.Component {
                     <button onClick={v.playDetail} className="h-dark-accent" style={css("display:flex;align-items:center;gap:10px;background:#201e1d;color:#f3f2f2;border:0;border-radius:0;padding:12px 18px;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer")}>
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="none" style={css("display:block;flex:none")}><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
                       Play now
+                    </button>
+                    <button onClick={v.plSheetOpen} data-key={v.detail.key} className="h-invert" style={css("display:flex;align-items:center;gap:10px;background:none;color:#201e1d;border:1px solid #201e1d;border-radius:0;padding:12px 16px;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer")}>
+                      {iconListPlus}
+                      Playlist
                     </button>
                     <button onClick={v.queueDetail} className="h-invert" style={css("display:flex;align-items:center;gap:10px;background:none;color:#201e1d;border:1px solid #201e1d;border-radius:0;padding:12px 16px;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer")}>
                       {iconQueue}
@@ -2826,22 +2995,95 @@ class Component extends React.Component {
               <div className="mri-row mri-tabs" style={css("display:flex;overflow-x:auto;border-bottom:2px solid #201e1d")}>
                 <button onClick={v.setTab} data-tab="favs" style={css("background:" + v.tabFavBg + ";color:" + v.tabFavFg + ";border:0;border-radius:0;padding:11px 18px;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer")}>Saved shows</button>
                 <button onClick={v.setTab} data-tab="queue" style={css("background:" + v.tabQueueBg + ";color:" + v.tabQueueFg + ";border:0;border-radius:0;padding:11px 18px;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer")}>Up next</button>
-                <button onClick={v.setTab} data-tab="history" style={css("background:" + v.tabHistBg + ";color:" + v.tabHistFg + ";border:0;border-radius:0;padding:11px 18px;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer")}>Recently played</button>
+                <button onClick={v.setTab} data-tab="playlists" style={css("background:" + v.tabPlBg + ";color:" + v.tabPlFg + ";border:0;border-radius:0;padding:11px 18px;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;white-space:nowrap")}>Playlists</button>
+                <button onClick={v.setTab} data-tab="history" style={css("background:" + v.tabHistBg + ";color:" + v.tabHistFg + ";border:0;border-radius:0;padding:11px 18px;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;white-space:nowrap")}>Recently played</button>
               </div>
-              <div>
-                {v.libItems.map((m, i) => (
-                  <div key={m.key + ':' + i} role="button" tabIndex={0} aria-label={m.name + ', selected by ' + m.dj} onClick={v.openMix} onKeyDown={v.openMixKey} data-key={m.key} className="h-row" style={css("display:flex;gap:18px;align-items:center;padding:12px 0;border-bottom:1px solid #d7d3d3;cursor:pointer")}>
-                    <ArtImg src={m.pic} alt="" loading="lazy" style={css("width:48px;height:48px;object-fit:cover;flex:none;border:1px solid #d7d3d3;display:block")} />
-                    <div style={css("flex:1;min-width:0")}>
-                      <div style={css("font:600 14px 'Archivo',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis")}>{m.name}</div>
-                      <div style={css("font:500 11px 'Archivo',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#6a6666;margin-top:4px")}>{m.dj}</div>
+
+              {v.isPlaylistsTab ? (
+                v.plOpen ? (
+                  <div>
+                    <div style={css("display:flex;align-items:center;gap:12px;padding:16px 0 12px;border-bottom:1px solid #d7d3d3")}>
+                      <button onClick={v.closePlaylist} aria-label="Back to playlists" style={css("flex:none;display:flex;align-items:center;justify-content:center;width:36px;height:36px;background:none;border:1px solid #201e1d;border-radius:0;cursor:pointer;color:#201e1d")}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={css("display:block")}><path d="m15 18-6-6 6-6"></path></svg>
+                      </button>
+                      <div style={css("flex:1;min-width:0")}>
+                        <div style={css("font-weight:800;font-size:clamp(19px,2.6vw,26px);letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis")}>{v.plOpen.name}</div>
+                        <div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#6a6666;margin-top:3px")}>{v.plOpen.count} {v.plOpen.count === 1 ? 'show' : 'shows'}</div>
+                      </div>
+                      <button onClick={v.plRename} data-id={v.plOpen.id} style={css("flex:none;background:none;border:1px solid #201e1d;border-radius:0;padding:9px 12px;font:600 10px 'Archivo',sans-serif;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;color:#201e1d")}>Rename</button>
+                      <button onClick={v.plDelete} data-id={v.plOpen.id} style={css("flex:none;background:none;border:1px solid #ae1800;border-radius:0;padding:9px 12px;font:600 10px 'Archivo',sans-serif;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;color:#ae1800")}>Delete</button>
                     </div>
-                    <span style={css("font:500 12px 'Archivo',sans-serif;color:#6a6666;padding-right:4px;flex:none")}>{m.len}</span>
+                    {v.plOpen.count > 0 && (
+                      <button onClick={v.playPlaylistNow} data-id={v.plOpen.id} style={css("display:flex;align-items:center;gap:10px;width:100%;background:#201e1d;color:#f3f2f2;border:0;border-radius:0;padding:15px 18px;margin:16px 0 4px;font:600 12px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer")}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none" style={css("display:block;flex:none")}><path d="M8 5v14l11-7z"></path></svg>
+                        Play playlist &middot; loops
+                      </button>
+                    )}
+                    <div>
+                      {v.plRows.map((m, i) => (
+                        <div key={m.key + ':' + i} role="button" tabIndex={0} aria-label={m.name + ', selected by ' + m.dj} onClick={v.openMix} onKeyDown={v.openMixKey} data-key={m.key} className="h-row" style={css("display:flex;gap:14px;align-items:center;padding:12px 0;border-bottom:1px solid #d7d3d3;cursor:pointer")}>
+                          <ArtImg src={m.pic} alt="" loading="lazy" style={css("width:48px;height:48px;object-fit:cover;flex:none;border:1px solid #d7d3d3;display:block")} />
+                          <div style={css("flex:1;min-width:0")}>
+                            <div style={css("font:600 14px 'Archivo',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis")}>{m.name}</div>
+                            <div style={css("font:500 11px 'Archivo',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#6a6666;margin-top:4px")}>{m.dj}</div>
+                          </div>
+                          <div style={css("flex:none;display:flex;align-items:center;gap:4px")}>
+                            <button onClick={v.plMove} data-pl={v.plOpen.id} data-key={m.key} data-dir="up" disabled={i === 0} aria-label="Move up" style={css("display:flex;align-items:center;justify-content:center;width:32px;height:32px;background:none;border:1px solid #d7d3d3;border-radius:0;cursor:pointer;color:#201e1d;opacity:" + (i === 0 ? '.3' : '1'))}>
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={css("display:block")}><path d="m18 15-6-6-6 6"></path></svg>
+                            </button>
+                            <button onClick={v.plMove} data-pl={v.plOpen.id} data-key={m.key} data-dir="down" disabled={i === v.plRows.length - 1} aria-label="Move down" style={css("display:flex;align-items:center;justify-content:center;width:32px;height:32px;background:none;border:1px solid #d7d3d3;border-radius:0;cursor:pointer;color:#201e1d;opacity:" + (i === v.plRows.length - 1 ? '.3' : '1'))}>
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={css("display:block")}><path d="m6 9 6 6 6-6"></path></svg>
+                            </button>
+                            <button onClick={v.plRemove} data-pl={v.plOpen.id} data-key={m.key} aria-label="Remove from playlist" style={css("display:flex;align-items:center;justify-content:center;width:32px;height:32px;background:none;border:1px solid #d7d3d3;border-radius:0;cursor:pointer;color:#ae1800")}>
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={css("display:block")}><path d="M18 6 6 18M6 6l12 12"></path></svg>
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {!v.plOpen.count && (
+                      <div style={css("padding:70px 0;font:500 14px 'Archivo',sans-serif;color:#6a6666")}>This playlist is empty. Open any show and use Add to playlist.</div>
+                    )}
                   </div>
-                ))}
-              </div>
-              {v.libEmpty && (
-                <div style={css("padding:70px 0;font:500 14px 'Archivo',sans-serif;color:#6a6666")}>{v.libEmptyMsg}</div>
+                ) : (
+                  <div>
+                    {v.plList.map((p) => (
+                      <div key={p.id} role="button" tabIndex={0} onClick={v.openPlaylist} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); v.openPlaylist(e); } }} data-id={p.id} className="h-row" style={css("display:flex;gap:18px;align-items:center;padding:12px 0;border-bottom:1px solid #d7d3d3;cursor:pointer")}>
+                        <div style={css("width:48px;height:48px;flex:none;border:1px solid #d7d3d3;background:#eae9e9 center/cover no-repeat" + (p.pic ? (";background-image:url(" + p.pic + ")") : ""))}></div>
+                        <div style={css("flex:1;min-width:0")}>
+                          <div style={css("font:600 14px 'Archivo',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis")}>{p.name}</div>
+                          <div style={css("font:500 11px 'Archivo',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#6a6666;margin-top:4px")}>{p.count} {p.count === 1 ? 'show' : 'shows'}</div>
+                        </div>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6a6666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none")}><path d="m9 18 6-6-6-6"></path></svg>
+                      </div>
+                    ))}
+                    <button onClick={v.plSheetNewEmpty} style={css("display:flex;align-items:center;gap:10px;width:100%;background:none;color:#201e1d;border:1px dashed #201e1d;border-radius:0;padding:14px 18px;margin-top:16px;font:600 11px 'Archivo',sans-serif;letter-spacing:.12em;text-transform:uppercase;cursor:pointer")}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={css("display:block")}><path d="M12 5v14M5 12h14"></path></svg>
+                      New playlist
+                    </button>
+                    {!v.plList.length && (
+                      <div style={css("padding:40px 0 0;font:500 14px 'Archivo',sans-serif;color:#6a6666")}>No playlists yet. Open any show and use Add to playlist, or start one above.</div>
+                    )}
+                  </div>
+                )
+              ) : (
+                <React.Fragment>
+                  <div>
+                    {v.libItems.map((m, i) => (
+                      <div key={m.key + ':' + i} role="button" tabIndex={0} aria-label={m.name + ', selected by ' + m.dj} onClick={v.openMix} onKeyDown={v.openMixKey} data-key={m.key} className="h-row" style={css("display:flex;gap:18px;align-items:center;padding:12px 0;border-bottom:1px solid #d7d3d3;cursor:pointer")}>
+                        <ArtImg src={m.pic} alt="" loading="lazy" style={css("width:48px;height:48px;object-fit:cover;flex:none;border:1px solid #d7d3d3;display:block")} />
+                        <div style={css("flex:1;min-width:0")}>
+                          <div style={css("font:600 14px 'Archivo',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis")}>{m.name}</div>
+                          <div style={css("font:500 11px 'Archivo',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#6a6666;margin-top:4px")}>{m.dj}</div>
+                        </div>
+                        <span style={css("font:500 12px 'Archivo',sans-serif;color:#6a6666;padding-right:4px;flex:none")}>{m.len}</span>
+                      </div>
+                    ))}
+                  </div>
+                  {v.libEmpty && (
+                    <div style={css("padding:70px 0;font:500 14px 'Archivo',sans-serif;color:#6a6666")}>{v.libEmptyMsg}</div>
+                  )}
+                </React.Fragment>
               )}
             </section>
           )}

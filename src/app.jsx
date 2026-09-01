@@ -206,6 +206,13 @@ class Component extends React.Component {
   PREF_KEY = 'mri.prefs.v1';
   RESUME_KEY = 'mri.resume.v1';
   PROG_KEY = 'mri.progress.v1';
+  // Firebase Realtime Database (REST, no SDK) backing shared-playlist
+  // snapshots. Anonymous write-once under /p/<pushid> = {n,k,t}; per-id
+  // public read; list read denied. See the DB security rules in the repo
+  // notes. Singapore (asia-southeast1) - RTDB has no India region, and
+  // this is closer to the listener base than Europe or the US. Region
+  // must match the instance actually created in the console.
+  SHARE_DB = 'https://monkeyradioindia-default-rtdb.asia-southeast1.firebasedatabase.app';
 
   _measure = (w) => {
     const width = w || (this._root && this._root.clientWidth) || document.documentElement.clientWidth;
@@ -250,6 +257,10 @@ class Component extends React.Component {
     // Saved > Playlists tab"; `plSheet` ({key} or null) drives the
     // add-to-playlist overlay; `plCreating` toggles its new-playlist input.
     playlists: [], openPlaylist: null, plSheet: null, plCreating: false,
+    // Transient snapshot of a playlist opened via a /playlist/<id> share
+    // link - a read-only preview, never written to prefs unless the visitor
+    // taps "Add to my playlists" (importSharedPlaylist).
+    sharedPlaylist: null,
     paused: false, playerExpanded: false, toast: '', heroIdx: 0,
     // Set when the hidden Mixcloud <iframe> fails to come up (blocked,
     // offline, widget API never resolves). Swaps the custom scrubber for
@@ -306,6 +317,10 @@ class Component extends React.Component {
   }
 
   routeToPath(s) {
+    // A shared-playlist preview keeps its /playlist/<id> URL even while
+    // Ambient mode is layered over it (café mode), so a refresh re-runs the
+    // same hydrate-and-play flow rather than a bare ambient cold start.
+    if (s.sharedPlaylist) return '/playlist/' + s.sharedPlaylist.id;
     if (s.ambient) return '/ambient' + (s.ambientRef ? '?ref=' + encodeURIComponent(s.ambientRef) : '');
     if (s.detailKey) return '/show/' + this.slugOf(s.detailKey);
     const qs = new URLSearchParams();
@@ -323,6 +338,11 @@ class Component extends React.Component {
     const q = new URLSearchParams(location.search);
     if (parts[0] === 'ambient') return {_ambient: true, ambientRef: q.get('ref') || null};
     if (parts[0] === 'show' && parts[1]) return {_showSlug: decodeURIComponent(parts[1])};
+    if (parts[0] === 'playlist' && parts[1]) return {
+      _playlistShare: decodeURIComponent(parts[1]),
+      _plAutoplay: q.get('autoplay') === '1',
+      _plAmbient: q.get('ambient') === '1'
+    };
     const view = this.SLUG_TO_VIEW[parts[0]] || (this.ROUTE_VIEWS.indexOf(parts[0]) >= 0 ? parts[0] : 'home');
     return {view, detailKey: null, genre: this.genreId(q.get('genre')), mood: q.get('mood'), dj: q.get('dj'), query: q.get('q') || ''};
   }
@@ -336,6 +356,7 @@ class Component extends React.Component {
     if (!this._routing) return;
     const r = this.routeFromLocation();
     this._pendingShowSlug = null;
+    this._pendingPlaylist = null;
     // Back/forward hop: if the entry we're landing on carries a scroll position
     // (stamped by syncUrl when we navigated away from it), restore it once the
     // view re-renders. Leaving a detail with nothing stamped -> top.
@@ -347,13 +368,24 @@ class Component extends React.Component {
       else this.setState({ambient: true, ambientRef: r.ambientRef});
       return;
     }
+    if (r._playlistShare) {
+      // Already showing this snapshot (e.g. a popstate that only toggled
+      // ambient): don't re-fetch, just make sure ambient matches the URL.
+      if (this.state.sharedPlaylist && this.state.sharedPlaylist.id === r._playlistShare) {
+        if (this.state.ambient && !r._plAmbient) this.exitAmbient('back');
+        return;
+      }
+      if (this.state.ambient) this.exitAmbient('back');
+      this.loadSharedPlaylist(r._playlistShare, {autoplay: r._plAutoplay, ambient: r._plAmbient});
+      return;
+    }
     if (this.state.ambient) this.exitAmbient('back');
     if (r._showSlug) {
       const key = this.resolveShowSlug(r._showSlug);
-      if (key) this.setState({detailKey: key, ambient: false});
-      else { this._pendingShowSlug = r._showSlug; this.setState({ambient: false}); }   // items not loaded yet
+      if (key) this.setState({detailKey: key, ambient: false, sharedPlaylist: null});
+      else { this._pendingShowSlug = r._showSlug; this.setState({ambient: false, sharedPlaylist: null}); }   // items not loaded yet
     } else {
-      this.setState(Object.assign({ambient: false}, r));
+      this.setState(Object.assign({ambient: false, sharedPlaylist: null}, r));
     }
   }
 
@@ -363,7 +395,7 @@ class Component extends React.Component {
     // before detailKey can be set. Don't rewrite the URL to the placeholder
     // home state in the meantime - it would leave a bogus history entry that
     // Back then walks into.
-    if (this._pendingShowSlug) return;
+    if (this._pendingShowSlug || this._pendingPlaylist) return;
     const target = this.routeToPath(this.state);
     if (target === location.pathname + location.search) return;
     // New keystrokes in the search box only rewrite the query, not the
@@ -371,7 +403,8 @@ class Component extends React.Component {
     // Ambient mode always gets its own history entry, so the back button
     // is a working exit gesture even for someone who never finds the
     // on-screen close control.
-    const key = this.state.ambient ? 'ambient:' + (this.state.ambientRef || '')
+    const key = this.state.sharedPlaylist ? 'pl:' + this.state.sharedPlaylist.id + (this.state.ambient ? ':amb' : '')
+      : this.state.ambient ? 'ambient:' + (this.state.ambientRef || '')
       : [this.state.detailKey || '', this.state.view, this.state.genre || '', this.state.mood || '', this.state.dj || ''].join('|');
     const method = key === this._routeKey ? 'replaceState' : 'pushState';
     // Fire page_viewed only on a genuine page change (pushState), not on
@@ -460,6 +493,10 @@ class Component extends React.Component {
       set('meta[name="description"]', 'content', desc);
       set('meta[property="og:image"]', 'content', m.pic);
       set('meta[name="twitter:image"]', 'content', m.pic);
+    } else if (this.state.sharedPlaylist) {
+      // Per-playlist link unfurls stay generic (no server render); just the
+      // browser-tab title reflects the playlist.
+      document.title = this.state.sharedPlaylist.name + ' · Monkey Radio India playlist';
     } else {
       document.title = this._meta0.title;
       FIELDS.forEach(([sel, attr]) => { if (this._meta0[sel] != null) set(sel, attr, this._meta0[sel]); });
@@ -716,12 +753,93 @@ class Component extends React.Component {
   // auto-advance (ended -> advance -> nextKey/buildUpNext) rolls through it
   // and wraps past the end forever. Never touches state.queue, so the
   // manual queue stays independent and the playlist itself isn't mutated.
-  playPlaylist(id, startKey) {
+  // `pl` is a playlist object - a local one or the transient sharedPlaylist.
+  startPlaylist(pl, startKey) {
+    if (!pl || !pl.keys || !pl.keys.length) return;
+    const resolvable = pl.keys.filter(k => this.byKey(k));
+    if (!resolvable.length) { this.flash('None of these shows are available yet'); return; }
+    const first = startKey && resolvable.indexOf(startKey) >= 0 ? startKey : resolvable[0];
+    this.T('Playlist Played', {
+      playlist_id: pl.id, playlist_length: pl.keys.length,
+      start_source: startKey ? 'row' : 'header', shared: !!pl.shared
+    });
+    this.play(first, {source: 'playlist', ctx: {keys: pl.keys.slice(), playlist: pl.id, loop: true}});
+  }
+  playPlaylist(id, startKey) { this.startPlaylist(this.playlistById(id), startKey); }
+
+  // ---- Shared playlists --------------------------------------------------
+  // A share link is just a pointer to an immutable snapshot ({n,k,t}) held
+  // in Firebase RTDB. No login: the URL is the capability. Opening one shows
+  // a read-only preview (see the sharedPlaylist render branch); the visitor
+  // chooses whether to keep it.
+
+  plContentHash(pl) { return (pl.name || '') + ' ' + (pl.keys || []).join(','); }
+
+  sharePlaylist(id) {
     const pl = this.playlistById(id);
-    if (!pl || !pl.keys.length) return;
-    const first = startKey && pl.keys.indexOf(startKey) >= 0 ? startKey : pl.keys[0];
-    this.T('Playlist Played', {playlist_id: id, playlist_length: pl.keys.length, start_source: startKey ? 'row' : 'header'});
-    this.play(first, {source: 'playlist', ctx: {keys: pl.keys.slice(), playlist: id, loop: true}});
+    if (!pl || !pl.keys.length) { this.flash('Add a show before sharing'); return; }
+    const link = sid => 'https://www.monkeyradio.in/playlist/' + sid;
+    const deliver = (sid, fresh) => {
+      const url = link(sid);
+      const done = ch => this.T('Playlist Shared', {playlist_id: id, share_id: sid, playlist_length: pl.keys.length, channel: ch, fresh: !!fresh});
+      if (navigator.share) {
+        navigator.share({title: pl.name, url}).then(() => done('web_share')).catch(() => {});
+      } else if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(() => { this.flash('Playlist link copied'); done('copy'); }).catch(() => {});
+      } else {
+        window.prompt('Copy this playlist link', url); done('prompt');
+      }
+    };
+    // Unchanged since last share -> reuse the existing snapshot, no write.
+    if (pl.shareId && pl.sharedHash === this.plContentHash(pl)) { deliver(pl.shareId, false); return; }
+    const body = JSON.stringify({n: pl.name.slice(0, 80), k: pl.keys.slice(0, 100), t: Date.now()});
+    fetch(this.SHARE_DB + '/p.json', {method: 'POST', headers: {'Content-Type': 'application/json'}, body})
+      .then(r => r.ok ? r.json() : Promise.reject(r.status))
+      .then(res => {
+        const sid = res && res.name;
+        if (!sid) return Promise.reject('no id');
+        this.savePrefs({playlists: this.state.playlists.map(p => p.id === id ? {...p, shareId: sid, sharedHash: this.plContentHash(p)} : p)});
+        deliver(sid, true);
+      })
+      .catch(() => this.flash("Couldn't create a link, try again"));
+  }
+
+  loadSharedPlaylist(shareId, opts) {
+    opts = opts || {};
+    this._pendingPlaylist = null;
+    fetch(this.SHARE_DB + '/p/' + encodeURIComponent(shareId) + '.json')
+      .then(r => r.ok ? r.json() : Promise.reject(r.status))
+      .then(data => {
+        if (!data || typeof data !== 'object' || !Array.isArray(data.k)) return Promise.reject('bad');
+        const pl = {id: shareId, name: (data.n || 'Shared playlist'), keys: data.k.filter(k => typeof k === 'string'), shared: true};
+        this.setState({sharedPlaylist: pl, view: 'library', tab: 'playlists', openPlaylist: null, detailKey: null, ambient: false});
+        const finish = () => {
+          const resolved = pl.keys.filter(k => this.byKey(k)).length;
+          this.T('Shared Playlist Opened', {share_id: shareId, resolved_count: resolved, total: pl.keys.length, autoplay: !!opts.autoplay, ambient: !!opts.ambient});
+          if (opts.autoplay) this.startPlaylist(pl);
+          if (opts.ambient && !this.state.ambient) this.enterAmbient(null, 'shared_playlist');
+        };
+        if (this.state.items.length) finish();
+        else this._pendingPlaylist = {pl, opts, finish};
+      })
+      .catch(() => { this.flash('That playlist link is invalid or expired'); this.setState({sharedPlaylist: null, view: 'home'}); });
+  }
+
+  importSharedPlaylist() {
+    const pl = this.state.sharedPlaylist;
+    if (!pl) return;
+    const existing = (this.state.playlists || []).find(p => p.shareId === pl.id);
+    if (existing) {
+      this.setState({sharedPlaylist: null, tab: 'playlists', openPlaylist: existing.id});
+      this.flash('Already in your playlists');
+      return;
+    }
+    const local = {id: 'pl_' + Date.now().toString(36), name: pl.name, keys: pl.keys.slice(), created: Date.now(), shareId: pl.id, sharedHash: this.plContentHash(pl)};
+    this.savePrefs({playlists: [local].concat(this.state.playlists || [])});
+    this.setState({sharedPlaylist: null, tab: 'playlists', openPlaylist: local.id});
+    this.T('Shared Playlist Saved', {share_id: pl.id, playlist_length: pl.keys.length});
+    if (window.identifyProp) window.identifyProp('playlist_count', (this.state.playlists || []).length + 1);
+    this.flash('Added to your playlists');
   }
 
   // Remember what's on the dock and how far in, so a refresh can pick the
@@ -1158,6 +1276,7 @@ class Component extends React.Component {
           <li style={li}><strong>Product analytics (Amplitude).</strong> We use Amplitude to understand which parts of the site people actually use - which shows get opened, which filters get used, whether ambient mode gets used - so we can improve it. It runs against the anonymous device identifier above, not a cookie or your name or email. We configure it to discard your IP address after coarse, city-level location is resolved, and it only records the specific interactions named in the site&rsquo;s source code, not everything you do on the page. See <a href="https://amplitude.com/privacy" target="_blank" rel="noopener" onClick={v.outboundClick('amplitude_privacy')} style={css("text-decoration:underline")}>Amplitude&rsquo;s privacy policy</a>.</li>
           <li style={li}><strong>Hosting.</strong> The site is served by Firebase Hosting (Google). Like any web host, Google&rsquo;s servers process standard request data such as your IP address, browser type and timestamps to deliver the site and keep it secure. See the <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener" onClick={v.outboundClick('firebase_privacy')} style={css("text-decoration:underline")}>Firebase privacy information</a>.</li>
           <li style={li}><strong>Mixcloud.</strong> When you open or play a show, your browser contacts Mixcloud to load the player and audio. Mixcloud may set its own cookies and collect usage data under its <a href="https://www.mixcloud.com/privacy/" target="_blank" rel="noopener" onClick={v.outboundClick('mixcloud_privacy')} style={css("text-decoration:underline")}>privacy policy</a>.</li>
+          <li style={li}><strong>Shared playlists.</strong> If you create a share link for a playlist, its name and list of shows are stored on Firebase (Google) so anyone with the link can open it. No personal data is attached. Opening a shared link fetches that saved list.</li>
           <li style={li}><strong>Google Fonts.</strong> Typefaces are loaded from Google&rsquo;s font servers, which means Google receives your IP address and user-agent when the fonts are fetched.</li>
           <li style={li}><strong>Email.</strong> If you email us or submit a show, we keep that correspondence so we can reply and, where relevant, add the show to the station.</li>
           <li style={li}><strong>Children.</strong> The site is a general-audience music service and is not directed at children under 13.</li>
@@ -1903,6 +2022,13 @@ class Component extends React.Component {
       if (key && this.state.detailKey !== key) this.setState({detailKey: key});
       else this._pendingShowSlug = null;
     }
+    // A /playlist/<id> deep link whose snapshot arrived before the archive:
+    // run the autoplay / ambient tail now that shows can be resolved.
+    if (this._pendingPlaylist && this.state.items.length) {
+      const p = this._pendingPlaylist;
+      this._pendingPlaylist = null;
+      p.finish();
+    }
     // Restore the pre-reload show onto the dock, paused, at its saved
     // position. Autoplay policies forbid resuming with sound on load, so
     // it waits for the first play tap and seeks then (see bindWidget).
@@ -1937,7 +2063,8 @@ class Component extends React.Component {
       if (seed.length) this.setState({upNext: seed});
     }
     this.syncUrl();
-    if (this._metaKey !== (this.state.detailKey || '')) { this._metaKey = this.state.detailKey || ''; this.syncMeta(); }
+    const metaKey = (this.state.detailKey || '') + '|' + (this.state.sharedPlaylist ? this.state.sharedPlaylist.id : '');
+    if (this._metaKey !== metaKey) { this._metaKey = metaKey; this.syncMeta(); }
     // Show detail is its own page (every breakpoint). Opening it moves focus
     // to the Back control so a keyboard/screen-reader user lands at the top of
     // the new page; closing it hands focus back to whatever card opened it.
@@ -2082,6 +2209,10 @@ class Component extends React.Component {
       return {id: p.id, name: p.name, count: p.keys.length, pic: first ? first.pic : ''};
     });
     const plRows = openPl ? openPl.keys.map(k => this.byKey(k)).filter(Boolean).map(m => Object.assign(this.card(m), {key: m.key})) : [];
+    // Read-only preview of a playlist opened via a /playlist/<id> share link.
+    const shp = s.sharedPlaylist;
+    const shpRows = shp ? shp.keys.map(k => this.byKey(k)).filter(Boolean).map(m => Object.assign(this.card(m), {key: m.key})) : [];
+    const shpMissing = shp ? shp.keys.length - shpRows.length : 0;
     const sortLabel = {latest: 'newest', oldest: 'oldest', plays: 'most played', longest: 'longest'}[s.sort];
     const tab = on => on ? {bg: '#201e1d', fg: '#f3f2f2'} : {bg: 'transparent', fg: '#6a6666'};
     const tf = tab(s.tab === 'favs'), tq = tab(s.tab === 'queue'), th = tab(s.tab === 'history'), tp = tab(s.tab === 'playlists');
@@ -2205,6 +2336,13 @@ class Component extends React.Component {
       plRemove: (e) => { e.stopPropagation(); const b = e.currentTarget.dataset; this.removeFromPlaylist(b.pl, b.key); },
       plRename: (e) => { const id = e.currentTarget.dataset.id; const cur = (this.playlistById(id) || {}).name || ''; const nm = window.prompt('Rename playlist', cur); if (nm != null) this.renamePlaylist(id, nm); },
       plDelete: (e) => { const id = e.currentTarget.dataset.id; if (window.confirm('Delete this playlist? The shows themselves stay in the archive.')) this.deletePlaylist(id); },
+      plShare: (e) => { e.stopPropagation(); this.sharePlaylist(e.currentTarget.dataset.id); },
+      // Shared-playlist preview
+      sharedPlaylist: shp ? {id: shp.id, name: shp.name, count: shp.keys.length} : null,
+      shpRows, shpMissing,
+      playShared: () => this.startPlaylist(this.state.sharedPlaylist),
+      importShared: () => this.importSharedPlaylist(),
+      closeShared: () => this.setState({sharedPlaylist: null, view: 'home'}),
       plSheetOpen: (e) => { e.stopPropagation(); this.setState({plSheet: {key: e.currentTarget.dataset.key}, plCreating: false}); },
       plSheetClose: () => this.setState({plSheet: null, plCreating: false}),
       plSheetAdd: (e) => { const id = e.currentTarget.dataset.id; if (s.plSheet) this.addToPlaylist(id, s.plSheet.key); this.setState({plSheet: null, plCreating: false}); },
@@ -3001,16 +3139,56 @@ class Component extends React.Component {
 
           {v.isLibrary && (
             <section style={css("padding:44px 0 0")}>
-              <h1 style={css("font-weight:800;font-size:clamp(28px,3.4vw,44px);letter-spacing:-.035em;margin:0 0 24px")}>Saved</h1>
+              <h1 style={css("font-weight:800;font-size:clamp(28px,3.4vw,44px);letter-spacing:-.035em;margin:0 0 24px")}>{v.sharedPlaylist ? 'Playlist' : 'Saved'}</h1>
+              {!v.sharedPlaylist && (
               <div className="mri-row mri-tabs" style={css("display:flex;overflow-x:auto;border-bottom:2px solid #201e1d")}>
                 <button onClick={v.setTab} data-tab="favs" style={css("background:" + v.tabFavBg + ";color:" + v.tabFavFg + ";border:0;border-radius:0;padding:11px 18px;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer")}>Saved shows</button>
                 <button onClick={v.setTab} data-tab="queue" style={css("background:" + v.tabQueueBg + ";color:" + v.tabQueueFg + ";border:0;border-radius:0;padding:11px 18px;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer")}>Up next</button>
                 <button onClick={v.setTab} data-tab="playlists" style={css("background:" + v.tabPlBg + ";color:" + v.tabPlFg + ";border:0;border-radius:0;padding:11px 18px;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;white-space:nowrap")}>Playlists</button>
                 <button onClick={v.setTab} data-tab="history" style={css("background:" + v.tabHistBg + ";color:" + v.tabHistFg + ";border:0;border-radius:0;padding:11px 18px;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;white-space:nowrap")}>Recently played</button>
               </div>
+              )}
 
               {v.isPlaylistsTab ? (
-                v.plOpen ? (
+                v.sharedPlaylist ? (
+                  <div>
+                    <div style={css("display:flex;align-items:center;gap:12px;padding:16px 0 12px;border-bottom:1px solid #d7d3d3")}>
+                      <button onClick={v.closeShared} aria-label="Close shared playlist" style={css("flex:none;display:flex;align-items:center;justify-content:center;width:36px;height:36px;background:none;border:1px solid #201e1d;border-radius:0;cursor:pointer;color:#201e1d")}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={css("display:block")}><path d="m15 18-6-6 6-6"></path></svg>
+                      </button>
+                      <div style={css("flex:1;min-width:0")}>
+                        <div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#ae1800;margin-bottom:3px")}>Shared playlist</div>
+                        <div style={css("font-weight:800;font-size:clamp(19px,2.6vw,26px);letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis")}>{v.sharedPlaylist.name}</div>
+                        <div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#6a6666;margin-top:3px")}>{v.sharedPlaylist.count} {v.sharedPlaylist.count === 1 ? 'show' : 'shows'}{v.shpMissing > 0 ? ' · ' + v.shpMissing + ' unavailable' : ''}</div>
+                      </div>
+                    </div>
+                    <div style={css("display:flex;flex-direction:column;gap:8px;margin:16px 0 4px")}>
+                      <button onClick={v.playShared} style={css("display:flex;align-items:center;gap:10px;width:100%;background:#201e1d;color:#f3f2f2;border:0;border-radius:0;padding:15px 18px;font:600 12px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer")}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none" style={css("display:block;flex:none")}><path d="M8 5v14l11-7z"></path></svg>
+                        Play playlist &middot; loops
+                      </button>
+                      <button onClick={v.importShared} style={css("display:flex;align-items:center;gap:9px;width:100%;background:none;color:#201e1d;border:1px solid #201e1d;border-radius:0;padding:14px 14px;font:600 11px 'Archivo',sans-serif;letter-spacing:.12em;text-transform:uppercase;cursor:pointer")}>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none")}><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>
+                        Add to my playlists
+                      </button>
+                    </div>
+                    <div>
+                      {v.shpRows.map((m, i) => (
+                        <div key={m.key + ':' + i} role="button" tabIndex={0} aria-label={m.name + ', selected by ' + m.dj} onClick={v.openMix} onKeyDown={v.openMixKey} data-key={m.key} className="h-row" style={css("display:flex;gap:14px;align-items:center;padding:12px 0;border-bottom:1px solid #d7d3d3;cursor:pointer")}>
+                          <ArtImg src={m.pic} alt="" loading="lazy" style={css("width:48px;height:48px;object-fit:cover;flex:none;border:1px solid #d7d3d3;display:block")} />
+                          <div style={css("flex:1;min-width:0")}>
+                            <div style={css("font:600 14px 'Archivo',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis")}>{m.name}</div>
+                            <div style={css("font:500 11px 'Archivo',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#6a6666;margin-top:4px")}>{m.dj}</div>
+                          </div>
+                          <span style={css("font:500 12px 'Archivo',sans-serif;color:#6a6666;padding-right:4px;flex:none")}>{m.len}</span>
+                        </div>
+                      ))}
+                    </div>
+                    {!v.shpRows.length && (
+                      <div style={css("padding:70px 0;font:500 14px 'Archivo',sans-serif;color:#6a6666")}>None of this playlist's shows are in the archive yet.</div>
+                    )}
+                  </div>
+                ) : v.plOpen ? (
                   <div>
                     <div style={css("display:flex;align-items:center;gap:12px;padding:16px 0 12px;border-bottom:1px solid #d7d3d3")}>
                       <button onClick={v.closePlaylist} aria-label="Back to playlists" style={css("flex:none;display:flex;align-items:center;justify-content:center;width:36px;height:36px;background:none;border:1px solid #201e1d;border-radius:0;cursor:pointer;color:#201e1d")}>
@@ -3020,8 +3198,15 @@ class Component extends React.Component {
                         <div style={css("font-weight:800;font-size:clamp(19px,2.6vw,26px);letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis")}>{v.plOpen.name}</div>
                         <div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#6a6666;margin-top:3px")}>{v.plOpen.count} {v.plOpen.count === 1 ? 'show' : 'shows'}</div>
                       </div>
-                      <button onClick={v.plRename} data-id={v.plOpen.id} style={css("flex:none;background:none;border:1px solid #201e1d;border-radius:0;padding:9px 12px;font:600 10px 'Archivo',sans-serif;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;color:#201e1d")}>Rename</button>
-                      <button onClick={v.plDelete} data-id={v.plOpen.id} style={css("flex:none;background:none;border:1px solid #ae1800;border-radius:0;padding:9px 12px;font:600 10px 'Archivo',sans-serif;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;color:#ae1800")}>Delete</button>
+                      <button onClick={v.plShare} data-id={v.plOpen.id} aria-label="Share this playlist" style={css("flex:none;display:flex;align-items:center;justify-content:center;width:36px;height:36px;background:none;border:1px solid #201e1d;border-radius:0;cursor:pointer;color:#201e1d")}>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block")}><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"></line><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"></line></svg>
+                      </button>
+                      <button onClick={v.plRename} data-id={v.plOpen.id} aria-label="Rename playlist" style={css("flex:none;display:flex;align-items:center;justify-content:center;width:36px;height:36px;background:none;border:1px solid #201e1d;border-radius:0;cursor:pointer;color:#201e1d")}>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block")}><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
+                      </button>
+                      <button onClick={v.plDelete} data-id={v.plOpen.id} aria-label="Delete playlist" style={css("flex:none;display:flex;align-items:center;justify-content:center;width:36px;height:36px;background:none;border:1px solid #ae1800;border-radius:0;cursor:pointer;color:#ae1800")}>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block")}><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
+                      </button>
                     </div>
                     {v.plOpen.count > 0 && (
                       <button onClick={v.playPlaylistNow} data-id={v.plOpen.id} style={css("display:flex;align-items:center;gap:10px;width:100%;background:#201e1d;color:#f3f2f2;border:0;border-radius:0;padding:15px 18px;margin:16px 0 4px;font:600 12px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer")}>

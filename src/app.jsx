@@ -1821,11 +1821,17 @@ class Component extends React.Component {
     const chip = (active) => active
       ? {border: '#201e1d', bg: '#201e1d', fg: '#f3f2f2'}
       : {border: '#d7d3d3', bg: 'transparent', fg: '#201e1d'};
+    // On a selector's page the genre / mood chips are a map of *their*
+    // catalogue: counts are scoped to that selector, so every number
+    // matches what you get on tap and genres they've never played drop out.
+    const chipPool = s.dj ? items.filter(m => this.djKey(m.dj) === this.djKey(s.dj)) : items;
     const genreChips = this.GENRES.map(g => Object.assign({id: g.id, label: g.label,
-      count: items.filter(m => this.inGenre(m, g.id)).length}, chip(s.genre === g.id)))
+      count: chipPool.filter(m => this.inGenre(m, g.id)).length}, chip(s.genre === g.id)))
       .filter(g => g.count > 0 || s.genre === g.id);
-    const moodChips = this.MOODS.map(mo => Object.assign({id: mo.id, label: mo.label,
-      count: items.filter(m => this.inMood(m, mo.id)).length}, chip(s.mood === mo.id)))
+    // Moods are a whole-archive "what do I want to hear now" filter - not a
+    // useful lens on one selector's catalogue, so drop them on their page.
+    const moodChips = s.dj ? [] : this.MOODS.map(mo => Object.assign({id: mo.id, label: mo.label,
+      count: chipPool.filter(m => this.inMood(m, mo.id)).length}, chip(s.mood === mo.id)))
       .filter(mo => mo.count > 0 || s.mood === mo.id);
 
     const list = this.filtered();
@@ -1939,9 +1945,17 @@ class Component extends React.Component {
       filtersOpen: !!s.filtersOpen,
       activeFilterLabel: s.genre ? (this.GENRES.find(g => g.id === s.genre) || {}).label : s.mood ? (this.MOODS.find(m => m.id === s.mood) || {}).label : '',
       toggleFilters: () => this.setState({filtersOpen: !s.filtersOpen}),
-      backToHome: () => {
+      // Back out of a filtered Browse view: a selector's page returns to the
+      // Selectors list, everything else to home. Always shown for a selector
+      // (there's no other way back to the list on desktop); otherwise mobile
+      // only, where the top nav is folded into the menu.
+      showBack: s.bp === 'sm' || !!s.dj,
+      backLabel: s.dj ? 'All selectors' : 'Back',
+      goBack: () => {
         this._scrollTop = true;
-        this.setState({view: 'home', genre: null, mood: null, dj: null, query: '', detailKey: null, filtersOpen: false});
+        this.setState(s.dj
+          ? {view: 'djs', dj: null, genre: null, mood: null, query: '', detailKey: null, filtersOpen: false}
+          : {view: 'home', genre: null, mood: null, dj: null, query: '', detailKey: null, filtersOpen: false});
       },
       gridItems: list.slice(0, s.limit).map(m => this.card(m)),
       hasMore: list.length > s.limit, gridEmpty: !list.length && !s.indexing,
@@ -2176,14 +2190,16 @@ class Component extends React.Component {
       pickGenre: (e) => {
         const id = e.currentTarget.dataset.id;
         const turningOn = s.genre !== id;
-        if (turningOn) this.T('Genre Filtered', {genre: id, from_view: s.view, result_count: this.filtered({genre: id, mood: null, dj: null, query: '', sort: s.sort}).length});
-        this.setState({genre: turningOn ? id : null, view: 'browse', dj: null, limit: 48, filtersOpen: false});
+        // Keep any active selector: on a selector's page the genre chips are
+        // scoped to that selector, so tapping one narrows within their work.
+        if (turningOn) this.T('Genre Filtered', {genre: id, from_view: s.view, result_count: this.filtered({genre: id, mood: null, dj: s.dj, query: '', sort: s.sort}).length});
+        this.setState({genre: turningOn ? id : null, view: 'browse', limit: 48, filtersOpen: false});
       },
       pickMood: (e) => {
         const id = e.currentTarget.dataset.id;
         const turningOn = s.mood !== id;
-        if (turningOn) this.T('Mood Filtered', {mood: id, from_view: s.view, result_count: this.filtered({genre: null, mood: id, dj: null, query: '', sort: s.sort}).length});
-        this.setState({mood: turningOn ? id : null, view: 'browse', dj: null, limit: 48, filtersOpen: false});
+        if (turningOn) this.T('Mood Filtered', {mood: id, from_view: s.view, result_count: this.filtered({genre: null, mood: id, dj: s.dj, query: '', sort: s.sort}).length});
+        this.setState({mood: turningOn ? id : null, view: 'browse', limit: 48, filtersOpen: false});
       },
       pickDj: (e) => {
         const id = e.currentTarget.dataset.id;
@@ -2199,7 +2215,7 @@ class Component extends React.Component {
       },
       openShelf: (e) => { const id = e.currentTarget.dataset.id; this.T('Shelf Expanded', {shelf_id: id}); const g = this.GENRES.find(x => x.id === id); this._scrollTop = true; this.setState({view: 'browse', genre: g ? id : null, mood: null, dj: null, query: '', sort: id === 'long' ? 'longest' : id === 'latest' ? 'latest' : 'plays', limit: 48}); },
       cycleSort: () => { const order = ['latest', 'plays', 'longest', 'oldest']; const next = order[(order.indexOf(s.sort) + 1) % order.length]; this.T('Sort Changed', {sort: next}); this.setState({sort: next}); },
-      clearFilters: () => { this.T('Filters Cleared', {}); this.setState({genre: null, mood: null, dj: null, query: '', sort: 'latest', limit: 48}); },
+      clearFilters: () => { this.T('Filters Cleared', {}); this.setState({genre: null, mood: null, dj: s.dj, query: '', sort: 'latest', limit: 48}); },
       showMore: () => { this.T('More Shows Loaded', {page: Math.round((s.limit + 48) / 48), total_shown: s.limit + 48}); this.setState({limit: s.limit + 48}); },
       setTab: (e) => { const tab = e.currentTarget.dataset.tab; this.T('Library Tab Viewed', {tab}); this.setState({tab}); },
       scrollShelf: (e) => {
@@ -2519,10 +2535,10 @@ class Component extends React.Component {
 
           {v.isBrowse && (
             <section className="mri-browsesec" style={css("padding:44px 0 0")}>
-              {v.filtersCollapsible && (
-                <button onClick={v.backToHome} style={css("display:flex;align-items:center;gap:9px;background:none;border:0;padding:8px 0;margin-bottom:12px;cursor:pointer;color:#201e1d;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase")}>
+              {v.showBack && (
+                <button onClick={v.goBack} style={css("display:flex;align-items:center;gap:9px;background:none;border:0;padding:8px 0;margin-bottom:12px;cursor:pointer;color:#201e1d;font:600 11px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase")}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={css("display:block;flex:none")}><path d="M19 12H5"></path><path d="m12 19-7-7 7-7"></path></svg>
-                  Back
+                  {v.backLabel}
                 </button>
               )}
               <h1 style={css("font-weight:800;font-size:clamp(28px,3.4vw,44px);letter-spacing:-.035em;margin:0 0 10px")}>{v.browseTitle}</h1>
@@ -2568,11 +2584,13 @@ class Component extends React.Component {
                       <button key={g.id} onClick={v.pickGenre} data-id={g.id} className="h-accent-border" style={css("border:1px solid " + g.border + ";background:" + g.bg + ";color:" + g.fg + ";border-radius:0;padding:9px 13px;font:600 11px 'Archivo',sans-serif;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;display:flex;gap:8px;align-items:center")}>{g.label}<span style={css("opacity:.55;font-weight:500")}>{g.count}</span></button>
                     ))}
                   </div>
+                  {v.moodChips.length > 0 && (
                   <div style={css("display:flex;flex-wrap:wrap;gap:8px;padding-top:8px")}>
                     {v.moodChips.map((mo) => (
                       <button key={mo.id} onClick={v.pickMood} data-id={mo.id} className="h-accent-border" style={css("border:1px solid " + mo.border + ";background:" + mo.bg + ";color:" + mo.fg + ";border-radius:0;padding:9px 13px;font:600 11px 'Archivo',sans-serif;letter-spacing:.1em;text-transform:uppercase;cursor:pointer")}>{mo.label}</button>
                     ))}
                   </div>
+                  )}
                 </div>
                 )}
               </div>

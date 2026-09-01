@@ -257,6 +257,9 @@ class Component extends React.Component {
     // Saved > Playlists tab"; `plSheet` ({key} or null) drives the
     // add-to-playlist overlay; `plCreating` toggles its new-playlist input.
     playlists: [], openPlaylist: null, plSheet: null, plCreating: false,
+    // {playlistId, shareId, name, url} while the custom share sheet for a
+    // playlist link is open (sharePlaylist / plShareSheet render branch).
+    plShareSheet: null,
     // Transient snapshot of a playlist opened via a /playlist/<id> share
     // link - a read-only preview, never written to prefs unless the visitor
     // taps "Add to my playlists" (importSharedPlaylist).
@@ -524,6 +527,7 @@ class Component extends React.Component {
     } catch (e) {}
     this._onKey = (e) => {
       if (e.key !== 'Escape') return;
+      if (this.state.plShareSheet) { this.setState({plShareSheet: null}); return; }
       if (this.state.plSheet) { this.setState({plSheet: null, plCreating: false}); return; }
       // Ambient mode is a plain in-page overlay (no OS Fullscreen API), so
       // the page always receives this keydown - one press is enough.
@@ -775,23 +779,23 @@ class Component extends React.Component {
 
   plContentHash(pl) { return (pl.name || '') + ' ' + (pl.keys || []).join(','); }
 
+  // The share link always points at whatever origin this is actually
+  // running on (localhost, a preview deploy, production) rather than a
+  // hardcoded domain - unlike the per-show canonical /show/<slug> permalink,
+  // there's no prerendered OG page for a playlist that needs a fixed,
+  // crawlable production URL, so following the live origin is strictly more
+  // useful (a link made while testing actually opens on that same host).
+  shareOrigin() { return (typeof location !== 'undefined' && location.origin) || 'https://www.monkeyradio.in'; }
+
   sharePlaylist(id) {
     const pl = this.playlistById(id);
     if (!pl || !pl.keys.length) { this.flash('Add a show before sharing'); return; }
-    const link = sid => 'https://www.monkeyradio.in/playlist/' + sid;
-    const deliver = (sid, fresh) => {
-      const url = link(sid);
-      const done = ch => this.T('Playlist Shared', {playlist_id: id, share_id: sid, playlist_length: pl.keys.length, channel: ch, fresh: !!fresh});
-      if (navigator.share) {
-        navigator.share({title: pl.name, url}).then(() => done('web_share')).catch(() => {});
-      } else if (navigator.clipboard) {
-        navigator.clipboard.writeText(url).then(() => { this.flash('Playlist link copied'); done('copy'); }).catch(() => {});
-      } else {
-        window.prompt('Copy this playlist link', url); done('prompt');
-      }
-    };
+    const link = sid => this.shareOrigin() + '/playlist/' + sid;
+    // Own share sheet, not navigator.share() - the browser's native picker
+    // is out of our hands (uncustomizable, inconsistent across browsers).
+    const openSheet = (sid) => this.setState({plShareSheet: {playlistId: id, shareId: sid, name: pl.name, url: link(sid)}});
     // Unchanged since last share -> reuse the existing snapshot, no write.
-    if (pl.shareId && pl.sharedHash === this.plContentHash(pl)) { deliver(pl.shareId, false); return; }
+    if (pl.shareId && pl.sharedHash === this.plContentHash(pl)) { openSheet(pl.shareId); return; }
     const body = JSON.stringify({n: pl.name.slice(0, 80), k: pl.keys.slice(0, 100), t: Date.now()});
     fetch(this.SHARE_DB + '/p.json', {method: 'POST', headers: {'Content-Type': 'application/json'}, body})
       .then(r => r.ok ? r.json() : Promise.reject(r.status))
@@ -799,9 +803,23 @@ class Component extends React.Component {
         const sid = res && res.name;
         if (!sid) return Promise.reject('no id');
         this.savePrefs({playlists: this.state.playlists.map(p => p.id === id ? {...p, shareId: sid, sharedHash: this.plContentHash(p)} : p)});
-        deliver(sid, true);
+        openSheet(sid);
       })
       .catch(() => this.flash("Couldn't create a link, try again"));
+  }
+
+  plShareTrack(channel) {
+    const sh = this.state.plShareSheet;
+    if (!sh) return;
+    this.T('Playlist Shared', {playlist_id: sh.playlistId, share_id: sh.shareId, channel});
+  }
+
+  plShareCopyLink() {
+    const sh = this.state.plShareSheet;
+    if (!sh) return;
+    const done = () => { this.flash('Playlist link copied'); this.plShareTrack('copy'); };
+    if (navigator.clipboard) navigator.clipboard.writeText(sh.url).then(done).catch(() => { window.prompt('Copy this playlist link', sh.url); done(); });
+    else { window.prompt('Copy this playlist link', sh.url); done(); }
   }
 
   loadSharedPlaylist(shareId, opts) {
@@ -2240,6 +2258,15 @@ class Component extends React.Component {
       whatsapp: 'https://api.whatsapp.com/send?text=' + encodeURIComponent(shareText + ' ' + shareUrl)
     } : null;
 
+    // Playlist share sheet targets (custom UI, not navigator.share()).
+    const plSh = s.plShareSheet;
+    const plShText = plSh ? (plSh.name + ' — a playlist on Monkey Radio India') : '';
+    const plShLinks = plSh ? {
+      facebook: 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(plSh.url),
+      twitter: 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(plShText) + '&url=' + encodeURIComponent(plSh.url),
+      whatsapp: 'https://api.whatsapp.com/send?text=' + encodeURIComponent(plShText + ' ' + plSh.url)
+    } : null;
+
     return {
       indexing: s.indexing, loadedCount: items.length,
       isHome: s.view === 'home' && !detail, isBrowse: s.view === 'browse' && !detail,
@@ -2337,6 +2364,10 @@ class Component extends React.Component {
       plRename: (e) => { const id = e.currentTarget.dataset.id; const cur = (this.playlistById(id) || {}).name || ''; const nm = window.prompt('Rename playlist', cur); if (nm != null) this.renamePlaylist(id, nm); },
       plDelete: (e) => { const id = e.currentTarget.dataset.id; if (window.confirm('Delete this playlist? The shows themselves stay in the archive.')) this.deletePlaylist(id); },
       plShare: (e) => { e.stopPropagation(); this.sharePlaylist(e.currentTarget.dataset.id); },
+      plShareSheet: plSh, plShLinks,
+      plShareClose: () => this.setState({plShareSheet: null}),
+      plShareCopyLink: () => this.plShareCopyLink(),
+      plShareChannel: (channel) => () => this.plShareTrack(channel),
       // Shared-playlist preview
       sharedPlaylist: shp ? {id: shp.id, name: shp.name, count: shp.keys.length} : null,
       shpRows, shpMissing,
@@ -2664,6 +2695,36 @@ class Component extends React.Component {
                   </button>
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Playlist share sheet - our own UI rather than navigator.share(),
+            which hands off to a browser/OS-native picker with no visual
+            control and inconsistent contents across platforms. Same fixed-
+            overlay recipe as the add-to-playlist sheet above. */}
+        {v.plShareSheet && (
+          <div role="dialog" aria-label="Share playlist" onClick={v.plShareClose} style={css("position:fixed;inset:0;z-index:410;background:rgba(32,30,29,.55);display:flex;align-items:center;justify-content:center;padding:20px")}>
+            <div onClick={(e) => e.stopPropagation()} style={css("width:100%;max-width:420px;background:#f3f2f2;border:2px solid #201e1d;color:#201e1d")}>
+              <div style={css("display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:2px solid #201e1d")}>
+                <span style={css("font:700 12px 'Archivo',sans-serif;letter-spacing:.14em;text-transform:uppercase")}>Share playlist</span>
+                <button onClick={v.plShareClose} aria-label="Close" style={css("background:none;border:0;padding:4px;cursor:pointer;color:#201e1d;display:flex")}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={css("display:block")}><path d="M18 6 6 18M6 6l12 12"></path></svg>
+                </button>
+              </div>
+              <div style={css("padding:18px")}>
+                <div style={css("font:600 14px 'Archivo',sans-serif;margin-bottom:14px;overflow-wrap:break-word")}>{v.plShareSheet.name}</div>
+                <div style={css("display:flex;gap:8px;margin-bottom:18px")}>
+                  <div style={css("flex:1;min-width:0;background:#fff;border:1px solid #d7d3d3;padding:12px 14px;font:500 12px/1.4 'Archivo',sans-serif;color:#444141;overflow:hidden;text-overflow:ellipsis;white-space:nowrap")}>{v.plShareSheet.url}</div>
+                  <button onClick={v.plShareCopyLink} style={css("flex:none;background:#201e1d;color:#f3f2f2;border:0;border-radius:0;padding:0 16px;font:600 11px 'Archivo',sans-serif;letter-spacing:.1em;text-transform:uppercase;cursor:pointer")}>Copy</button>
+                </div>
+                <div style={css("font:600 10px 'Archivo',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#6a6666;margin-bottom:10px")}>Share to</div>
+                <div style={css("display:flex;gap:8px")}>
+                  <a href={v.plShLinks.facebook} target="_blank" rel="noopener" onClick={v.plShareChannel('facebook')} className="h-invert" aria-label="Share on Facebook" style={shareNetStyle}>{iconFacebook}</a>
+                  <a href={v.plShLinks.twitter} target="_blank" rel="noopener" onClick={v.plShareChannel('twitter')} className="h-invert" aria-label="Share on X (Twitter)" style={shareNetStyle}>{iconTwitter}</a>
+                  <a href={v.plShLinks.whatsapp} target="_blank" rel="noopener" onClick={v.plShareChannel('whatsapp')} className="h-invert" aria-label="Share on WhatsApp" style={shareNetStyle}>{iconWhatsApp}</a>
+                </div>
+              </div>
             </div>
           </div>
         )}

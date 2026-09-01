@@ -125,10 +125,10 @@ class Component extends React.Component {
   // `id` is the short internal key used everywhere in the code; `slug` is the
   // reader-friendly token that appears in the URL (?genre=techno, not ?genre=house).
   // routeToPath()/routeFromLocation() translate between the two; old ?genre=<id>
-  // links still resolve.
+  // links still resolve, as do any retired slugs listed in `aliases`.
   GENRES = [
     {id:'hiphop', slug:'hip-hop', label:'Hip Hop & Rap', tags:['hip hop','hip-hop','hiphop','rap','boom bap','boombap','old school hip hop','underground hip hop','g-funk','g funk','west coast hip hop','east coast hip hop','instrumental hip hop','turntablism','trap','conscious hip hop','90s hip hop','golden era','scratch']},
-    {id:'funk', slug:'funk-soul-disco', label:'Funk, Soul & Disco', tags:['funk','soul','r&b','rnb','r and b','disco','nu disco','motown','northern soul','boogie','rare groove','neo soul','soul funk','funk soul','1970s','1980s','70s','80s soul']},
+    {id:'funk', slug:'funk-soul-disco-house', aliases:['funk-soul-disco'], label:'Funk, Soul, Disco & House', tags:['funk','soul','r&b','rnb','r and b','disco','nu disco','motown','northern soul','boogie','rare groove','neo soul','soul funk','funk soul','1970s','1980s','70s','80s soul']},
     {id:'afro', slug:'world', label:'Indian Classical & World', tags:['indian classical','carnatic','hindustani','raga','raag','sitar','tabla','sarod','bansuri','classical indian','desi','bhangra','bollywood','sufi','qawwali','folk','afrobeat','afrobeats','afro house','afro','afrofunk','world','world music','latin','cumbia','reggaeton','salsa','arabic','balkan','ethiopian','ethio jazz','highlife','tropical','global bass','fusion']},
     {id:'house', slug:'techno', label:'Techno', tags:['house','techno','deep house','tech house','minimal','minimal techno','electro','edm','dance','acid','acid house','disco house','progressive house','electronica','electronic','melodic techno','dub techno','dubtechno','italo','detroit techno']},
     {id:'psy', slug:'psychedelic', label:'Psychedelic', tags:['psychill','psy chill','psydub','psy dub','psybient','psytrance','psy trance','goa','goa trance','ambient','ambient dub','chillgressive','forest psy','organic house','ethnic ambient','dark psy','downtempo psy','indie','psychedelic','psychedelia','pszichedelia','psyamb','psy amb','psybass','psystep','psy glitchstep']},
@@ -284,7 +284,7 @@ class Component extends React.Component {
   genreSlug(id) { const g = this.GENRES.find(x => x.id === id); return g ? g.slug : id; }
   genreId(slug) {
     if (!slug) return slug;
-    const g = this.GENRES.find(x => x.slug === slug || x.id === slug);
+    const g = this.GENRES.find(x => x.slug === slug || x.id === slug || (x.aliases && x.aliases.indexOf(slug) >= 0));
     return g ? g.id : slug;
   }
 

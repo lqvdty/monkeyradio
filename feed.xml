@@ -6,7 +6,7 @@
     <atom:link href="https://www.monkeyradio.in/feed.xml" rel="self" type="application/rss+xml"/>
     <description>Independent and colourful radio out of Hyderabad. New shows from the Monkey Radio India Mixcloud archive.</description>
     <language>en-in</language>
-    <lastBuildDate>Sat, 05 Sep 2026 10:42:06 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 06 Sep 2026 11:03:25 GMT</lastBuildDate>
     <generator>scripts/build-feed.mjs</generator>
     <image>
       <url>https://www.monkeyradio.in/assets/icon-512.png</url>
@@ -22,6 +22,22 @@
       <itunes:name>Monkey Radio India</itunes:name>
       <itunes:email>monkeyradio.in@gmail.com</itunes:email>
     </itunes:owner>
+    <item>
+      <title>Dj Def Hawk - Back to School Hip Hop Mix</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/dj-def-hawk-back-to-school-hip-hop-mix/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/dj-def-hawk-back-to-school-hip-hop-mix/</guid>
+      <pubDate>Sat, 05 Sep 2026 16:30:57 GMT</pubDate>
+      <description>Selector: DJ Def Hawk - 49 min - Hip Hop, Old school hip hop, Underground hip hop - Listen on Mixcloud.</description>
+      <category>Hip Hop</category>
+      <category>Old school hip hop</category>
+      <category>Underground hip hop</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/2/8/8/a/68c9-1b17-4759-9125-5983293a99c8"/>
+      <itunes:author>DJ Def Hawk</itunes:author>
+      <itunes:summary>Selector: DJ Def Hawk - 49 min - Hip Hop, Old school hip hop, Underground hip hop - Listen on Mixcloud.</itunes:summary>
+      <itunes:duration>49:58</itunes:duration>
+      <itunes:image href="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/2/8/8/a/68c9-1b17-4759-9125-5983293a99c8"/>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
     <item>
       <title>Dj Makarun - Afro summer guest mix</title>
       <link>https://www.mixcloud.com/monkeyradioindia/dj-makarun-afro-summer-guest-mix/</link>
@@ -1024,23 +1040,6 @@
       <itunes:summary>Selector: Mr Nobody - 51 min - Reggae, Roots reggae, Dub, Roots &amp; Culture, Mrnobody - Listen on Mixcloud.</itunes:summary>
       <itunes:duration>51:25</itunes:duration>
       <itunes:image href="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/c/9/5/8/b710-524f-4857-a464-23f205eca39c"/>
-      <itunes:explicit>false</itunes:explicit>
-    </item>
-    <item>
-      <title>Malz presents 14.04.2019 (Happy Tamil New Year mix)</title>
-      <link>https://www.mixcloud.com/monkeyradioindia/malz-presents-14042019-happy-tamil-new-year-mix/</link>
-      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/malz-presents-14042019-happy-tamil-new-year-mix/</guid>
-      <pubDate>Sun, 14 Apr 2019 17:30:15 GMT</pubDate>
-      <description>Selector: Malz - 1 hr 0 min - Dubstep, Dnb, Sound system, Budapest - Listen on Mixcloud.</description>
-      <category>Dubstep</category>
-      <category>Dnb</category>
-      <category>Sound system</category>
-      <category>Budapest</category>
-      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/c/6/5/4/ee0f-8cd0-4926-bd9d-46f32940660d"/>
-      <itunes:author>Malz</itunes:author>
-      <itunes:summary>Selector: Malz - 1 hr 0 min - Dubstep, Dnb, Sound system, Budapest - Listen on Mixcloud.</itunes:summary>
-      <itunes:duration>1:00:26</itunes:duration>
-      <itunes:image href="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/c/6/5/4/ee0f-8cd0-4926-bd9d-46f32940660d"/>
       <itunes:explicit>false</itunes:explicit>
     </item>
   </channel>

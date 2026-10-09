@@ -6,7 +6,7 @@
     <atom:link href="https://www.monkeyradio.in/feed.xml" rel="self" type="application/rss+xml"/>
     <description>Independent and colourful radio out of Hyderabad. New shows from the Monkey Radio India Mixcloud archive.</description>
     <language>en-in</language>
-    <lastBuildDate>Thu, 08 Oct 2026 13:38:36 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 09 Oct 2026 13:24:34 GMT</lastBuildDate>
     <generator>scripts/build-feed.mjs</generator>
     <image>
       <url>https://www.monkeyradio.in/assets/icon-512.png</url>
@@ -22,6 +22,23 @@
       <itunes:name>Monkey Radio India</itunes:name>
       <itunes:email>monkeyradio.in@gmail.com</itunes:email>
     </itunes:owner>
+    <item>
+      <title>Dj Def Hawk - Playground Tactics Vinyl Hip Hop Mix</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/dj-def-hawk-playground-tactics-vinyl-hip-hop-mix/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/dj-def-hawk-playground-tactics-vinyl-hip-hop-mix/</guid>
+      <pubDate>Fri, 09 Oct 2026 09:09:05 GMT</pubDate>
+      <description>Selector: DJ Def Hawk - 52 min - Hip Hop, Old school hip hop, Rap, Vinyl Only - Listen on Mixcloud.</description>
+      <category>Hip Hop</category>
+      <category>Old school hip hop</category>
+      <category>Rap</category>
+      <category>Vinyl Only</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/c/e/e/c/6b05-e964-4cca-8ce5-291a22233b7f"/>
+      <itunes:author>DJ Def Hawk</itunes:author>
+      <itunes:summary>Selector: DJ Def Hawk - 52 min - Hip Hop, Old school hip hop, Rap, Vinyl Only - Listen on Mixcloud.</itunes:summary>
+      <itunes:duration>52:26</itunes:duration>
+      <itunes:image href="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/c/e/e/c/6b05-e964-4cca-8ce5-291a22233b7f"/>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
     <item>
       <title>Dj Def Hawk - Back to School Hip Hop Mix</title>
       <link>https://www.mixcloud.com/monkeyradioindia/dj-def-hawk-back-to-school-hip-hop-mix/</link>
@@ -1022,24 +1039,6 @@
       <itunes:summary>Selector: Malz - 1 hr 0 min - Dubstep, Dark, Budapest, Dnb - Listen on Mixcloud.</itunes:summary>
       <itunes:duration>1:00:47</itunes:duration>
       <itunes:image href="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/7/e/0/6/1643-7a24-47af-b536-e5c4ee68376f"/>
-      <itunes:explicit>false</itunes:explicit>
-    </item>
-    <item>
-      <title>Roots Unwired 11.05.2019</title>
-      <link>https://www.mixcloud.com/monkeyradioindia/roots-unwired-11052019/</link>
-      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/roots-unwired-11052019/</guid>
-      <pubDate>Sat, 11 May 2019 18:06:11 GMT</pubDate>
-      <description>Selector: Mr Nobody - 51 min - Reggae, Roots reggae, Dub, Roots &amp; Culture, Mrnobody - Listen on Mixcloud.</description>
-      <category>Reggae</category>
-      <category>Roots reggae</category>
-      <category>Dub</category>
-      <category>Roots &amp; Culture</category>
-      <category>Mrnobody</category>
-      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/c/9/5/8/b710-524f-4857-a464-23f205eca39c"/>
-      <itunes:author>Mr Nobody</itunes:author>
-      <itunes:summary>Selector: Mr Nobody - 51 min - Reggae, Roots reggae, Dub, Roots &amp; Culture, Mrnobody - Listen on Mixcloud.</itunes:summary>
-      <itunes:duration>51:25</itunes:duration>
-      <itunes:image href="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/c/9/5/8/b710-524f-4857-a464-23f205eca39c"/>
       <itunes:explicit>false</itunes:explicit>
     </item>
   </channel>

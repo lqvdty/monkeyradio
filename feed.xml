@@ -6,7 +6,7 @@
     <atom:link href="https://www.monkeyradio.in/feed.xml" rel="self" type="application/rss+xml"/>
     <description>Independent and colourful radio out of Hyderabad. New shows from the Monkey Radio India Mixcloud archive.</description>
     <language>en-in</language>
-    <lastBuildDate>Mon, 19 Oct 2026 13:29:41 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 20 Oct 2026 11:46:48 GMT</lastBuildDate>
     <generator>scripts/build-feed.mjs</generator>
     <image>
       <url>https://www.monkeyradio.in/assets/icon-512.png</url>
@@ -22,6 +22,24 @@
       <itunes:name>Monkey Radio India</itunes:name>
       <itunes:email>monkeyradio.in@gmail.com</itunes:email>
     </itunes:owner>
+    <item>
+      <title>Shivacult pres. Puri Juggernaut 20.10.2026</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/shivacult-pres-puri-juggernaut-20102026/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/shivacult-pres-puri-juggernaut-20102026/</guid>
+      <pubDate>Tue, 20 Oct 2026 05:35:38 GMT</pubDate>
+      <description>Selector: Shivacult - 53 min - Carnatic, Carnatic Shastriya Sangeetham, Carnatic classical, Shivacult, Monkeyradioindia - Listen on Mixcloud.</description>
+      <category>Carnatic</category>
+      <category>Carnatic Shastriya Sangeetham</category>
+      <category>Carnatic classical</category>
+      <category>Shivacult</category>
+      <category>Monkeyradioindia</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/f/a/f/2/5ad3-c8b1-4662-8efc-0cf81c81222d"/>
+      <itunes:author>Shivacult</itunes:author>
+      <itunes:summary>Selector: Shivacult - 53 min - Carnatic, Carnatic Shastriya Sangeetham, Carnatic classical, Shivacult, Monkeyradioindia - Listen on Mixcloud.</itunes:summary>
+      <itunes:duration>53:42</itunes:duration>
+      <itunes:image href="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/f/a/f/2/5ad3-c8b1-4662-8efc-0cf81c81222d"/>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
     <item>
       <title>Dj Def Hawk - Playground Tactics Vinyl Hip Hop Mix</title>
       <link>https://www.mixcloud.com/monkeyradioindia/dj-def-hawk-playground-tactics-vinyl-hip-hop-mix/</link>
@@ -1022,23 +1040,6 @@
       <itunes:summary>Selector: Malz - 1 hr 0 min - Dubstep, Dnb - Listen on Mixcloud.</itunes:summary>
       <itunes:duration>1:00:03</itunes:duration>
       <itunes:image href="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/2/b/2/a/387d-c549-43a2-a4d5-735393c8075e"/>
-      <itunes:explicit>false</itunes:explicit>
-    </item>
-    <item>
-      <title>Malz Presents 15.05.2019</title>
-      <link>https://www.mixcloud.com/monkeyradioindia/malz-presents-15052019/</link>
-      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/malz-presents-15052019/</guid>
-      <pubDate>Wed, 15 May 2019 03:42:52 GMT</pubDate>
-      <description>Selector: Malz - 1 hr 0 min - Dubstep, Dark, Budapest, Dnb - Listen on Mixcloud.</description>
-      <category>Dubstep</category>
-      <category>Dark</category>
-      <category>Budapest</category>
-      <category>Dnb</category>
-      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/7/e/0/6/1643-7a24-47af-b536-e5c4ee68376f"/>
-      <itunes:author>Malz</itunes:author>
-      <itunes:summary>Selector: Malz - 1 hr 0 min - Dubstep, Dark, Budapest, Dnb - Listen on Mixcloud.</itunes:summary>
-      <itunes:duration>1:00:47</itunes:duration>
-      <itunes:image href="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/7/e/0/6/1643-7a24-47af-b536-e5c4ee68376f"/>
       <itunes:explicit>false</itunes:explicit>
     </item>
   </channel>

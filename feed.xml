@@ -6,7 +6,7 @@
     <atom:link href="https://www.monkeyradio.in/feed.xml" rel="self" type="application/rss+xml"/>
     <description>Independent and colourful radio out of Hyderabad. New shows from the Monkey Radio India Mixcloud archive.</description>
     <language>en-in</language>
-    <lastBuildDate>Wed, 28 Oct 2026 13:06:40 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 29 Oct 2026 13:12:30 GMT</lastBuildDate>
     <generator>scripts/build-feed.mjs</generator>
     <image>
       <url>https://www.monkeyradio.in/assets/icon-512.png</url>
@@ -22,6 +22,24 @@
       <itunes:name>Monkey Radio India</itunes:name>
       <itunes:email>monkeyradio.in@gmail.com</itunes:email>
     </itunes:owner>
+    <item>
+      <title>Dakta Dub pres. Tune Inn 28.10.2026</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/dakta-dub-pres-tune-inn-28102026/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/dakta-dub-pres-tune-inn-28102026/</guid>
+      <pubDate>Wed, 28 Oct 2026 18:35:14 GMT</pubDate>
+      <description>Selector: Dakta Dub - 2 hr 4 min - Dub techno, Dub, Techno, Deep Techno, Dancefloor - Listen on Mixcloud.</description>
+      <category>Dub techno</category>
+      <category>Dub</category>
+      <category>Techno</category>
+      <category>Deep Techno</category>
+      <category>Dancefloor</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/2/8/7/c/47fd-1b7e-41a3-9510-4bb55f669c15"/>
+      <itunes:author>Dakta Dub</itunes:author>
+      <itunes:summary>Selector: Dakta Dub - 2 hr 4 min - Dub techno, Dub, Techno, Deep Techno, Dancefloor - Listen on Mixcloud.</itunes:summary>
+      <itunes:duration>2:04:06</itunes:duration>
+      <itunes:image href="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/2/8/7/c/47fd-1b7e-41a3-9510-4bb55f669c15"/>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
     <item>
       <title>Shivacult pres. Puri Juggernaut 20.10.2026</title>
       <link>https://www.mixcloud.com/monkeyradioindia/shivacult-pres-puri-juggernaut-20102026/</link>
@@ -1025,21 +1043,6 @@
       <itunes:summary>Selector: Mr Nobody - 1 hr 5 min - Reggae, Roots reggae, Dub, Dubwise, Mrnobody - Listen on Mixcloud.</itunes:summary>
       <itunes:duration>1:05:51</itunes:duration>
       <itunes:image href="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/3/2/5/4/b521-ccfa-41e4-9d2f-a378eb298f3c"/>
-      <itunes:explicit>false</itunes:explicit>
-    </item>
-    <item>
-      <title>Malz Presents 26.06.2019</title>
-      <link>https://www.mixcloud.com/monkeyradioindia/malz-presents-26062019/</link>
-      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/malz-presents-26062019/</guid>
-      <pubDate>Wed, 26 Jun 2019 06:06:09 GMT</pubDate>
-      <description>Selector: Malz - 1 hr 0 min - Dubstep, Dnb - Listen on Mixcloud.</description>
-      <category>Dubstep</category>
-      <category>Dnb</category>
-      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/2/b/2/a/387d-c549-43a2-a4d5-735393c8075e"/>
-      <itunes:author>Malz</itunes:author>
-      <itunes:summary>Selector: Malz - 1 hr 0 min - Dubstep, Dnb - Listen on Mixcloud.</itunes:summary>
-      <itunes:duration>1:00:03</itunes:duration>
-      <itunes:image href="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/2/b/2/a/387d-c549-43a2-a4d5-735393c8075e"/>
       <itunes:explicit>false</itunes:explicit>
     </item>
   </channel>

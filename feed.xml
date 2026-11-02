@@ -6,7 +6,7 @@
     <atom:link href="https://www.monkeyradio.in/feed.xml" rel="self" type="application/rss+xml"/>
     <description>Independent and colourful radio out of Hyderabad. New shows from the Monkey Radio India Mixcloud archive.</description>
     <language>en-in</language>
-    <lastBuildDate>Sun, 01 Nov 2026 13:33:28 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 02 Nov 2026 16:09:06 GMT</lastBuildDate>
     <generator>scripts/build-feed.mjs</generator>
     <image>
       <url>https://www.monkeyradio.in/assets/icon-512.png</url>
@@ -22,6 +22,19 @@
       <itunes:name>Monkey Radio India</itunes:name>
       <itunes:email>monkeyradio.in@gmail.com</itunes:email>
     </itunes:owner>
+    <item>
+      <title>Spellbound  presents Doris B2B Morph3us</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/spellbound-presents-doris-b2b-morph3us/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/spellbound-presents-doris-b2b-morph3us/</guid>
+      <pubDate>Mon, 02 Nov 2026 15:19:46 GMT</pubDate>
+      <description>Selector: Spellbound - 2 hr 54 min - Listen on Mixcloud.</description>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/3/0/6/a/c01b-919a-472f-80d7-217d9340e376"/>
+      <itunes:author>Spellbound</itunes:author>
+      <itunes:summary>Selector: Spellbound - 2 hr 54 min - Listen on Mixcloud.</itunes:summary>
+      <itunes:duration>2:54:22</itunes:duration>
+      <itunes:image href="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/3/0/6/a/c01b-919a-472f-80d7-217d9340e376"/>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
     <item>
       <title>Dakta Dub pres. Tune Inn 28.10.2026</title>
       <link>https://www.mixcloud.com/monkeyradioindia/dakta-dub-pres-tune-inn-28102026/</link>
@@ -1025,24 +1038,6 @@
       <itunes:summary>Selector: Mr Nobody - 59 min - Reggae, Roots reggae, Dub, Rub A Dub, Mrnobody - Listen on Mixcloud.</itunes:summary>
       <itunes:duration>59:09</itunes:duration>
       <itunes:image href="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/6/e/e/b/9894-7f48-43a5-a4f1-6bcebf42b8e1"/>
-      <itunes:explicit>false</itunes:explicit>
-    </item>
-    <item>
-      <title>Roots unwired 29.06.2019</title>
-      <link>https://www.mixcloud.com/monkeyradioindia/roots-unwired-29062019/</link>
-      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/roots-unwired-29062019/</guid>
-      <pubDate>Sat, 29 Jun 2019 17:12:17 GMT</pubDate>
-      <description>Selector: Mr Nobody - 1 hr 5 min - Reggae, Roots reggae, Dub, Dubwise, Mrnobody - Listen on Mixcloud.</description>
-      <category>Reggae</category>
-      <category>Roots reggae</category>
-      <category>Dub</category>
-      <category>Dubwise</category>
-      <category>Mrnobody</category>
-      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/3/2/5/4/b521-ccfa-41e4-9d2f-a378eb298f3c"/>
-      <itunes:author>Mr Nobody</itunes:author>
-      <itunes:summary>Selector: Mr Nobody - 1 hr 5 min - Reggae, Roots reggae, Dub, Dubwise, Mrnobody - Listen on Mixcloud.</itunes:summary>
-      <itunes:duration>1:05:51</itunes:duration>
-      <itunes:image href="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/3/2/5/4/b521-ccfa-41e4-9d2f-a378eb298f3c"/>
       <itunes:explicit>false</itunes:explicit>
     </item>
   </channel>

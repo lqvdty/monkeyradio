@@ -6,7 +6,7 @@
     <atom:link href="https://www.monkeyradio.in/feed.xml" rel="self" type="application/rss+xml"/>
     <description>Independent and colourful radio out of Hyderabad. New shows from the Monkey Radio India Mixcloud archive.</description>
     <language>en-in</language>
-    <lastBuildDate>Fri, 06 Nov 2026 14:23:02 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 07 Nov 2026 13:12:50 GMT</lastBuildDate>
     <generator>scripts/build-feed.mjs</generator>
     <image>
       <url>https://www.monkeyradio.in/assets/icon-512.png</url>
@@ -23,14 +23,35 @@
       <itunes:email>monkeyradio.in@gmail.com</itunes:email>
     </itunes:owner>
     <item>
-      <title>Spellbound  presents Doris B2B Morph3us</title>
+      <title>Ra1 pres. Sub-Tantra 06.11.2026</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/ra1-pres-sub-tantra-06112026/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/ra1-pres-sub-tantra-06112026/</guid>
+      <pubDate>Fri, 06 Nov 2026 16:03:09 GMT</pubDate>
+      <description>Selector: Ra1 - 1 hr 24 min - Downtempo, Trip hop, Psybient, Chillout, Easy listening - Listen on Mixcloud.</description>
+      <category>Downtempo</category>
+      <category>Trip hop</category>
+      <category>Psybient</category>
+      <category>Chillout</category>
+      <category>Easy listening</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/7/c/f/5/454c-cb96-44b8-9a17-dccc7e1d2686"/>
+      <itunes:author>Ra1</itunes:author>
+      <itunes:summary>Selector: Ra1 - 1 hr 24 min - Downtempo, Trip hop, Psybient, Chillout, Easy listening - Listen on Mixcloud.</itunes:summary>
+      <itunes:duration>1:24:50</itunes:duration>
+      <itunes:image href="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/7/c/f/5/454c-cb96-44b8-9a17-dccc7e1d2686"/>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
+    <item>
+      <title>Doris B2B Morph3us pres. Spellbound 02.11.2026</title>
       <link>https://www.mixcloud.com/monkeyradioindia/spellbound-presents-doris-b2b-morph3us/</link>
       <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/spellbound-presents-doris-b2b-morph3us/</guid>
       <pubDate>Mon, 02 Nov 2026 15:19:46 GMT</pubDate>
-      <description>Selector: Spellbound - 2 hr 54 min - Listen on Mixcloud.</description>
+      <description>Selector: Doris B2B Morph3us - 2 hr 54 min - Techno, House, Breakbeat - Listen on Mixcloud.</description>
+      <category>Techno</category>
+      <category>House</category>
+      <category>Breakbeat</category>
       <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/3/0/6/a/c01b-919a-472f-80d7-217d9340e376"/>
-      <itunes:author>Spellbound</itunes:author>
-      <itunes:summary>Selector: Spellbound - 2 hr 54 min - Listen on Mixcloud.</itunes:summary>
+      <itunes:author>Doris B2B Morph3us</itunes:author>
+      <itunes:summary>Selector: Doris B2B Morph3us - 2 hr 54 min - Techno, House, Breakbeat - Listen on Mixcloud.</itunes:summary>
       <itunes:duration>2:54:22</itunes:duration>
       <itunes:image href="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/3/0/6/a/c01b-919a-472f-80d7-217d9340e376"/>
       <itunes:explicit>false</itunes:explicit>
@@ -1020,24 +1041,6 @@
       <itunes:summary>Selector: Malz - 59 min - Dubstep, Dnb, Soundsystem, Drum &amp; Bass, Dub - Listen on Mixcloud.</itunes:summary>
       <itunes:duration>59:42</itunes:duration>
       <itunes:image href="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/9/d/0/1/d7d3-38a6-41b3-9afc-64c881540557"/>
-      <itunes:explicit>false</itunes:explicit>
-    </item>
-    <item>
-      <title>Roots unwired 13.07.2019</title>
-      <link>https://www.mixcloud.com/monkeyradioindia/roots-unwired-13072019/</link>
-      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/roots-unwired-13072019/</guid>
-      <pubDate>Sat, 13 Jul 2019 21:02:39 GMT</pubDate>
-      <description>Selector: Mr Nobody - 59 min - Reggae, Roots reggae, Dub, Rub A Dub, Mrnobody - Listen on Mixcloud.</description>
-      <category>Reggae</category>
-      <category>Roots reggae</category>
-      <category>Dub</category>
-      <category>Rub A Dub</category>
-      <category>Mrnobody</category>
-      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/6/e/e/b/9894-7f48-43a5-a4f1-6bcebf42b8e1"/>
-      <itunes:author>Mr Nobody</itunes:author>
-      <itunes:summary>Selector: Mr Nobody - 59 min - Reggae, Roots reggae, Dub, Rub A Dub, Mrnobody - Listen on Mixcloud.</itunes:summary>
-      <itunes:duration>59:09</itunes:duration>
-      <itunes:image href="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/6/e/e/b/9894-7f48-43a5-a4f1-6bcebf42b8e1"/>
       <itunes:explicit>false</itunes:explicit>
     </item>
   </channel>

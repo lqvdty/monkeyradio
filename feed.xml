@@ -6,7 +6,7 @@
     <atom:link href="https://www.monkeyradio.in/feed.xml" rel="self" type="application/rss+xml"/>
     <description>Independent and colourful radio out of Hyderabad. New shows from the Monkey Radio India Mixcloud archive.</description>
     <language>en-in</language>
-    <lastBuildDate>Sun, 08 Nov 2026 13:34:53 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 09 Nov 2026 16:31:53 GMT</lastBuildDate>
     <generator>scripts/build-feed.mjs</generator>
     <image>
       <url>https://www.monkeyradio.in/assets/icon-512.png</url>
@@ -23,21 +23,21 @@
       <itunes:email>monkeyradio.in@gmail.com</itunes:email>
     </itunes:owner>
     <item>
-      <title>Dakta Dub pres. Tune inn Diwali Mix 08.11.2026</title>
-      <link>https://www.mixcloud.com/monkeyradioindia/dakta-dub-presents-tune-inn-diwali-mix/</link>
-      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/dakta-dub-presents-tune-inn-diwali-mix/</guid>
-      <pubDate>Sun, 08 Nov 2026 08:35:16 GMT</pubDate>
-      <description>Selector: Dakta Dub - 59 min - Dub, Electronic, World music, World fusion, Indian classical music - Listen on Mixcloud.</description>
-      <category>Dub</category>
-      <category>Electronic</category>
-      <category>World music</category>
-      <category>World fusion</category>
-      <category>Indian classical music</category>
-      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/1/3/f/5/749b-cde7-45de-9d0c-3446afe08694"/>
+      <title>Dakta Dub pres. Tune Inn (Diwali Mix) 09.11.2026</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/dakta-dub-pres-tune-inn-diwali-mix/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/dakta-dub-pres-tune-inn-diwali-mix/</guid>
+      <pubDate>Sun, 08 Nov 2026 18:11:57 GMT</pubDate>
+      <description>Selector: Dakta Dub - 55 min - Indian Classical Dub, Carnatic Dub, World dub, Daktadub, Shivacult - Listen on Mixcloud.</description>
+      <category>Indian Classical Dub</category>
+      <category>Carnatic Dub</category>
+      <category>World dub</category>
+      <category>Daktadub</category>
+      <category>Shivacult</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/6/6/5/a/1ffb-e1f1-49bd-8289-4f4e67aa7abb"/>
       <itunes:author>Dakta Dub</itunes:author>
-      <itunes:summary>Selector: Dakta Dub - 59 min - Dub, Electronic, World music, World fusion, Indian classical music - Listen on Mixcloud.</itunes:summary>
-      <itunes:duration>59:43</itunes:duration>
-      <itunes:image href="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/1/3/f/5/749b-cde7-45de-9d0c-3446afe08694"/>
+      <itunes:summary>Selector: Dakta Dub - 55 min - Indian Classical Dub, Carnatic Dub, World dub, Daktadub, Shivacult - Listen on Mixcloud.</itunes:summary>
+      <itunes:duration>55:14</itunes:duration>
+      <itunes:image href="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/6/6/5/a/1ffb-e1f1-49bd-8289-4f4e67aa7abb"/>
       <itunes:explicit>false</itunes:explicit>
     </item>
     <item>

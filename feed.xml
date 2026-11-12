@@ -6,7 +6,7 @@
     <atom:link href="https://www.monkeyradio.in/feed.xml" rel="self" type="application/rss+xml"/>
     <description>Independent and colourful radio out of Hyderabad. New shows from the Monkey Radio India Mixcloud archive.</description>
     <language>en-in</language>
-    <lastBuildDate>Wed, 11 Nov 2026 14:30:04 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 12 Nov 2026 15:23:06 GMT</lastBuildDate>
     <generator>scripts/build-feed.mjs</generator>
     <image>
       <url>https://www.monkeyradio.in/assets/icon-512.png</url>

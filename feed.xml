@@ -6,7 +6,7 @@
     <atom:link href="https://www.monkeyradio.in/feed.xml" rel="self" type="application/rss+xml"/>
     <description>Independent and colourful radio out of Hyderabad. New shows from the Monkey Radio India Mixcloud archive.</description>
     <language>en-in</language>
-    <lastBuildDate>Sun, 15 Nov 2026 14:01:53 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 16 Nov 2026 15:58:29 GMT</lastBuildDate>
     <generator>scripts/build-feed.mjs</generator>
     <image>
       <url>https://www.monkeyradio.in/assets/icon-512.png</url>
@@ -22,6 +22,22 @@
       <itunes:name>Monkey Radio India</itunes:name>
       <itunes:email>monkeyradio.in@gmail.com</itunes:email>
     </itunes:owner>
+    <item>
+      <title>Malz pres. The Adam show</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/malz-pres-the-adam-show/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/malz-pres-the-adam-show/</guid>
+      <pubDate>Sun, 15 Nov 2026 20:25:30 GMT</pubDate>
+      <description>Selector: Malz - 1 hr 0 min - Dub, Dubstep, Reggae - Listen on Mixcloud.</description>
+      <category>Dub</category>
+      <category>Dubstep</category>
+      <category>Reggae</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/b/9/f/c/80ea-0a47-488a-8bcc-c87c9f8f1bcb"/>
+      <itunes:author>Malz</itunes:author>
+      <itunes:summary>Selector: Malz - 1 hr 0 min - Dub, Dubstep, Reggae - Listen on Mixcloud.</itunes:summary>
+      <itunes:duration>1:00:40</itunes:duration>
+      <itunes:image href="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/b/9/f/c/80ea-0a47-488a-8bcc-c87c9f8f1bcb"/>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
     <item>
       <title>Dakta Dub pres. Tune Inn (Diwali Mix) 09.11.2026</title>
       <link>https://www.mixcloud.com/monkeyradioindia/dakta-dub-pres-tune-inn-diwali-mix/</link>
@@ -1024,23 +1040,6 @@
       <itunes:summary>Selector: Mr Nobody - 1 hr 7 min - Reggae, Roots reggae, Dub, Dancehall, Community Radio - Listen on Mixcloud.</itunes:summary>
       <itunes:duration>1:07:43</itunes:duration>
       <itunes:image href="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/d/0/5/d/39a1-705d-42f6-8b49-dd2425fd67b1"/>
-      <itunes:explicit>false</itunes:explicit>
-    </item>
-    <item>
-      <title>Roots unwired 27.07.2019</title>
-      <link>https://www.mixcloud.com/monkeyradioindia/ots-unwired-27072019/</link>
-      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/ots-unwired-27072019/</guid>
-      <pubDate>Sun, 28 Jul 2019 07:10:14 GMT</pubDate>
-      <description>Selector: Mr Nobody - 1 hr 5 min - Dub, Roots reggae, Roots &amp; Culture, Reggae - Listen on Mixcloud.</description>
-      <category>Dub</category>
-      <category>Roots reggae</category>
-      <category>Roots &amp; Culture</category>
-      <category>Reggae</category>
-      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/b/5/7/a/ab2b-9257-4933-8a53-c1c21841fd70"/>
-      <itunes:author>Mr Nobody</itunes:author>
-      <itunes:summary>Selector: Mr Nobody - 1 hr 5 min - Dub, Roots reggae, Roots &amp; Culture, Reggae - Listen on Mixcloud.</itunes:summary>
-      <itunes:duration>1:05:13</itunes:duration>
-      <itunes:image href="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/b/5/7/a/ab2b-9257-4933-8a53-c1c21841fd70"/>
       <itunes:explicit>false</itunes:explicit>
     </item>
   </channel>

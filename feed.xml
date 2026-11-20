@@ -6,7 +6,7 @@
     <atom:link href="https://www.monkeyradio.in/feed.xml" rel="self" type="application/rss+xml"/>
     <description>Independent and colourful radio out of Hyderabad. New shows from the Monkey Radio India Mixcloud archive.</description>
     <language>en-in</language>
-    <lastBuildDate>Thu, 19 Nov 2026 15:51:40 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 20 Nov 2026 15:33:43 GMT</lastBuildDate>
     <generator>scripts/build-feed.mjs</generator>
     <image>
       <url>https://www.monkeyradio.in/assets/icon-512.png</url>
@@ -22,6 +22,23 @@
       <itunes:name>Monkey Radio India</itunes:name>
       <itunes:email>monkeyradio.in@gmail.com</itunes:email>
     </itunes:owner>
+    <item>
+      <title>Blanqui Pres. Riverside Rituals 19.11.2026</title>
+      <link>https://www.mixcloud.com/monkeyradioindia/blanqui-pres-riverside-rituals/</link>
+      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/blanqui-pres-riverside-rituals/</guid>
+      <pubDate>Thu, 19 Nov 2026 19:04:25 GMT</pubDate>
+      <description>Selector: Blanqui - 58 min - Techno, Hardgroove, Hypnotic Techno, Tribal - Listen on Mixcloud.</description>
+      <category>Techno</category>
+      <category>Hardgroove</category>
+      <category>Hypnotic Techno</category>
+      <category>Tribal</category>
+      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/8/7/e/b/06c2-911b-48e8-b8e3-08f0c4a5b32e"/>
+      <itunes:author>Blanqui</itunes:author>
+      <itunes:summary>Selector: Blanqui - 58 min - Techno, Hardgroove, Hypnotic Techno, Tribal - Listen on Mixcloud.</itunes:summary>
+      <itunes:duration>58:51</itunes:duration>
+      <itunes:image href="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/8/7/e/b/06c2-911b-48e8-b8e3-08f0c4a5b32e"/>
+      <itunes:explicit>false</itunes:explicit>
+    </item>
     <item>
       <title>Malz pres. The Adam show</title>
       <link>https://www.mixcloud.com/monkeyradioindia/malz-pres-the-adam-show/</link>
@@ -1022,24 +1039,6 @@
       <itunes:summary>Selector: Mr Nobody - 1 hr 1 min - Reggae, Roots reggae, Dub, Power to people, Mrnobody - Listen on Mixcloud.</itunes:summary>
       <itunes:duration>1:01:46</itunes:duration>
       <itunes:image href="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/f/a/b/a/7697-193c-4292-bca6-2ef28fe84360"/>
-      <itunes:explicit>false</itunes:explicit>
-    </item>
-    <item>
-      <title>Roots Unwired 31.08.2019</title>
-      <link>https://www.mixcloud.com/monkeyradioindia/roots-unwired-31082019/</link>
-      <guid isPermaLink="true">https://www.mixcloud.com/monkeyradioindia/roots-unwired-31082019/</guid>
-      <pubDate>Sun, 01 Sep 2019 06:43:09 GMT</pubDate>
-      <description>Selector: Mr Nobody - 1 hr 7 min - Reggae, Roots reggae, Dub, Dancehall, Community Radio - Listen on Mixcloud.</description>
-      <category>Reggae</category>
-      <category>Roots reggae</category>
-      <category>Dub</category>
-      <category>Dancehall</category>
-      <category>Community Radio</category>
-      <media:thumbnail url="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/d/0/5/d/39a1-705d-42f6-8b49-dd2425fd67b1"/>
-      <itunes:author>Mr Nobody</itunes:author>
-      <itunes:summary>Selector: Mr Nobody - 1 hr 7 min - Reggae, Roots reggae, Dub, Dancehall, Community Radio - Listen on Mixcloud.</itunes:summary>
-      <itunes:duration>1:07:43</itunes:duration>
-      <itunes:image href="https://thumbnailer.mixcloud.com/unsafe/600x600/extaudio/d/0/5/d/39a1-705d-42f6-8b49-dd2425fd67b1"/>
       <itunes:explicit>false</itunes:explicit>
     </item>
   </channel>
